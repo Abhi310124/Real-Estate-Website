@@ -9,3 +9,10 @@ playwright-report/
 lighthouse-*.json
 *.tsbuildinfo
 .DS_Store
+
+# Next.js build-time artifacts (regenerated automatically)
+next-env.d.ts
+.vercel
+
+# local tool state (dev-server preview launch config, not an app deliverable)
+.claude/

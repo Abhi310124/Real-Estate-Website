@@ -1,0 +1,29 @@
+/*
+ * Task 1, Step 8 decision gate — does next/font/google serve Archivo's `wdth` axis?
+ * VERIFIED YES. Measured with Playwright against the live `h1.font-display-expanded`
+ * in app/page.tsx: a Range over its text node measured 785.76px at `wdth 118` vs
+ * 663.25px at `wdth 100` — an 18.5% width delta, fully reversible by toggling the
+ * `--wdth-display` custom property back and forth. document.fonts confirms the
+ * loaded @font-face for "Archivo" declares `font-weight: 100 900` and
+ * `font-stretch: 62% 125%`, i.e. the true variable file, not a static wght-only
+ * instance. Kept the single Archivo family below; no fallback to the separately
+ * published Archivo_Expanded family was needed.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { --wdth-display: 118; }
+  .font-display-expanded {
+    font-family: var(--font-archivo);
+    font-variation-settings: 'wdth' var(--wdth-display), 'wght' 800;
+    text-transform: uppercase;
+  }
+  .eyebrow {
+    font-family: var(--font-archivo);
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+    text-transform: uppercase;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+}
