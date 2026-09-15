@@ -10,21 +10,23 @@ test.describe('smooth scroll', () => {
 test.describe('prefers-reduced-motion: reduce', () => {
   test.use({ reducedMotion: 'reduce' })
 
-  test('Lenis is not initialised', async ({ page }) => {
-    await page.goto('/')
-    await expect(page.locator('html')).not.toHaveClass(/lenis-smooth/)
-  })
-
-  // Added beyond the brief: in the installed Lenis version, `lenis-smooth` is only
-  // applied to <html> while a smooth-scroll animation is actively in flight (see
-  // `isScrolling === 'smooth'` in lenis/dist/lenis.mjs) — not as a static class set at
-  // construction time. A page load with no scroll interaction never reaches that state
-  // regardless of whether Lenis was constructed, so the assertion above would pass
-  // even against a build that ignores reduced motion entirely. The bare `lenis` class,
-  // by contrast, is added unconditionally the moment `new Lenis()` runs — it is exactly
-  // the positive assertion in the "smooth scroll" block above, negated here. This is
-  // the test with real teeth: it fails if Lenis is constructed at all under reduced
-  // motion, independent of any scroll interaction.
+  // This replaces the brief's `not.toHaveClass(/lenis-smooth/)` assertion, which was
+  // deleted rather than kept alongside it, for two compounding reasons.
+  //
+  // It could never fail: in the installed Lenis, `lenis-smooth` is applied to <html>
+  // only while a smooth scroll is actively in flight (`isScrolling === 'smooth'` in
+  // lenis/dist/lenis.mjs), never statically at construction — so a `page.goto` with no
+  // scroll interaction passes even against a build that ignores reduced motion outright.
+  //
+  // And it was redundant even on its own terms: Playwright matches `toHaveClass(regex)`
+  // against the entire class attribute, so `/lenis/` below already matches the substring
+  // in `lenis-smooth`. This assertion is strictly stronger than the one it replaces, not
+  // merely different — keeping both would have left a test that contributes no
+  // information while reading like coverage, and invited a later cleanup to delete the
+  // load-bearing one as the apparent duplicate.
+  //
+  // The bare `lenis` class is added unconditionally the moment `new Lenis()` runs, so
+  // this fails if Lenis is constructed at all under reduced motion, with no scroll needed.
   test('Lenis is never constructed at all', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('html')).not.toHaveClass(/lenis/)

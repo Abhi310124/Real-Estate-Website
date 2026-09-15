@@ -2,6 +2,10 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // A stray `test.only` committed mid-task would silently green a CI run while skipping
+  // every other spec. Deliberately no `retries`: this suite exists to catch animation and
+  // hydration timing bugs, and a retry turns exactly that class of failure into a pass.
+  forbidOnly: !!process.env.CI,
   use: {
     baseURL: 'http://localhost:3000',
   },
