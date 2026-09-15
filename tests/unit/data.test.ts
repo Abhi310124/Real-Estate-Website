@@ -55,6 +55,30 @@ describe('data layer with no Sanity env vars', () => {
     expect(await getAllProjectSlugs()).not.toContain('unpublished-sample')
   })
 
+  it('returns null for a slug that does not exist at all', async () => {
+    expect(await getProject('no-such-project')).toBeNull()
+  })
+
+  it('applies the category and status filters together, not just one at a time', async () => {
+    const both = await getProjects({ category: 'villas', status: 'ongoing' })
+    expect(both.length).toBeGreaterThan(0)
+    expect(both.every((p) => p.category === 'villas' && p.status === 'ongoing')).toBe(true)
+  })
+
+  // `bkr-skyline-residences` is the deliberately sparse fixture: later tasks render the
+  // optional project blocks against it to prove they degrade instead of crashing. Fetching
+  // it here is what keeps it sparse — if someone later fills in its `masterPlan`, the
+  // fixture stops proving anything and the absent-masterplan path loses its only coverage,
+  // which would surface as a confusing failure several tasks downstream instead of here.
+  it('resolves the sparse fixture with its optional blocks genuinely absent', async () => {
+    const sparse = await getProject('bkr-skyline-residences')
+    expect(sparse).not.toBeNull()
+    expect(sparse!.masterPlan).toBeUndefined()
+    expect(sparse!.heroImage.alt).toBeTruthy()
+    expect(sparse!.reraNumber).toBeTruthy()
+    expect(sparse!.overview.length).toBeGreaterThan(0)
+  })
+
   // Ruling: publish-gating is the project's first non-negotiable — the owner hides a
   // project by flipping one switch, and it must vanish from every surface. The four tests
   // above cover getProjects, getProject and getAllProjectSlugs; this one covers
@@ -70,11 +94,12 @@ describe('data layer with no Sanity env vars', () => {
 })
 
 describe('site settings', () => {
-  // Drift guard on the one rule no task may relax: these are the client's real contact
-  // details, and a later task must not quietly replace them with plausible-looking
-  // placeholders. `email` and `socials` are absent/empty on purpose — no verified value
-  // exists for either — so consumers render those links conditionally. That degradation is
-  // asserted where it is rendered (Footer, Contact), not here.
+  // Drift guard on the contact details that ARE verified facts: a later task must not
+  // quietly replace them with plausible-looking placeholders. Deliberately silent about
+  // `email` and `socials`, which are unset because no verified value exists today —
+  // asserting their absence would make this test fail the day the client supplies one. Why
+  // they are unset lives as a comment beside them in lib/data/mock.ts, and the conditional
+  // rendering it forces is asserted where it happens (Footer, Contact).
   it("exposes the client's real contact details verbatim", async () => {
     const s = await getSiteSettings()
     expect(s.phones).toEqual(['+91 6301999971', '+91 9676669923'])
