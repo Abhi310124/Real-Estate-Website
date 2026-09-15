@@ -1,0 +1,5 @@
+# Normalise line endings so review diffs show real changes, not CRLF churn.
+* text=auto eol=lf
+
+# Generated — collapse in diffs and reviews.
+package-lock.json linguist-generated=true -diff
