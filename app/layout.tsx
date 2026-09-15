@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Archivo, Inter } from 'next/font/google'
 import './globals.css'
+import { LenisProvider } from '@/components/motion/LenisProvider'
 
 const archivo = Archivo({
   subsets: ['latin'],
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        {children}
+        <LenisProvider>{children}</LenisProvider>
       </body>
     </html>
   )
