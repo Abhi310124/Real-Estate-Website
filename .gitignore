@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.env*.local
+.superpowers/
+.playwright-mcp/
+test-results/
+playwright-report/
+lighthouse-*.json
+*.tsbuildinfo
+.DS_Store
