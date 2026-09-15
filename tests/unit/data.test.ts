@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { getProjects, getFeaturedProjects, getProject, getAllProjectSlugs, activeSource } from '@/lib/data'
+import {
+  getProjects,
+  getFeaturedProjects,
+  getProject,
+  getAllProjectSlugs,
+  getSiteSettings,
+  activeSource,
+} from '@/lib/data'
 
 describe('data layer with no Sanity env vars', () => {
   it('falls back to mock so the site builds without a Sanity account', () => {
@@ -59,5 +66,20 @@ describe('data layer with no Sanity env vars', () => {
     const featured = await getFeaturedProjects()
     expect(featured.every((p) => p.isPublished)).toBe(true)
     expect(featured.some((p) => p.slug === 'unpublished-sample')).toBe(false)
+  })
+})
+
+describe('site settings', () => {
+  // Drift guard on the one rule no task may relax: these are the client's real contact
+  // details, and a later task must not quietly replace them with plausible-looking
+  // placeholders. `email` and `socials` are absent/empty on purpose — no verified value
+  // exists for either — so consumers render those links conditionally. That degradation is
+  // asserted where it is rendered (Footer, Contact), not here.
+  it("exposes the client's real contact details verbatim", async () => {
+    const s = await getSiteSettings()
+    expect(s.phones).toEqual(['+91 6301999971', '+91 9676669923'])
+    expect(s.whatsappNumber).toBe('+91 6301999971')
+    expect(s.address).toBe('Flat No. 202, Mythri Apartments, Opp. BSNL Office, ECIL, Hyderabad-62')
+    expect(s.reraDisclaimer).toBeTruthy()
   })
 })

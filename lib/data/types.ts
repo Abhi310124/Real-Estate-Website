@@ -41,7 +41,11 @@ export interface SiteSettings {
   tagline: string
   phones: string[]
   whatsappNumber: string
-  email: string
+  // Optional by ruling: no official inbox is a verified fact for BKR INFRA, and a `mailto:` to a
+  // mailbox that does not exist swallows the enquiry while looking like it worked. Render the
+  // email link only when this is set. The phones, WhatsApp and the enquiry form are the channels
+  // that always exist. The Sanity schema must not mark this field required.
+  email?: string
   address: string
   socials: Array<{ platform: string; url: string }>
   pillars: Array<{ title: string; description: string }>

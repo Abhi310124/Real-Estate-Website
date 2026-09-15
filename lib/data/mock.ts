@@ -504,13 +504,12 @@ export const MOCK_SETTINGS: SiteSettings = {
   tagline: 'Redefining Real Estate Excellence',
   phones: ['+91 6301999971', '+91 9676669923'],
   whatsappNumber: '+91 6301999971',
-  // No official inbox is named in the brand brief (only the two phone numbers and the address
-  // are given as real contact facts) — this follows the obvious bkrinfra.com domain
-  // convention rather than inventing an unrelated address. Flagged in the task report; swap
-  // in the real inbox if one exists.
-  email: 'info@bkrinfra.com',
+  // `email` is deliberately absent. The brand brief names only the two phone numbers and this
+  // address as verified contact facts, and a guessed inbox rendered as a `mailto:` would lose
+  // enquiries silently. Consumers omit the link until a real address is supplied.
   address: 'Flat No. 202, Mythri Apartments, Opp. BSNL Office, ECIL, Hyderabad-62',
-  // No verified social handles were supplied either — left empty rather than fabricated ones.
+  // No verified social handles were supplied either — an empty list is a valid state for
+  // consumers to degrade to, not an error.
   socials: [],
   pillars: [
     { title: 'DEVELOP', description: 'Identifying and acquiring land in the highest-growth corridors of Hyderabad before the wider market catches on.' },
