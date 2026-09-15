@@ -65,7 +65,7 @@ When the axe audit flags orange-on-ivory, that is a true positive. Recolour it o
 
 Architectural sans, deliberately against the category — every competitor reaches for a serif. Justified by the logo's chamfered geometric letterforms.
 
-- **Display:** Archivo variable, `wght 800` / `wdth 118`, UPPERCASE, tracking `-0.02em`, leading `0.92`.
+- **Display:** Archivo variable, `wght 800` / `wdth 118`, UPPERCASE, tracking `-0.02em`, leading `0.92`. Those two values anchor `display-xl`; leading and tracking open up deliberately at smaller display sizes (`display-lg` leading `0.94`; `display-md` leading `1.02`, tracking `-0.015em`), because leading that reads as tight and confident at 7.5rem reads as collided at 1.75rem. This graduation is intentional — do not "correct" it back to a uniform `0.92`.
 - **Eyebrow:** Archivo `wght 600` / `wdth 100`, UPPERCASE, 11–12px, tracking `+0.32em`.
 - **Body:** Inter variable, leading 1.7–1.75.
 - **Numerals:** `tabular-nums` always, so counters do not jitter while animating.
@@ -144,7 +144,7 @@ Next.js App Router · TypeScript strict · Tailwind · Sanity with Studio embedd
 - Labels are `<label for>`. A placeholder is not a label.
 - Interactive elements: `min-h-11`, visible `focus-visible` ring, accessible name.
 - Overlays: `role="dialog"`, `aria-modal`, focus trapped, `Escape` closes, focus restored to the trigger, `<body>` scroll locked.
-- Z-index budget, fixed: transition curtain `90`, header `80`, lightbox `110`, cursor `120`. Do not invent new layers.
+- Z-index budget, fixed: header `80`, transition curtain `90`, lightbox `110`, cursor `120`, skip link `130`. Do not invent new layers. The skip link sits on top deliberately — it is the keyboard user's escape hatch, and a decorative cursor or a stuck curtain painting over it turns a working affordance into a dead one.
 - Errors degrade, they do not crash. A Sanity outage empties a section; it does not white-screen the site. A missing mail key logs a warning and still returns `{ ok: true }` so a lead is never lost.
 - Indian formatting throughout: `toLocaleString('en-IN')`, `₹85 Lakh onwards`, `₹1.4 Cr onwards`, `Price on request` when unset.
 - RERA number on every project page; RERA disclaimer in the footer. Legally required for property marketing in India.

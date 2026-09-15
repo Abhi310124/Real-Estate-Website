@@ -5,8 +5,12 @@ describe('brand tokens', () => {
   it('exposes the exact hexes from the spec', () => {
     expect(COLORS['navy-900']).toBe('#071628')
     expect(COLORS['navy-800']).toBe('#0A1A2F')
+    expect(COLORS['navy-700']).toBe('#16233A')
+    expect(COLORS['navy-600']).toBe('#1D2733')
     expect(COLORS['ivory']).toBe('#F7F4EE')
+    expect(COLORS['ivory-warm']).toBe('#FBF9F5')
     expect(COLORS['orange']).toBe('#FF4907')
+    expect(COLORS['orange-600']).toBe('#E63F05')
     expect(COLORS['champagne']).toBe('#C9A227')
   })
 })

@@ -2,7 +2,15 @@ import type { Config } from 'tailwindcss'
 import { COLORS } from './lib/tokens'
 
 export default {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  // lib/ and sanity/ are currently all .ts with no JSX, but a Studio input or preview
+  // component added later would silently lose its classes from production CSS — with no
+  // build warning and no dev-mode symptom. Cheaper to scan them from the start.
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}',
+    './sanity/**/*.{ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: { ...COLORS, brand: { navy: COLORS['navy-800'], orange: COLORS.orange } },
