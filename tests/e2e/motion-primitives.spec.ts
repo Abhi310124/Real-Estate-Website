@@ -90,8 +90,21 @@ test('SplitWords below the fold stays displaced until scrolled into view, then s
   await page.goto('/motion-lab')
   const word = page.locator('[data-testid="split-words-below-fold"] [data-word]').first()
 
-  const transformBefore = await word.evaluate((el) => getComputedStyle(el).transform)
-  expect(transformBefore).not.toMatch(/matrix\(1, 0, 0, 1, 0, 0\)|none/)
+  // Polled rather than read once, for exactly the reason the marquee count above is
+  // polled: useReducedMotion() returns true on its first render by design, so on first
+  // paint the words have not been hidden yet and this transform is still the identity
+  // matrix. A synchronous read races that one-render window — it passes only by timing
+  // luck, and fails the moment a slower machine or a busier worker widens the gap.
+  //
+  // Polling for the displaced state also makes the assertion stronger, not merely safer:
+  // it positively proves the hide ran, instead of catching it after the fact. It cannot
+  // hang in the happy path, because `once: true` has not fired for a below-fold element,
+  // so once displaced the words stay displaced until scrolled to. And a static
+  // implementation that animates nothing times out here — which is precisely the
+  // discrimination this test exists to provide.
+  await expect
+    .poll(async () => word.evaluate((el) => getComputedStyle(el).transform), { timeout: 5000 })
+    .not.toMatch(/matrix\(1, 0, 0, 1, 0, 0\)|none/)
 
   await word.scrollIntoViewIfNeeded()
 
