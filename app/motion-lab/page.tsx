@@ -2,6 +2,8 @@ import { Reveal } from '@/components/motion/Reveal'
 import { ImageReveal } from '@/components/motion/ImageReveal'
 import { Counter } from '@/components/motion/Counter'
 import { Marquee } from '@/components/motion/Marquee'
+import { Parallax } from '@/components/motion/Parallax'
+import { SplitWords } from '@/components/motion/SplitWords'
 
 // Development harness for the Task 5 motion primitives. Each primitive is separated by
 // an h-screen spacer so its ScrollTrigger fires at a realistic scroll distance rather
@@ -51,6 +53,33 @@ export default function MotionLabPage() {
           <span className="mx-6">Apartments</span>
           <span className="mx-6">Independent Houses</span>
         </Marquee>
+      </section>
+
+      <div className="h-screen" aria-hidden="true" />
+
+      {/* Ruling 8: a tall (not just h-screen) section gives the scrub tween generous
+          room on both sides of "just visible", so a modest test scroll lands well
+          inside its start/end range rather than risking scrollIntoViewIfNeeded already
+          snapping it to the edge of that range. */}
+      <section className="flex h-[150vh] items-center justify-center px-6">
+        <Parallax data-testid="parallax" speed={0.2} className="max-w-xl text-2xl">
+          <p>This block drifts upward at a different rate than the page scrolls beneath it.</p>
+        </Parallax>
+      </section>
+
+      <div className="h-screen" aria-hidden="true" />
+
+      {/* Ruling 9: deliberately below the fold (several viewports down) so its
+          ScrollTrigger (start: 'top 82%', once: true) cannot have fired yet on initial
+          load — Task 4's own h1 is above the fold and races that same trigger, which is
+          exactly why this regression test lives here instead of in split-words.spec.ts. */}
+      <section className="flex h-screen items-center justify-center px-6">
+        <SplitWords
+          as="h2"
+          data-testid="split-words-below-fold"
+          className="text-center font-display-expanded text-display-xl"
+          text="Motion Confirmed Below The Fold"
+        />
       </section>
 
       <div className="h-screen" aria-hidden="true" />

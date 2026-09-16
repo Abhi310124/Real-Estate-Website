@@ -3,14 +3,17 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 import { getGsap } from './gsap'
 
-type Props = {
+// Extended with a passthrough of the rest of the standard element attributes (same
+// reasoning as Reveal/Parallax) so the motion lab can attach `data-testid` to a second,
+// below-the-fold instance for Ruling 9's regression test — the original interface had
+// no testid slot, and the home page's own instance (Task 4/Ruling 1) needs none.
+type Props = React.HTMLAttributes<HTMLElement> & {
   text: string
   as?: 'h1' | 'h2' | 'h3' | 'p' | 'span'
-  className?: string
   delay?: number
 }
 
-export function SplitWords({ text, as: Tag = 'h2', className, delay = 0 }: Props) {
+export function SplitWords({ text, as: Tag = 'h2', className, delay = 0, ...rest }: Props) {
   const root = useRef<HTMLElement>(null)
   const reduced = useReducedMotion()
   const words = text.split(/\s+/).filter(Boolean)
@@ -92,7 +95,7 @@ export function SplitWords({ text, as: Tag = 'h2', className, delay = 0 }: Props
   }, [])
 
   return (
-    <Tag ref={setRef} className={className}>
+    <Tag ref={setRef} className={className} {...rest}>
       {nodes}
     </Tag>
   )

@@ -39,6 +39,67 @@ test('marquee duplicates its track for a seamless loop', async ({ page }) => {
     .toBe(2)
 })
 
+// Ruling 8: a permanent regression test for the Lenis → ScrollTrigger bridge wired in
+// LenisProvider.tsx. That bridge has two independent halves, and either can break while
+// the other keeps working, so both are asserted here rather than inferring one from the
+// other:
+//   (a) gsap.ticker.add(t => lenis.raf(t * 1000)) — Lenis's own autoRaf defaults to
+//       false, so nothing drives its internal animation loop unless GSAP's ticker feeds
+//       it frames. If this wiring broke, Lenis would never advance and window.scrollY
+//       would stay frozen no matter how long we wait.
+//   (b) lenis.on('scroll', ScrollTrigger.update) — ScrollTrigger's scrub tweens read
+//       Lenis's virtual scroll position, not the native scrollbar, so they only update
+//       when Lenis explicitly tells them to. If this wiring broke, a scrub-linked
+//       transform would stay frozen even while window.scrollY (proven moving by (a))
+//       climbs underneath it.
+test('Lenis scroll bridges to both the rAF ticker and ScrollTrigger', async ({ page }) => {
+  await page.goto('/motion-lab')
+  const parallax = page.locator('[data-testid="parallax"]')
+  await parallax.scrollIntoViewIfNeeded()
+
+  const scrollYBefore = await page.evaluate(() => window.scrollY)
+  const transformBefore = await parallax.evaluate((el) => getComputedStyle(el).transform)
+
+  // A real wheel gesture, not page.evaluate(() => window.scrollTo(...)): Lenis
+  // intercepts the wheel event itself and drives scroll virtually, so a native
+  // scrollTo call would bypass Lenis entirely and prove nothing about either half of
+  // the bridge. Dispatched five times to accumulate a decisive cumulative delta well
+  // past Lenis's smoothing lag, rather than gambling on a single event being enough.
+  for (let i = 0; i < 5; i++) {
+    await page.mouse.wheel(0, 300)
+  }
+
+  // (a) the ticker half.
+  await expect
+    .poll(async () => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeGreaterThan(scrollYBefore)
+
+  // (b) the ScrollTrigger-sync half.
+  await expect
+    .poll(async () => parallax.evaluate((el) => getComputedStyle(el).transform), { timeout: 5000 })
+    .not.toBe(transformBefore)
+})
+
+// Ruling 9: SplitWords' own spec (split-words.spec.ts) can only prove the reveal
+// finishes — its one instance is Task 4's above-the-fold h1, whose ScrollTrigger
+// (start: 'top 82%', once: true) has already fired by the time the page finishes
+// loading, so there is no "before" state left to observe there. This second instance is
+// mounted several viewports below the fold specifically so both halves of the reveal are
+// observable in one test: displaced before the trigger can have fired, settled after.
+test('SplitWords below the fold stays displaced until scrolled into view, then settles', async ({ page }) => {
+  await page.goto('/motion-lab')
+  const word = page.locator('[data-testid="split-words-below-fold"] [data-word]').first()
+
+  const transformBefore = await word.evaluate((el) => getComputedStyle(el).transform)
+  expect(transformBefore).not.toMatch(/matrix\(1, 0, 0, 1, 0, 0\)|none/)
+
+  await word.scrollIntoViewIfNeeded()
+
+  await expect
+    .poll(async () => word.evaluate((el) => getComputedStyle(el).transform), { timeout: 5000 })
+    .toMatch(/matrix\(1, 0, 0, 1, 0, 0\)|none/)
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
 
