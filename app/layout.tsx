@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Archivo, Inter } from 'next/font/google'
 import './globals.css'
 import { LenisProvider } from '@/components/motion/LenisProvider'
+import { PageTransition } from '@/components/motion/PageTransition'
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -27,7 +28,9 @@ export const metadata: Metadata = {
 // only their wrapping <main> tag moved here) so there is exactly one <main> per page, not a
 // nested pair. Ruling 5: every pre-existing piece of this file (the LenisProvider wrapper,
 // the skip link and its z-[130], both font variables, the body classes, the metadata export)
-// is unchanged below — Task 7 and Task 8 only ever added new chrome around {children}.
+// is unchanged below — Task 7 and Task 8 only ever added new chrome around {children}. Task 9
+// is the same shape again: <main id="main"> still wraps exactly one thing, only now that one
+// thing is <PageTransition> rather than {children} directly.
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
 
@@ -43,7 +46,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LenisProvider>
           <AnnouncementBar settings={settings} />
           <Header settings={settings} />
-          <main id="main">{children}</main>
+          <main id="main">
+            <PageTransition>{children}</PageTransition>
+          </main>
           <Footer settings={settings} />
           <FloatingActions settings={settings} />
         </LenisProvider>
