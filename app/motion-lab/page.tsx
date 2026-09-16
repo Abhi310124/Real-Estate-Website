@@ -9,9 +9,15 @@ import { SplitWords } from '@/components/motion/SplitWords'
 // an h-screen spacer so its ScrollTrigger fires at a realistic scroll distance rather
 // than all firing at once on load. Not linked from any real page — Task 23 excludes it
 // from the sitemap and marks it noindex.
+//
+// Ruling 6: the <main id="main" className="bg-ivory text-navy-800"> wrapper that used to
+// live here now lives once, in app/layout.tsx, wrapping every page's {children}. The
+// className is dropped rather than moved: bg-ivory/text-navy-800 are already the body's own
+// classes in app/layout.tsx, so repeating them on a fragment here would be redundant, not
+// additive.
 export default function MotionLabPage() {
   return (
-    <main id="main" className="bg-ivory text-navy-800">
+    <>
       <section className="flex h-screen items-center justify-center">
         <h1 className="font-display-expanded text-display-xl">Motion Lab</h1>
       </section>
@@ -83,6 +89,6 @@ export default function MotionLabPage() {
       </section>
 
       <div className="h-screen" aria-hidden="true" />
-    </main>
+    </>
   )
 }
