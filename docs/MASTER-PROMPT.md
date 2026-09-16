@@ -108,7 +108,11 @@ The primitives, with their exact values:
 | `Counter` | count-up on enter, `tabular-nums`, `en-IN` grouping |
 | `Marquee` | duplicated track, `-50%` infinite, `ease: 'none'`, pauses on hover and off-screen |
 
-Lenis runs at `lerp: 0.09`, bridged with `lenis.on('scroll', ScrollTrigger.update)` and `gsap.ticker.add(t => lenis.raf(t * 1000))` plus `lagSmoothing(0)`. Without that bridge every ScrollTrigger fires at the wrong position — it is the single most common way this stack breaks.
+Lenis runs at `lerp: 0.09`, bridged with `lenis.on('scroll', ScrollTrigger.update)` and `gsap.ticker.add(t => lenis.raf(t * 1000))` plus `lagSmoothing(0)`. All three lines stay, but they are not equally load-bearing, and an earlier version of this document overstated the first — corrected here after measuring it:
+
+- **`gsap.ticker.add(t => lenis.raf(t * 1000))` is load-bearing.** Lenis's `autoRaf` defaults to `false`, so this is the only thing driving its loop. Remove it and scroll freezes completely.
+- **`lenis.on('scroll', ScrollTrigger.update)` is a latency and robustness improvement, not a correctness requirement in this configuration.** Verified by experiment: with the line fully commented out, the bridge e2e test still passes and scrub-linked triggers still track scroll. Lenis runs on the default `window` wrapper, so it calls real `window.scrollTo()` each frame, firing a native `scroll` event that ScrollTrigger's own fallback listener already catches (`ScrollTrigger.js` registers `wheel`/`scroll` at plugin init, commented "mostly for 3rd party smooth scrolling libraries"). Keep the line — it is the documented integration and saves a frame of lag — but do not claim a black-box scroll test guards it. It becomes genuinely load-bearing only under a custom `wrapper` or a `scrollerProxy`, where no native scroll event fires; **if a later task introduces either, this line stops being optional.**
+- Its presence is guarded structurally instead, by the `LenisProvider` unit test that asserts each wire is attached and that cleanup removes the same ticker callback reference before destroying Lenis.
 
 **The three signature moments** (all three are in scope; the client explicitly upgraded to all three):
 

@@ -47,7 +47,10 @@ export function Header({ settings }: Props) {
       >
         <div
           className={cn(
-            'mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 sm:px-6',
+            // py-2.5 as well as min-h-16: the logo lockup is vertical (mark over INFRA, as in
+            // the reference artwork) and stands ~55px tall, which min-h-16 alone left no room
+            // for — the mark clipped against the top edge. The row now grows to fit it.
+            'mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6',
             scrolled ? 'text-ivory' : 'text-navy-800'
           )}
         >
@@ -78,7 +81,9 @@ export function Header({ settings }: Props) {
                 vs scrolled-opaque); a page with a light hero at scroll 0 needs a
                 page-level override this component does not yet take a prop for — flagged in
                 batch-b-report.md rather than guessed at here. */}
-            <Logo variant={scrolled ? 'light' : 'dark'} className="h-9" />
+            {/* Width, not height — see the note in Logo.tsx. A height budget here crushed the
+                monogram to 8px via flex-shrink. */}
+            <Logo variant={scrolled ? 'light' : 'dark'} className="w-32" />
           </Link>
 
           <Button href="/contact" variant="solid" className="hidden sm:inline-flex">

@@ -9,14 +9,14 @@ import { LogoMark } from './LogoMark'
 // classification the reference JPEG's own edge blur does not make ambiguous, so the vector
 // trace stands and there is no raster fallback.
 //
-// Known, deliberately NOT fixed here: the callers size this whole lockup by height
-// (`h-9` in Header.tsx, `h-10` in Footer.tsx). Because LogoMark is a flex item whose
-// aspect-derived height exceeds that budget once the INFRA line is laid out, flex-shrink
-// crushes the mark to 8px tall in the header and 12px in the footer — smaller than the INFRA
-// text beneath it, inverting the reference's hierarchy, where the monogram is roughly 3x the
-// INFRA cap height. Correcting it means re-proportioning the lockup and the two call sites,
-// which is a layout decision beyond this component. Measured evidence is in
-// fix-wave-1-report.md.
+// Size this lockup by WIDTH, never by height. It mixes a scalable SVG with fixed-px text, so
+// under a height budget the text holds its size and the mark is the only thing that can give
+// — flex-shrink then crushed the monogram to 8px in the header and 12px in the footer, making
+// it smaller than the INFRA text beneath it and inverting the reference's hierarchy (the
+// reference monogram is ~2.9x the INFRA cap height). Width-sizing makes the mark's height
+// aspect-derived and the container's height automatic, so nothing competes for space. The
+// `shrink-0` on both the root and the mark is what guarantees it, since a flex parent would
+// otherwise still be free to compress the declared width.
 
 type LogoProps = {
   variant: 'dark' | 'light'
@@ -36,14 +36,17 @@ export function Logo({ variant, withTagline = false, className }: LogoProps) {
     <span
       role="img"
       aria-label="BKR INFRA — Redefining Real Estate Excellence"
-      className={cn('inline-flex flex-col items-center', className)}
+      className={cn('inline-flex shrink-0 flex-col items-center leading-none', className)}
     >
-      <LogoMark animated={false} color={ink} className="h-auto w-full" />
+      <LogoMark animated={false} color={ink} className="h-auto w-full shrink-0" />
 
       <span aria-hidden="true" className="mt-2 flex items-center justify-center gap-3">
         <span aria-hidden="true" className="h-[3px] w-6" style={{ backgroundColor: COLORS.orange }} />
+        {/* text-base, not text-sm: at the mark's 418:100 aspect this puts the monogram at ~3x
+            the INFRA cap height, matching the reference. At text-sm the ratio was ~3.4 and
+            INFRA read undersized against the mark. */}
         <span
-          className="text-sm font-display-expanded"
+          className="font-display-expanded text-base"
           style={{ color: ink, letterSpacing: '0.3em' }}
         >
           INFRA

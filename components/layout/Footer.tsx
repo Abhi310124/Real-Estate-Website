@@ -58,7 +58,8 @@ export function Footer({ settings }: Props) {
 
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div className="space-y-4 sm:col-span-2 lg:col-span-1">
-          <Logo variant="light" className="h-10" />
+          {/* Width, not height — see the note in Logo.tsx. */}
+          <Logo variant="light" className="w-44" />
           <p className="max-w-xs text-sm text-ivory/80">{settings.footerBlurb}</p>
 
           {/* `socials: []` is a valid state, not missing data (progress.md) — degrade to
