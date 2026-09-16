@@ -24,9 +24,9 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled])'
 
 /**
  * Full-screen navy overlay for the primary site navigation. Every a11y requirement below is
- * one of Ruling 10's hard, independently-testable requirements — see batch-b-report.md for
- * how each is exercised by tests/e2e/header.spec.ts (some are; the Tab-cycling half of the
- * focus trap is implemented here but not covered by an automated test in this batch).
+ * one of Ruling 10's hard, independently-testable requirements, and each is now exercised by
+ * tests/e2e/header.spec.ts — including the Tab/Shift+Tab cycling half of the focus trap, which
+ * 'focus cycles within the open mega-menu in both directions' covers.
  */
 export function MegaMenu({ id, open, onClose, triggerRef, settings }: Props) {
   const panelRef = useRef<HTMLDivElement>(null)

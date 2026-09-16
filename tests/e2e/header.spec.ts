@@ -57,10 +57,9 @@ test('the call action uses a tel: link', async ({ page }) => {
 // The five tests above are the brief's given coverage (verbatim, aside from the two Ruling 7
 // deviations documented inline). Ruling 10 lists several more hard a11y requirements for the
 // mega-menu that those five tests never exercise directly — aria-expanded, the body scroll
-// lock, and the reduced-motion collapse of the staggered reveal. The two tests below are my
-// own addition, not from the brief, to give those requirements real coverage instead of
-// resting on code review alone. (The focus-trap requirement is not covered by an automated
-// test in this batch — see the final report for why.)
+// lock, the Tab/Shift+Tab focus trap, and the reduced-motion collapse of the staggered reveal.
+// The tests below are my own addition, not from the brief, to give those requirements real
+// coverage instead of resting on code review alone.
 test('menu trigger tracks aria-expanded and locks body scroll while open', async ({ page }) => {
   await page.goto('/')
   const trigger = page.getByRole('button', { name: /menu/i })
@@ -75,6 +74,37 @@ test('menu trigger tracks aria-expanded and locks body scroll while open', async
   await page.keyboard.press('Escape')
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden')
+})
+
+// The Tab/Shift+Tab focus trap in MegaMenu.tsx had no automated coverage — the existing tests
+// cover Escape-closes-and-restores-focus, aria-expanded and the body scroll lock, but never the
+// cycling half, which is the part most likely to silently regress (it is one branch inside a
+// keydown handler shared with Escape). Selectors here mirror the component's own
+// FOCUSABLE_SELECTOR and reach the panel through the trigger's aria-controls, so the test tracks
+// the real trap rather than a hardcoded guess at the menu's contents.
+test('focus cycles within the open mega-menu in both directions', async ({ page }) => {
+  await page.goto('/')
+  const trigger = page.getByRole('button', { name: /menu/i })
+  await trigger.click()
+
+  const panelId = await trigger.getAttribute('aria-controls')
+  expect(panelId).toBeTruthy()
+  const focusables = page.locator(`#${panelId}`).locator('a[href], button:not([disabled])')
+
+  const count = await focusables.count()
+  // Guards the assertions below from being vacuous: with fewer than two focusable elements,
+  // "wraps from last to first" would be trivially satisfiable.
+  expect(count).toBeGreaterThan(1)
+  const first = focusables.first()
+  const last = focusables.nth(count - 1)
+
+  await last.focus()
+  await page.keyboard.press('Tab')
+  await expect(first).toBeFocused()
+
+  await first.focus()
+  await page.keyboard.press('Shift+Tab')
+  await expect(last).toBeFocused()
 })
 
 test.describe('reduced motion', () => {
