@@ -27,3 +27,17 @@
   }
   .tnum { font-variant-numeric: tabular-nums; }
 }
+
+@layer utilities {
+  /* Task 14's SectionNav scrolls horizontally on mobile (more section labels than fit a
+     390px viewport) but the reference has no visible scrollbar there — scoped to a utility
+     class rather than a global scrollbar reset so every other scroll container on the site
+     keeps its native scrollbar. */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,35 +1,98 @@
-// Ruling 6: minimal stub — Task 14 replaces this wholesale with the real project detail page.
-// It exists now because every showcase card links to `/projects/<slug>` and Next prefetches
-// `<Link>` targets, so without a route here every home-page load fills the console with 404s for
-// `GET /projects/<slug>?_rsc=...` (already flagged in the Batch C report, then caused by the
-// AnnouncementBar's own link).
-//
-// No <main> here: app/layout.tsx owns the single <main id="main"> for every route, and a second
-// one would nest <main> elements and duplicate the `main` DOM id that the skip link targets.
-//
-// Next 16 hands `params` in as a Promise with no synchronous compatibility mode, so it must be
-// awaited. Nothing is fetched from `lib/data` yet on purpose — this renders from the slug alone,
-// so it cannot invent a title, price or RERA number for a project that does not exist.
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import { getAllProjectSlugs, getProject } from '@/lib/data'
+import { ProjectHero } from '@/components/project/ProjectHero'
+import { Overview } from '@/components/project/Overview'
+import { KeyStats } from '@/components/project/KeyStats'
+import { Connectivity } from '@/components/project/Connectivity'
+import { SectionNav } from '@/components/layout/SectionNav'
 
-import { PageShell } from '@/components/layout/PageShell'
+// Task 15 fills these five in; Task 14 (Ruling 3) stubs them so this commit's own e2e
+// spec — whose "section nav marks the section in view" and "jumps to sections" tests
+// target `#amenities` and the "Plans" nav link — passes standalone, without depending on
+// a later commit landing first. Order here is the page's real reading order top to
+// bottom: overview -> plans -> gallery -> amenities -> specifications -> updates ->
+// location, matching a typical sales-page narrative (what it is, then proof, then
+// where).
+const SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'plans', label: 'Plans' },
+  { id: 'gallery', label: 'Gallery' },
+  { id: 'amenities', label: 'Amenities' },
+  { id: 'specifications', label: 'Specifications' },
+  { id: 'updates', label: 'Updates' },
+  { id: 'location', label: 'Location' },
+]
 
-function titleFromSlug(slug: string): string {
-  return slug
-    .split('-')
-    .filter(Boolean)
-    .map((word) => (word === 'bkr' ? 'BKR' : word.charAt(0).toUpperCase() + word.slice(1)))
-    .join(' ')
+type Props = { params: Promise<{ slug: string }> }
+
+// Static params from the published slug list only — an unpublished or unknown slug is
+// never in this list, so it is never prerendered and always falls through to the
+// runtime notFound() below whenever it is actually requested.
+export async function generateStaticParams() {
+  const slugs = await getAllProjectSlugs()
+  return slugs.map((slug) => ({ slug }))
 }
 
-export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  const project = await getProject(slug)
+  if (!project) return {}
+
+  // Falls back to the project's own tagline/hero image, never to invented copy — both
+  // are already real content for this project, just not specifically authored as SEO
+  // metadata.
+  const ogImage = project.seo?.ogImage ?? project.heroImage
+  return {
+    title: project.seo?.metaTitle ?? `${project.title} — BKR INFRA`,
+    description: project.seo?.metaDescription ?? project.tagline,
+    openGraph: {
+      images: [{ url: ogImage.url, alt: ogImage.alt }],
+    },
+  }
+}
+
+// Ruling 1: no <main> here (app/layout.tsx owns the single <main id="main"> for every
+// route) and no PageShell either — ProjectHero is full-bleed like the home hero, and
+// PageShell's pt-36 exists specifically for pages that do *not* handle their own top
+// clearance. This page does, the same way app/page.tsx's Hero does.
+//
+// Next 16 hands `params` in as a Promise with no synchronous compatibility mode, so it
+// must be awaited — same contract as app/projects/page.tsx's `searchParams`.
+export default async function ProjectDetailPage({ params }: Props) {
+  const { slug } = await params
+  const project = await getProject(slug)
+
+  // getProject() already filters on isPublished (lib/data/mock.ts's published()
+  // helper), so this one guard covers both an unknown slug and a real-but-unpublished
+  // project — neither ever leaks a 200.
+  if (!project) notFound()
+
   return (
-    <PageShell>
-      <h1 className="font-display-expanded text-display-lg text-navy-800">{titleFromSlug(slug)}</h1>
-      <p className="mt-4 text-body text-navy-700">
-        The full details for this development — plans, amenities, specifications and construction
-        updates — are being prepared for this page.
-      </p>
-    </PageShell>
+    <>
+      <ProjectHero project={project} />
+      <SectionNav sections={SECTIONS} />
+      <Overview project={project} />
+      <KeyStats project={project} />
+
+      {/* Ruling 3: empty stubs — Task 15 replaces every one of these five sections with
+          a real component (PlansTabs, GallerySwiper, Amenities, Specifications,
+          ConstructionTimeline). Each already carries the id SectionNav links to and the
+          data-* attribute its own future component renders, so Task 15's diff here is a
+          pure content swap, not an attribute-plumbing change too.
+
+          Height is a fixed 480px, not an arbitrary placeholder: SectionNav's observer
+          clears its own sticky chrome with a 180px top rootMargin (see SectionNav.tsx),
+          so a section shorter than ~180px can never produce a real overlap when a test
+          (or a user) lands on it flush with the viewport top — 480px keeps every stub
+          comfortably clear of that boundary case on any viewport this suite runs at. */}
+      <section id="plans" data-plans className="min-h-[480px] bg-ivory" />
+      <section id="gallery" data-gallery className="min-h-[480px] bg-navy-800" />
+      <section id="amenities" data-amenities className="min-h-[480px] bg-navy-800" />
+      <section id="specifications" data-specs className="min-h-[480px] bg-ivory" />
+      <section id="updates" data-updates className="min-h-[480px] bg-ivory" />
+
+      <Connectivity project={project} />
+    </>
   )
 }

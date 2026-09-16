@@ -15,22 +15,33 @@ const MENU_ID = 'main-menu'
 
 // Routes whose first screen is a full-bleed dark hero the header can sit transparently over.
 // Everywhere else the header paints its own navy background from scroll 0, so its contents
-// always have a dark backdrop and can always use the light ink. Add project detail routes here
-// when Task 14 gives them full-bleed heroes.
+// always have a dark backdrop and can always use the light ink.
 //
 // This replaces a `scrolled ? 'light' : 'dark'` logo variant that was a real bug once Task 10
 // landed a dark hero: at scroll 0 the header rendered the navy monogram against navy
 // photography and the mark was invisible above the fold on the home page. Deciding by route
 // rather than by scroll position is what makes the ink correct in both states, and it needs no
 // per-page prop threaded through `app/layout.tsx`, which cannot know which page it is rendering.
-const FULL_BLEED_HERO_ROUTES = ['/']
+//
+// Task 14 (Ruling 2): a plain `.includes(pathname)` array cannot express "every project detail
+// page, but not the listing page itself" — `/projects/<slug>` gets the transparent header
+// (ProjectHero is full-bleed, same construction as the home hero) but `/projects` does not
+// (the listing page renders FilterBar/ProjectGrid on plain ivory via PageShell; a transparent
+// header there would leave the header's light-ink logo with no dark backdrop to read against —
+// the exact bug class this function exists to prevent, one route earlier). The regex demands at
+// least one non-slash character after `/projects/`, so it matches exactly one path segment deep
+// — every `/projects/<slug>` — and never the bare listing route, with or without a trailing
+// slash.
+function isFullBleedHeroRoute(pathname: string): boolean {
+  return pathname === '/' || /^\/projects\/[^/]+\/?$/.test(pathname)
+}
 
 export function Header({ settings }: Props) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
-  const transparent = FULL_BLEED_HERO_ROUTES.includes(pathname) && !scrolled
+  const transparent = isFullBleedHeroRoute(pathname) && !scrolled
 
   // Ruling 10: the scrolled/not-scrolled flip is a plain useState driven by a passive
   // `scroll` listener — never a ScrollTrigger. This is a binary UI state change with no
