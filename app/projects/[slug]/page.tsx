@@ -11,6 +11,8 @@
 // awaited. Nothing is fetched from `lib/data` yet on purpose — this renders from the slug alone,
 // so it cannot invent a title, price or RERA number for a project that does not exist.
 
+import { PageShell } from '@/components/layout/PageShell'
+
 function titleFromSlug(slug: string): string {
   return slug
     .split('-')
@@ -22,12 +24,12 @@ function titleFromSlug(slug: string): string {
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   return (
-    <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+    <PageShell>
       <h1 className="font-display-expanded text-display-lg text-navy-800">{titleFromSlug(slug)}</h1>
       <p className="mt-4 text-body text-navy-700">
         The full details for this development — plans, amenities, specifications and construction
         updates — are being prepared for this page.
       </p>
-    </div>
+    </PageShell>
   )
 }

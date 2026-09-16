@@ -67,7 +67,13 @@ export function Header({ settings }: Props) {
             // for — the mark clipped against the top edge. The row now grows to fit it.
             // Always ivory ink: both header states sit on a dark backdrop by construction —
             // either a full-bleed dark hero or the header's own navy fill.
-            'mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 py-2.5 text-ivory sm:px-6'
+            //
+            // A three-column grid rather than `flex justify-between`: the "Enquire Now" button
+            // is `hidden sm:inline-flex`, so below the sm breakpoint the row had only two
+            // children and `justify-between` pushed the logo to the right edge instead of
+            // leaving it centred. Fixed 1fr side columns keep it centred whether or not the
+            // CTA renders. Verified at 390x844 and 1440x900.
+            'mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 py-2.5 text-ivory sm:px-6'
           )}
         >
           <button
@@ -99,7 +105,9 @@ export function Header({ settings }: Props) {
             <Logo variant="light" className="w-32" />
           </Link>
 
-          <Button href="/contact" variant="solid" className="hidden sm:inline-flex">
+          {/* justify-self-end: grid items align to the start of their column by default, so
+              without this the CTA would sit next to the centred logo rather than at the edge. */}
+          <Button href="/contact" variant="solid" className="hidden justify-self-end sm:inline-flex">
             Enquire Now
           </Button>
         </div>

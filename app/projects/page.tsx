@@ -3,6 +3,7 @@ import { FilterBar } from '@/components/projects/FilterBar'
 import { ProjectGrid } from '@/components/projects/ProjectGrid'
 import { getProjects, getSiteSettings } from '@/lib/data'
 import type { ProjectCategory, ProjectStatus } from '@/lib/data/types'
+import { PageShell } from '@/components/layout/PageShell'
 
 const CATEGORIES: ProjectCategory[] = ['open-plots', 'villas', 'apartments', 'independent-houses', 'developers']
 const STATUSES: ProjectStatus[] = ['upcoming', 'ongoing', 'completed', 'sold-out']
@@ -37,7 +38,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
   const [projects, settings] = await Promise.all([getProjects({ category, status }), getSiteSettings()])
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-10">
+    <PageShell>
       <Eyebrow className="text-navy-700">Our Portfolio</Eyebrow>
       <h1 className="mt-3 font-display-expanded text-display-lg text-navy-800">
         Every BKR INFRA development
@@ -52,6 +53,6 @@ export default async function ProjectsPage({ searchParams }: Props) {
       </div>
 
       <ProjectGrid projects={projects} />
-    </div>
+    </PageShell>
   )
 }
