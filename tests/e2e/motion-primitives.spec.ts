@@ -39,20 +39,27 @@ test('marquee duplicates its track for a seamless loop', async ({ page }) => {
     .toBe(2)
 })
 
-// Ruling 8: a permanent regression test for the Lenis → ScrollTrigger bridge wired in
-// LenisProvider.tsx. That bridge has two independent halves, and either can break while
-// the other keeps working, so both are asserted here rather than inferring one from the
-// other:
-//   (a) gsap.ticker.add(t => lenis.raf(t * 1000)) — Lenis's own autoRaf defaults to
-//       false, so nothing drives its internal animation loop unless GSAP's ticker feeds
-//       it frames. If this wiring broke, Lenis would never advance and window.scrollY
-//       would stay frozen no matter how long we wait.
-//   (b) lenis.on('scroll', ScrollTrigger.update) — ScrollTrigger's scrub tweens read
-//       Lenis's virtual scroll position, not the native scrollbar, so they only update
-//       when Lenis explicitly tells them to. If this wiring broke, a scrub-linked
-//       transform would stay frozen even while window.scrollY (proven moving by (a))
-//       climbs underneath it.
-test('Lenis scroll bridges to both the rAF ticker and ScrollTrigger', async ({ page }) => {
+// Ruling 8: end-to-end proof that a real wheel gesture advances Lenis-driven scroll and that a
+// scrub-linked transform tracks it. What each half of that does and does NOT establish:
+//
+//   (a) window.scrollY climbing IS load-bearing for the ticker wire,
+//       gsap.ticker.add(t => lenis.raf(t * 1000)). Lenis's own autoRaf defaults to false, so
+//       nothing else drives its internal loop: delete that line and Lenis never advances, so
+//       scrollY stays frozen no matter how long we wait. This assertion is the only coverage
+//       that wire has.
+//
+//   (b) the parallax transform changing proves a scrub-linked ScrollTrigger tracks real scroll
+//       end to end — genuinely worth having — but it CANNOT isolate the
+//       lenis.on('scroll', ScrollTrigger.update) wire, and must not be read as doing so. This
+//       was verified by experiment: with that line fully commented out, this test still passes.
+//       ScrollTrigger registers its own wheel/scroll listeners when the plugin initialises, and
+//       those catch the native scroll event Lenis fires, so the scrub keeps updating without the
+//       explicit wire ever being called.
+//
+// The lenis.on wire is therefore guarded structurally instead, in
+// tests/unit/lenis-provider.test.tsx, which asserts the call is made at all. A behavioural test
+// cannot see the difference here; only a structural one can.
+test('a real wheel gesture advances scroll and a scrub-linked transform tracks it', async ({ page }) => {
   await page.goto('/motion-lab')
   const parallax = page.locator('[data-testid="parallax"]')
   await parallax.scrollIntoViewIfNeeded()
@@ -69,12 +76,13 @@ test('Lenis scroll bridges to both the rAF ticker and ScrollTrigger', async ({ p
     await page.mouse.wheel(0, 300)
   }
 
-  // (a) the ticker half.
+  // (a) the ticker wire — the only coverage it has.
   await expect
     .poll(async () => page.evaluate(() => window.scrollY), { timeout: 5000 })
     .toBeGreaterThan(scrollYBefore)
 
-  // (b) the ScrollTrigger-sync half.
+  // (b) a scrub-linked trigger tracks that scroll. Not an isolation of the lenis.on wire — see
+  //     the note above.
   await expect
     .poll(async () => parallax.evaluate((el) => getComputedStyle(el).transform), { timeout: 5000 })
     .not.toBe(transformBefore)
