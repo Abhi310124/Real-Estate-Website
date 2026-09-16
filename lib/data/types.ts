@@ -50,6 +50,12 @@ export interface SiteSettings {
   socials: Array<{ platform: string; url: string }>
   pillars: Array<{ title: string; description: string }>
   categories: Array<{ label: string; value: ProjectCategory }>
+  // Task 12's StatsBand. Owner-editable by design — these are the kind of figures a business
+  // updates every year, not fixed schema like ProjectStatus. The Sanity schema (Task 19) must
+  // expose this as an editable array, and the owner guide (Task 22) must flag that the mock
+  // figures are placeholders needing the client's real numbers before launch (see the comment
+  // beside MOCK_SETTINGS.stats in mock.ts).
+  stats: Array<{ label: string; value: number; suffix?: string }>
   footerBlurb: string
   reraDisclaimer: string
   announcementBar: { enabled: boolean; text: string; link?: string }

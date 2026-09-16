@@ -46,7 +46,13 @@ test('header becomes opaque after scrolling past the hero', async ({ page }) => 
 
 test('the WhatsApp action deep-links to a real BKR INFRA number', async ({ page }) => {
   await page.goto('/')
-  const wa = page.getByRole('link', { name: /whatsapp/i })
+  // Task 12's CtaBand added a second, visible-text "Chat on WhatsApp" link further down the
+  // same page (a legitimate on-page CTA, not a header element), so a bare /whatsapp/i name
+  // now matches two links and breaks this test's strict-mode locator. This test is about the
+  // persistent floating action from FloatingActions.tsx (rendered on every page, independent
+  // of scroll or menu state) — its aria-label is unique, so match on that instead of widening
+  // to .first() and silently accepting whichever link happens to come first in the DOM.
+  const wa = page.getByRole('link', { name: /chat with bkr infra on whatsapp/i })
   await expect(wa).toHaveAttribute('href', /wa\.me\/91(6301999971|9676669923)/)
 })
 

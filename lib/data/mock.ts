@@ -523,6 +523,20 @@ export const MOCK_SETTINGS: SiteSettings = {
     { label: 'Independent Houses', value: 'independent-houses' },
     { label: 'Developers', value: 'developers' },
   ],
+  // PLACEHOLDER FIGURES — not verified client facts. Task 12 needs StatsBand numbers and none
+  // were supplied, so these were chosen to be conservative and plausible against the six
+  // projects already in this fixture file (12 delivered is a believable cumulative count for a
+  // developer whose current live roster is 5-6 projects across several years, not an inflated
+  // "500+"-style claim). Every one of these four numbers MUST be replaced with the client's real
+  // figures before launch — flagged again for Task 19 (the Sanity schema must expose `stats` as
+  // an owner-editable array, the same way `pillars` and `categories` already are) and Task 22
+  // (the owner guide must call out that these specific four numbers need verification).
+  stats: [
+    { label: 'Projects Delivered', value: 12, suffix: '+' },
+    { label: 'Sq.ft. Developed', value: 22, suffix: ' Lakh+' },
+    { label: 'Families Served', value: 650, suffix: '+' },
+    { label: 'Years of Excellence', value: 9 },
+  ],
   footerBlurb:
     'BKR INFRA develops open plots, villas, apartments and independent houses across fast-growing corridors of Hyderabad, backed by clear titles, RERA-registered projects and on-time handovers.',
   reraDisclaimer:
