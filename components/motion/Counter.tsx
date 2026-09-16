@@ -3,20 +3,23 @@ import { useEffect, useRef } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 import { getGsap } from './gsap'
 
-type Props = {
+// Extends the brief's `{ value, suffix?, className? }` with a passthrough for the rest of the
+// standard span attributes, matching Reveal/Parallax/SplitWords.
+//
+// `data-testid` is declared and threaded explicitly rather than left to `rest`, because unlike
+// the other primitives this component's testid does not belong on its root: per Ruling 3 it
+// marks the number-only span, so the testid element's text is exactly the number ("90") and
+// never "90Acres" — `suffix` is a sibling outside it. Letting `rest` carry it to the root would
+// put a second matching element in the DOM instead of overriding the first. Defaults to
+// "counter" so existing tests keep passing; a stats row with two Counters can now name each one
+// and avoid a Playwright strict-mode violation.
+type Props = React.HTMLAttributes<HTMLSpanElement> & {
   value: number
   suffix?: string
-  className?: string
+  'data-testid'?: string
 }
 
-// The brief's interface (`<Counter value={90} suffix="Acres" className?>`) has no
-// testid slot, and the lab mounts exactly one Counter — same situation as ImageReveal —
-// so `data-testid="counter"` is hardcoded here rather than threaded through as a prop.
-// Per Ruling 3 it lands on the number-only span specifically: `suffix` is a sibling
-// span outside it, so the testid element's text is exactly the number ("90"), never
-// "90Acres". Known limitation (shared with ImageReveal): a second Counter on the same
-// page would collide on this fixed testid.
-export function Counter({ value, suffix, className }: Props) {
+export function Counter({ value, suffix, className, 'data-testid': testId = 'counter', ...rest }: Props) {
   const numberRef = useRef<HTMLSpanElement>(null)
   const reduced = useReducedMotion()
 
@@ -73,8 +76,8 @@ export function Counter({ value, suffix, className }: Props) {
   // Renders the final value by default; only JS rewrites it, and only once motion is
   // confirmed allowed and the count-up is about to run.
   return (
-    <span className={className}>
-      <span ref={numberRef} data-testid="counter" className="tabular-nums">
+    <span className={className} {...rest}>
+      <span ref={numberRef} data-testid={testId} className="tabular-nums">
         {value.toLocaleString('en-IN')}
       </span>
       {suffix !== undefined && <span>{suffix}</span>}

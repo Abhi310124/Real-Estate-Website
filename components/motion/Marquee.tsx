@@ -3,17 +3,16 @@ import { useEffect, useRef } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 import { getGsap } from './gsap'
 
-type Props = {
+// Extends the brief's `<Marquee speed={40}>{children}</Marquee>` with a passthrough for the rest
+// of the standard div attributes, matching Reveal/Parallax/SplitWords. `data-testid="marquee"`
+// stays as the default on the outer element and is spread over by `rest`, so a caller can name
+// each instance; the test's descendant selector `[data-testid="…"] [data-marquee-track]` keeps
+// working either way, since the track structure inside is owned by this component.
+type Props = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode
   speed?: number
-  className?: string
 }
 
-// The brief's interface (`<Marquee speed={40}>{children}</Marquee>`) has no testid
-// slot; the lab mounts exactly one Marquee, so `data-testid="marquee"` is hardcoded on
-// the outer element — same reasoning as Counter and ImageReveal. The test's descendant
-// selector `[data-testid="marquee"] [data-marquee-track]` only makes sense against a
-// single, structurally-fixed outer element owned by this component.
 //
 // Ruling 5 requires reduced motion to change the DOM shape itself (one track instead of
 // two), not just gate the animation invisibly: a continuously-looping marquee has no
@@ -23,7 +22,7 @@ type Props = {
 // render" safety default — the safe default (no motion) IS the one-track shape, so
 // starting there and only upgrading to the two-track animated shape once motion is
 // confirmed allowed is consistent with that ordering, not a deviation from it.
-export function Marquee({ children, speed = 40, className }: Props) {
+export function Marquee({ children, speed = 40, className, ...rest }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const pairRef = useRef<HTMLDivElement>(null)
   const firstTrackRef = useRef<HTMLDivElement>(null)
@@ -108,7 +107,7 @@ export function Marquee({ children, speed = 40, className }: Props) {
 
   if (reduced) {
     return (
-      <div ref={containerRef} data-testid="marquee" className={`overflow-hidden ${className ?? ''}`}>
+      <div ref={containerRef} data-testid="marquee" {...rest} className={`overflow-hidden ${className ?? ''}`}>
         <div data-marquee-track className="inline-flex w-max">
           {children}
         </div>
@@ -117,7 +116,7 @@ export function Marquee({ children, speed = 40, className }: Props) {
   }
 
   return (
-    <div ref={containerRef} data-testid="marquee" className={`overflow-hidden ${className ?? ''}`}>
+    <div ref={containerRef} data-testid="marquee" {...rest} className={`overflow-hidden ${className ?? ''}`}>
       <div ref={pairRef} className="inline-flex w-max">
         <div ref={firstTrackRef} data-marquee-track className="inline-flex w-max shrink-0">
           {children}
