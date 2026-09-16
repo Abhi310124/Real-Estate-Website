@@ -2,14 +2,21 @@ import { cn } from '@/lib/cn'
 import { COLORS } from '@/lib/tokens'
 import { LogoMark } from './LogoMark'
 
-// Decision gate (Ruling 3 / Task 6 Step 5): the traced LogoMark below was compared against
-// docs/brand-refs/logo-wide.jpeg at matching widths (see
-// .superpowers/sdd/2026-09-15-bkr-infra-website/logo-comparison.png and the write-up in
-// batch-b-report.md). That comparison and the go/no-go call on whether the vector trace is
-// close enough to ship, versus falling back to public/brand/logo-wide.png for static
-// placements, is intentionally left open for the orchestrator — this file does not decide
-// it. The rest of this component and every later task builds on the assumption the SVG
-// stands, per Ruling 3's instruction to keep going rather than block on that gate.
+// The monogram in LogoMark was re-traced from pixel measurements of docs/brand-refs/logo-wide.jpeg,
+// cross-checked against logo-square.jpeg, and verified against the reference at matched cap
+// height (see .superpowers/sdd/2026-09-15-bkr-infra-website/logo-comparison-v2.png, the
+// logo-iter-*.png progression, and fix-wave-1-report.md). Agreement is 99.7% of pixels whose
+// classification the reference JPEG's own edge blur does not make ambiguous, so the vector
+// trace stands and there is no raster fallback.
+//
+// Known, deliberately NOT fixed here: the callers size this whole lockup by height
+// (`h-9` in Header.tsx, `h-10` in Footer.tsx). Because LogoMark is a flex item whose
+// aspect-derived height exceeds that budget once the INFRA line is laid out, flex-shrink
+// crushes the mark to 8px tall in the header and 12px in the footer — smaller than the INFRA
+// text beneath it, inverting the reference's hierarchy, where the monogram is roughly 3x the
+// INFRA cap height. Correcting it means re-proportioning the lockup and the two call sites,
+// which is a layout decision beyond this component. Measured evidence is in
+// fix-wave-1-report.md.
 
 type LogoProps = {
   variant: 'dark' | 'light'
