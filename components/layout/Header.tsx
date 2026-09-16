@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { MegaMenu } from './MegaMenu'
@@ -12,10 +13,24 @@ type Props = { settings: SiteSettings }
 const SCROLL_THRESHOLD = 80
 const MENU_ID = 'main-menu'
 
+// Routes whose first screen is a full-bleed dark hero the header can sit transparently over.
+// Everywhere else the header paints its own navy background from scroll 0, so its contents
+// always have a dark backdrop and can always use the light ink. Add project detail routes here
+// when Task 14 gives them full-bleed heroes.
+//
+// This replaces a `scrolled ? 'light' : 'dark'` logo variant that was a real bug once Task 10
+// landed a dark hero: at scroll 0 the header rendered the navy monogram against navy
+// photography and the mark was invisible above the fold on the home page. Deciding by route
+// rather than by scroll position is what makes the ink correct in both states, and it needs no
+// per-page prop threaded through `app/layout.tsx`, which cannot know which page it is rendering.
+const FULL_BLEED_HERO_ROUTES = ['/']
+
 export function Header({ settings }: Props) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const pathname = usePathname()
+  const transparent = FULL_BLEED_HERO_ROUTES.includes(pathname) && !scrolled
 
   // Ruling 10: the scrolled/not-scrolled flip is a plain useState driven by a passive
   // `scroll` listener — never a ScrollTrigger. This is a binary UI state change with no
@@ -42,7 +57,7 @@ export function Header({ settings }: Props) {
         className={cn(
           'fixed inset-x-0 z-[80] transition-colors duration-300',
           hasAnnouncement ? 'top-11' : 'top-0',
-          scrolled ? 'bg-navy-800/95 backdrop-blur' : 'bg-transparent'
+          transparent ? 'bg-transparent' : 'bg-navy-800/95 backdrop-blur'
         )}
       >
         <div
@@ -50,8 +65,9 @@ export function Header({ settings }: Props) {
             // py-2.5 as well as min-h-16: the logo lockup is vertical (mark over INFRA, as in
             // the reference artwork) and stands ~55px tall, which min-h-16 alone left no room
             // for — the mark clipped against the top edge. The row now grows to fit it.
-            'mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6',
-            scrolled ? 'text-ivory' : 'text-navy-800'
+            // Always ivory ink: both header states sit on a dark backdrop by construction —
+            // either a full-bleed dark hero or the header's own navy fill.
+            'mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 py-2.5 text-ivory sm:px-6'
           )}
         >
           <button
@@ -77,13 +93,10 @@ export function Header({ settings }: Props) {
             aria-label="BKR INFRA — Home"
             className="rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
           >
-            {/* Header only ever sees the two states it manages itself (transparent-over-hero
-                vs scrolled-opaque); a page with a light hero at scroll 0 needs a
-                page-level override this component does not yet take a prop for — flagged in
-                batch-b-report.md rather than guessed at here. */}
-            {/* Width, not height — see the note in Logo.tsx. A height budget here crushed the
-                monogram to 8px via flex-shrink. */}
-            <Logo variant={scrolled ? 'light' : 'dark'} className="w-32" />
+            {/* Always the light variant — see FULL_BLEED_HERO_ROUTES above for why both header
+                states are guaranteed to sit on dark. Width, not height: a height budget here
+                let flex-shrink crush the monogram to 8px (see the note in Logo.tsx). */}
+            <Logo variant="light" className="w-32" />
           </Link>
 
           <Button href="/contact" variant="solid" className="hidden sm:inline-flex">

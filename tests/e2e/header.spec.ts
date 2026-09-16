@@ -19,14 +19,15 @@ test('Escape closes the mega-menu and returns focus to its trigger', async ({ pa
 })
 
 test('header becomes opaque after scrolling past the hero', async ({ page }) => {
-  // Ruling 7 deviation #1: the brief points this test at `/`, but Batch B's home page
-  // (app/page.tsx) is still just Task 4's single above-the-fold headline — there is
-  // nowhere near 1200px of scrollable height to prove a "scrolled past the hero" state
-  // with. `/motion-lab` already stacks multiple h-screen sections for exactly this kind
-  // of scroll-distance test (see motion-primitives.spec.ts), so this test targets that
-  // route instead. Task 10 gives `/` a full-height hero; re-point this back to `/` then
-  // if preferred.
-  await page.goto('/motion-lab')
+  // Back on `/` as the brief originally wanted. Batch B had to borrow `/motion-lab` because
+  // the home page was then a single above-the-fold headline with no scroll distance to prove
+  // a "scrolled past the hero" state. Task 10's 100svh hero plus the pillars strip fixed that.
+  //
+  // Re-pointing is now required, not just tidier: the header is transparent only over a
+  // full-bleed dark hero (see FULL_BLEED_HERO_ROUTES in Header.tsx), so on `/motion-lab` it
+  // paints navy from scroll 0 and its background colour never changes — this test would fail
+  // there for a reason that has nothing to do with the scroll behaviour it checks.
+  await page.goto('/')
   const header = page.locator('header')
   const before = await header.evaluate((el) => getComputedStyle(el).backgroundColor)
   await page.mouse.wheel(0, 1200)

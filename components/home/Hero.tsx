@@ -117,7 +117,13 @@ export function Hero({ settings }: Props) {
         className="absolute inset-0 bg-gradient-to-t from-navy-900/85 via-navy-900/40 to-navy-900/20"
       />
 
-      <Parallax speed={0.12} className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-28 pt-32 sm:px-6">
+      {/* pb-16, not pb-28: the section is `items-end`, so this content box is bottom-pinned and
+          growing `pt` cannot lower its top edge — the box just grows upward by the same amount
+          and the eyebrow stays put. Shrinking the bottom padding is what actually moves the top
+          edge down, and it needed to: at pb-28 the eyebrow rendered underneath the fixed
+          header and the hamburger icon was drawn on top of it. Verified by measuring both
+          rects, not by eye. */}
+      <Parallax speed={0.12} className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-32 sm:px-6">
         <Eyebrow className="text-champagne">REDEFINING REAL ESTATE EXCELLENCE</Eyebrow>
         <SplitWords
           as="h1"
