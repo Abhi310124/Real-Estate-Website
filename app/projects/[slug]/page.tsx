@@ -86,6 +86,21 @@ function projectJsonLd(project: Project, baseUrl: string) {
 
 type Props = { params: Promise<{ slug: string }> }
 
+// Ruling 11 (Task 20): does this conflict with generateStaticParams below? No — this is Next's
+// own documented ISR pattern for exactly this combination (its App Router guide's canonical
+// example pairs `export const revalidate = 60` with a `generateStaticParams()` in the same
+// file). The two settings answer different questions: generateStaticParams decides *which*
+// slugs get a prerendered HTML file at build time (the published list only, so an owner hiding a
+// project removes its static file on the next build); revalidate decides how long each of those
+// prerendered files is served before Next regenerates it in the background. A slug requested
+// that is *not* in the static list still reaches this page function on demand (Next falls back
+// to on-demand rendering for params outside generateStaticParams's list, then caches that result
+// too) and getProject()'s own isPublished filter still 404s it via notFound() below — so an
+// unpublished or deleted project can never be served stale from either mechanism. In local dev,
+// Sanity's webhook has no route to localhost, so the 30s background revalidation is the only
+// path to freshness without restarting the dev server or rebuilding.
+export const revalidate = 30
+
 // Static params from the published slug list only — an unpublished or unknown slug is
 // never in this list, so it is never prerendered and always falls through to the
 // runtime notFound() below whenever it is actually requested.

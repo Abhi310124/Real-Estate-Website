@@ -6,6 +6,16 @@ import { getProjects, getSiteSettings } from '@/lib/data'
 import type { ProjectCategory, ProjectStatus } from '@/lib/data/types'
 import { PageShell } from '@/components/layout/PageShell'
 
+// Ruling 11 (Task 20): this page reads `searchParams` (below), which forces Next to render it
+// dynamically on every request — there is no static HTML shell for `revalidate` to put an ISR
+// lifetime on, so this export does *not* turn this route into ISR the way it does on app/page.tsx
+// and app/projects/[slug]/page.tsx. What it does still do: set the default cache lifetime for any
+// `fetch()` call in this render that does not specify its own `next.revalidate` — which covers
+// getProjects()/getSiteSettings() below, since sanity/lib/queries.ts's fetches only set
+// `next.tags`, not their own `next.revalidate`. Kept for that reason, and for consistency with the
+// other two routes, not because it makes this particular page static.
+export const revalidate = 30
+
 const CATEGORIES: ProjectCategory[] = ['open-plots', 'villas', 'apartments', 'independent-houses', 'developers']
 const STATUSES: ProjectStatus[] = ['upcoming', 'ongoing', 'completed', 'sold-out']
 

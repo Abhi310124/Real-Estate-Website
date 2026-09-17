@@ -8,6 +8,16 @@ import { StatsBand } from '@/components/home/StatsBand'
 import { WhyBkr } from '@/components/home/WhyBkr'
 import { CtaBand } from '@/components/home/CtaBand'
 
+// Ruling 11 (Task 20): this page has no dynamic params and no request-time API calls
+// (searchParams/cookies/headers), so it is otherwise a plain static page — Next prerenders it
+// once at build time and would serve that same HTML forever. Adding `revalidate` turns that into
+// ISR: still served from the static cache on every request, but Next revalidates it in the
+// background at most once every 30 seconds, and sanity/lib/queries.ts's `next: { tags: [...] } }`
+// fetch tags let app/api/revalidate/route.ts force that sooner the moment an editor publishes a
+// change. In local dev, Sanity's webhook has no way to reach localhost, so the 30s poll is the
+// only path to freshness here — see the report for how this was verified.
+export const revalidate = 30
+
 // Same fallback/duplication rationale as app/layout.tsx's own SITE_URL (see its comment).
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
