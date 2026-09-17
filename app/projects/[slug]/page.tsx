@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAllProjectSlugs, getProject } from '@/lib/data'
+import type { Project } from '@/lib/data/types'
 import { ProjectHero } from '@/components/project/ProjectHero'
 import { Overview } from '@/components/project/Overview'
 import { KeyStats } from '@/components/project/KeyStats'
+import { MasterPlan } from '@/components/project/MasterPlan'
 import { PlansTabs } from '@/components/project/PlansTabs'
 import { GallerySwiper } from '@/components/project/GallerySwiper'
 import { Amenities } from '@/components/project/Amenities'
@@ -12,22 +14,26 @@ import { ConstructionTimeline } from '@/components/project/ConstructionTimeline'
 import { Connectivity } from '@/components/project/Connectivity'
 import { SectionNav } from '@/components/layout/SectionNav'
 
-// Task 15 fills these five in; Task 14 (Ruling 3) stubs them so this commit's own e2e
-// spec — whose "section nav marks the section in view" and "jumps to sections" tests
-// target `#amenities` and the "Plans" nav link — passes standalone, without depending on
-// a later commit landing first. Order here is the page's real reading order top to
-// bottom: overview -> plans -> gallery -> amenities -> specifications -> updates ->
-// location, matching a typical sales-page narrative (what it is, then proof, then
-// where).
-const SECTIONS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'plans', label: 'Plans' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'amenities', label: 'Amenities' },
-  { id: 'specifications', label: 'Specifications' },
-  { id: 'updates', label: 'Updates' },
-  { id: 'location', label: 'Location' },
-]
+// Order here is the page's real reading order top to bottom: overview -> plans ->
+// gallery -> amenities -> specifications -> updates -> location, matching a typical
+// sales-page narrative (what it is, then proof, then where). "Master Plan" is spliced in
+// right after "Overview" — matching where <MasterPlan> actually renders, between
+// <KeyStats> and <PlansTabs> — but only when project.masterPlan exists: a nav link
+// pointing at an anchor with no matching section would be a broken link, and
+// bkr-skyline-residences (a single tower, no plotted layout) is a real published
+// project with no masterPlan.
+function sectionsFor(project: Project) {
+  return [
+    { id: 'overview', label: 'Overview' },
+    ...(project.masterPlan ? [{ id: 'masterplan', label: 'Master Plan' }] : []),
+    { id: 'plans', label: 'Plans' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'amenities', label: 'Amenities' },
+    { id: 'specifications', label: 'Specifications' },
+    { id: 'updates', label: 'Updates' },
+    { id: 'location', label: 'Location' },
+  ]
+}
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -76,9 +82,10 @@ export default async function ProjectDetailPage({ params }: Props) {
   return (
     <>
       <ProjectHero project={project} />
-      <SectionNav sections={SECTIONS} />
+      <SectionNav sections={sectionsFor(project)} />
       <Overview project={project} />
       <KeyStats project={project} />
+      {project.masterPlan && <MasterPlan plan={project.masterPlan} />}
       <PlansTabs project={project} />
       <GallerySwiper project={project} />
       <Amenities project={project} />

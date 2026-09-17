@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getGsap } from '@/components/motion/gsap'
 import { ImageReveal } from '@/components/motion/ImageReveal'
 import { SplitWords } from '@/components/motion/SplitWords'
+import { useCoarsePointer } from '@/components/motion/useCoarsePointer'
 import { useReducedMotion } from '@/components/motion/useReducedMotion'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
@@ -50,12 +51,15 @@ const CARD_SCALE_MIN = 0.9
  */
 export function HorizontalShowcase({ projects }: Props) {
   const reduced = useReducedMotion()
-  // Starts `true` — the safe value — for the same reason useReducedMotion() starts `true`: the
-  // very first paint must be the fallback, before any media query has been read. `active` below
-  // is additionally gated on the GSAP chunk having resolved, so this initial value can never be
-  // what decides the first paint, but keeping it on the safe side matches the house convention
-  // and means a future refactor that drops that second gate still fails safe.
-  const [coarsePointer, setCoarsePointer] = useState(true)
+  // `useCoarsePointer()` starts `true` — the safe value — for the same reason
+  // `useReducedMotion()` starts `true`: the very first paint must be the fallback, before any
+  // media query has been read. `active` below is additionally gated on the GSAP chunk having
+  // resolved, so this initial value can never be what decides the first paint, but keeping it
+  // on the safe side matches the house convention and means a future refactor that drops that
+  // second gate still fails safe. Extracted into its own hook (Ruling 1): Task 16's masterplan
+  // pinch-zoom gate and Task 17's cursor (the inverse — fine pointer only) both need the same
+  // coarse-pointer detection this component used to keep as a private copy.
+  const coarsePointer = useCoarsePointer()
   const [gsapReady, setGsapReady] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
@@ -64,18 +68,6 @@ export function HorizontalShowcase({ projects }: Props) {
   // means touch, where a pinned section fights the browser's own scrolling.
   const wantsPin = !reduced && !coarsePointer
   const active = wantsPin && gsapReady
-
-  // Same shape as useReducedMotion(), including the live `change` listener: a device that gains
-  // or loses a coarse pointer mid-session (a detached tablet keyboard, a desktop switching to
-  // touch emulation) re-decides rather than stranding a half-pinned section. Because the
-  // fallback markup is a pure function of `active`, flipping back needs no teardown of its own.
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    const sync = () => setCoarsePointer(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
 
   // Load GSAP only where it could be used, and treat "loaded" as a separate, explicit gate from
   // "wanted". Split from the effect below on purpose: flipping `active` has to re-render the
