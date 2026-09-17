@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Reveal } from '@/components/motion/Reveal'
 import { ImageReveal } from '@/components/motion/ImageReveal'
 import { Counter } from '@/components/motion/Counter'
@@ -9,6 +10,15 @@ import { SplitWords } from '@/components/motion/SplitWords'
 // an h-screen spacer so its ScrollTrigger fires at a realistic scroll distance rather
 // than all firing at once on load. Not linked from any real page — Task 23 excludes it
 // from the sitemap and marks it noindex.
+//
+// Task 23 (Ruling 11) follows through on that: robots.index: false is the actual noindex
+// directive (app/sitemap.ts already omits this route from STATIC_ROUTES, which only ever
+// controls what is *listed*, not what a crawler is told not to index if it finds the route some
+// other way). The title exists mainly so the route has one at all, matching every other page.
+export const metadata: Metadata = {
+  title: 'Motion Lab — Internal QA Harness | BKR INFRA',
+  robots: { index: false },
+}
 //
 // Ruling 6: the <main id="main" className="bg-ivory text-navy-800"> wrapper that used to
 // live here now lives once, in app/layout.tsx, wrapping every page's {children}. The

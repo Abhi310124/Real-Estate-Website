@@ -18,7 +18,15 @@ const archivo = Archivo({
 })
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
+// Ruling 8: metadataBase from an env var, never a hardcoded guess at a production domain BKR
+// INFRA may not even have registered yet. The fallback is the same http://localhost:3000
+// Next.js itself already assumes when metadataBase is unset (see the build warning this
+// silences) — inert and obviously-local, not a fabricated production URL. Set
+// NEXT_PUBLIC_SITE_URL (documented in .env.example) once a real domain exists.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'BKR INFRA — Redefining Real Estate Excellence',
   description:
     'Open plots, villas, apartments and independent houses in Hyderabad. BKR INFRA develops, designs and delivers.',

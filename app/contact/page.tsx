@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { ContactMap } from '@/components/contact/ContactMap'
 import { PageShell } from '@/components/layout/PageShell'
 import { Button } from '@/components/ui/Button'
@@ -19,6 +20,15 @@ const LINK_CLASS =
 function formatPhoneDisplay(phone: string): string {
   const match = phone.match(/^(\+\d+)\s*(\d{5})(\d{5})$/)
   return match ? `${match[1]} ${match[2]} ${match[3]}` : phone
+}
+
+// Task 23 (Ruling 11): its own unique, >10-character title. Phone numbers are deliberately left
+// out of the description — they are real and verified, but restating them here would duplicate
+// Footer.tsx's own text rather than add anything a search snippet needs.
+export const metadata: Metadata = {
+  title: 'Contact BKR INFRA — Call, WhatsApp or Visit Us',
+  description:
+    'Reach BKR INFRA by phone, WhatsApp or in person at our Hyderabad office, or send your enquiry directly to our team.',
 }
 
 // Ruling 4: About and Contact both wrap their content in PageShell.

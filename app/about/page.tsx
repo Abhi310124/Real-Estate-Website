@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { PageShell } from '@/components/layout/PageShell'
 import { Counter } from '@/components/motion/Counter'
 import { Reveal } from '@/components/motion/Reveal'
@@ -37,6 +38,16 @@ const VALUES = [
       "We buy ahead of demand in Hyderabad's fastest-growing corridors, so the open plots, villas and apartments we hand over sit where the city is headed next.",
   },
 ]
+
+// Task 23 (Ruling 11): its own unique, >10-character title, distinct from the home page's
+// ('BKR INFRA — Redefining Real Estate Excellence', set once in app/layout.tsx) and every other
+// route's. description restates only facts already on this page: the footerBlurb's own claim
+// and B Karthik Reddy's real, verified title.
+export const metadata: Metadata = {
+  title: 'About BKR INFRA — Our Story, Values and Leadership',
+  description:
+    'BKR INFRA develops, designs and delivers open plots, villas, apartments and independent houses across Hyderabad, led by Managing Director B Karthik Reddy.',
+}
 
 // Ruling 4: About and Contact both wrap their content in PageShell, which owns the 144px
 // clearance under the fixed announcement bar + header (see PageShell.tsx's own comment).

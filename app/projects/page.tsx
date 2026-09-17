@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Eyebrow } from '@/components/ui/Eyebrow'
 import { FilterBar } from '@/components/projects/FilterBar'
 import { ProjectGrid } from '@/components/projects/ProjectGrid'
@@ -14,6 +15,16 @@ function parseCategory(value: string | undefined): ProjectCategory | undefined {
 
 function parseStatus(value: string | undefined): ProjectStatus | undefined {
   return value !== undefined && (STATUSES as string[]).includes(value) ? (value as ProjectStatus) : undefined
+}
+
+// Task 23 (Ruling 11): its own unique, >10-character title. One static title for every
+// ?category=/?status= combination — the filters change which published projects render, not
+// what the route fundamentally is, so a single description already covers every combination
+// truthfully without enumerating each category/status pair.
+export const metadata: Metadata = {
+  title: 'Our Projects — Open Plots, Villas and Apartments | BKR INFRA',
+  description:
+    'Browse every BKR INFRA development across Hyderabad: open plots, villas, apartments, independent houses and developer partnerships, filterable by category or status.',
 }
 
 type Props = {

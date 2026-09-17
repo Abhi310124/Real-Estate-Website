@@ -35,6 +35,55 @@ function sectionsFor(project: Project) {
   ]
 }
 
+// Same fallback/duplication rationale as app/layout.tsx, app/sitemap.ts and app/robots.ts's own
+// SITE_URL consts (see app/layout.tsx's comment) — a shared lib/site-url.ts is not worth adding
+// for one constant, matching Footer.tsx's own precedent for small, flagged duplication.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
+const RUPEES_PER_UNIT: Record<Project['priceUnit'], number> = { Lakh: 1e5, Cr: 1e7 }
+
+// Task 23: a RealEstateListing wrapping the physical Residence, both real schema.org types named
+// verbatim in the plan. Every field traces to a real Project value — nothing here is invented:
+// - image/url are made absolute (schema.org's own guidance for the `image` property) by
+//   prefixing the project's own relative paths with SITE_URL, never a new asset.
+// - identifier is the project's real, published RERA number.
+// - address is plain Text (schema.org permits Text or PostalAddress for `address`) rather than a
+//   PostalAddress with `area` force-fit into `addressLocality`/`addressRegion` — area is a
+//   locality-within-a-city (e.g. "Kokapet"), not a state/province, and PostalAddress has no clean
+//   third tier for that, so a plain "area, city" string says exactly what is true without
+//   guessing at a closer-fitting schema.org field.
+// - offers is omitted entirely (not asserted with a placeholder) whenever priceOnRequest is true
+//   or priceFrom is null — schema.org's Offer.price expects a real decimal in the currency's base
+//   unit, so a "starting from" figure with no real number yet must not manufacture one. When a
+//   price does exist, it is converted from the UI's Lakh/Cr convention into plain rupees, since
+//   that base-unit conversion is arithmetic on a real figure, not a new fact.
+function projectJsonLd(project: Project, baseUrl: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: project.title,
+    description: project.tagline,
+    url: `${baseUrl}/projects/${project.slug}`,
+    image: `${baseUrl}${project.heroImage.url}`,
+    identifier: project.reraNumber,
+    about: {
+      '@type': 'Residence',
+      name: project.title,
+      address: `${project.location.area}, ${project.location.city}`,
+    },
+    ...(project.priceOnRequest || project.priceFrom === null
+      ? {}
+      : {
+          offers: {
+            '@type': 'Offer',
+            price: project.priceFrom * RUPEES_PER_UNIT[project.priceUnit],
+            priceCurrency: 'INR',
+            availability: 'https://schema.org/InStock',
+          },
+        }),
+  }
+}
+
 type Props = { params: Promise<{ slug: string }> }
 
 // Static params from the published slug list only — an unpublished or unknown slug is
@@ -81,6 +130,16 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <>
+      {/* Real project fields only — see projectJsonLd's own comment. Sibling to the visible
+          content, not a replacement for any of it. */}
+      <script
+        type="application/ld+json"
+        // dangerouslySetInnerHTML is the standard Next.js JSON-LD pattern: rendering the JSON as
+        // a text child would have React escape its quotes as HTML entities and corrupt it. The
+        // payload is JSON.stringify() of our own server-side data (never user input), so there is
+        // no injection risk despite the name.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd(project, SITE_URL)) }}
+      />
       <ProjectHero project={project} />
       <SectionNav sections={sectionsFor(project)} />
       <Overview project={project} />
