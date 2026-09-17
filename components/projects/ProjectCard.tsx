@@ -26,6 +26,7 @@ export function ProjectCard({ project, className }: Props) {
       data-flip-id={project.slug}
       data-category={project.category}
       data-status={project.status}
+      data-cursor="view"
       className={cn(
         'group relative flex flex-col overflow-hidden rounded-sm bg-ivory-warm ring-1 ring-navy-800/10',
         className

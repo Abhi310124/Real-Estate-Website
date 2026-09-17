@@ -69,6 +69,7 @@ export function GallerySwiper({ project }: Props) {
         </div>
 
         <Swiper
+          data-cursor="drag"
           modules={[Parallax, Keyboard, A11y]}
           parallax
           keyboard={{ enabled: true }}

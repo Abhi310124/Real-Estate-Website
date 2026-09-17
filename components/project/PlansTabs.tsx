@@ -106,6 +106,7 @@ export function PlansTabs({ project }: Props) {
                       <button
                         type="button"
                         data-zoom
+                        data-cursor="zoom"
                         aria-label={`Zoom floor plan: ${plan.title}`}
                         onClick={() => setZoomIndex(planIndex)}
                         className="relative block aspect-[4/3] w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"

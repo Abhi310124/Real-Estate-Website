@@ -316,6 +316,7 @@ export function HorizontalShowcase({ projects }: Props) {
       <div
         ref={trackRef}
         data-showcase-track
+        data-cursor="drag"
         className={cn(
           'mt-[5svh] flex w-full items-stretch gap-5 px-4 sm:gap-6 sm:px-6 lg:gap-8 lg:px-10',
           active ? 'overflow-visible' : 'snap-x snap-mandatory overflow-x-auto pb-3',

@@ -7,6 +7,7 @@ import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { FloatingActions } from '@/components/layout/FloatingActions'
+import { MagneticCursor } from '@/components/motion/MagneticCursor'
 import { getSiteSettings } from '@/lib/data'
 
 const archivo = Archivo({
@@ -51,6 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </main>
           <Footer settings={settings} />
           <FloatingActions settings={settings} />
+          <MagneticCursor />
         </LenisProvider>
       </body>
     </html>
