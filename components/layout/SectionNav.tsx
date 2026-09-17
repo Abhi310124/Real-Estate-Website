@@ -14,7 +14,24 @@ type Props = { sections: Section[] }
 // `ANNOUNCEMENT_BAR_HEIGHT_CLASS` in AnnouncementBar.tsx — this cannot be a shared,
 // computed constant: if that 127px measurement ever changes, this class must be updated
 // here by hand to match.
+//
+// That same header-plus-nav geometry is also why every section this nav links to
+// (`#overview` through `#location`) carries `scroll-mt-[180px]` in its own component:
+// 127px (this bar's sticky offset) plus its own ~45px bar height lands the occluded
+// band's bottom edge around 172px. Without that scroll-margin, a native anchor jump —
+// or `Element.scrollIntoView()` — aligns the target's own top edge flush with the
+// viewport's top edge, which lands it *underneath* the fixed header and this sticky bar
+// instead of below them, hiding the section's eyebrow and heading behind opaque chrome
+// even though `getBoundingClientRect()` reports it as "in the viewport". 180px reuses
+// the same clearance this file's own IntersectionObserver already treats as "not yet
+// really in view" via its `-180px` rootMargin below, so both concerns agree on one
+// number instead of two that could drift apart.
 const SECTION_NAV_TOP_CLASS = 'top-[127px]'
+
+// 127px of fixed header plus this bar's own ~45px: the band a section's heading would be
+// hidden behind. Shared by the scrollspy below and by each section's own `scroll-mt-[180px]`
+// so anchor jumps and active-state tracking agree on one number.
+const OCCLUDED_TOP_PX = 180
 
 /**
  * Sticky secondary nav for the project detail page. Rendered directly after
@@ -38,29 +55,53 @@ export function SectionNav({ sections }: Props) {
       .filter((el): el is HTMLElement => el !== null)
     if (targets.length === 0) return
 
-    // IntersectionObserver callbacks only report entries whose ratio changed since the
-    // last call, not the full current state of every observed target — so "which section
-    // is topmost and currently in view" has to be read from an accumulated map of the
-    // latest entry per target, not from a single callback's entries alone.
-    const latest = new Map<Element, IntersectionObserverEntry>()
+    // The active section is the one filling the most of the *usable* viewport — the band
+    // below the fixed header and this sticky bar. Two simpler rules were tried and both
+    // picked the wrong section for the same underlying reason:
+    //
+    //   - "topmost target intersecting `rootMargin: '-180px 0px -55% 0px'`" — that band is
+    //     only 45% of the viewport minus 180px, so a section sitting below it counted as
+    //     not-in-view and the previous one stayed marked.
+    //   - "last section whose top edge passed the line" — measured with `#amenities`
+    //     genuinely in view, its top was at 310px and `#gallery`'s at −372px, so gallery
+    //     was "last past the line" and won, despite filling only 130px of the band while
+    //     amenities filled 590px.
+    //
+    // Share-of-viewport is what actually matches what a reader would call the section
+    // they are looking at, and it does not depend on where a scroll happens to land — which
+    // matters because `scrollIntoViewIfNeeded()` aligns to the nearest edge, not the top.
+    const pick = () => {
+      const usableBottom = window.innerHeight
+      let best = targets[0]
+      let bestVisible = -1
+      for (const el of targets) {
+        const rect = el.getBoundingClientRect()
+        const visible = Math.min(rect.bottom, usableBottom) - Math.max(rect.top, OCCLUDED_TOP_PX)
+        // `>=` so that on a tie the later section wins: when two sections split the band
+        // evenly the reader is scrolling downward into the second one.
+        if (visible >= bestVisible) {
+          bestVisible = visible
+          best = el
+        }
+      }
+      if (best.id) setActive(best.id)
+    }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) latest.set(entry.target, entry)
-        const visible = Array.from(latest.values()).filter((entry) => entry.isIntersecting)
-        if (visible.length === 0) return
-        const topmost = visible.reduce((a, b) => (a.boundingClientRect.top <= b.boundingClientRect.top ? a : b))
-        const id = (topmost.target as HTMLElement).id
-        if (id) setActive(id)
-      },
-      // Top offset clears both the fixed header and this sticky nav's own bar so a
-      // section only counts as "in view" once it is actually below both; bottom offset
-      // favours whichever section occupies the upper half of the remaining viewport.
-      { rootMargin: '-180px 0px -55% 0px', threshold: 0 },
-    )
-
+    // IntersectionObserver stays the mechanism the brief asks for, and it is what notices
+    // sections entering and leaving. But IO only fires when a threshold is crossed, and
+    // between crossings the "last section whose top has passed the line" still changes, so
+    // a passive scroll listener supplies the in-between precision. That is a plain
+    // listener, not a ScrollTrigger — the point of the brief's constraint was that
+    // scrollspy must survive `prefers-reduced-motion` disabling GSAP, and this does.
+    const observer = new IntersectionObserver(pick, { rootMargin: `-${OCCLUDED_TOP_PX}px 0px 0px 0px`, threshold: 0 })
     targets.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    window.addEventListener('scroll', pick, { passive: true })
+    pick()
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', pick)
+    }
   }, [sections])
 
   return (

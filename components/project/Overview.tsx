@@ -18,7 +18,7 @@ export function Overview({ project }: Props) {
   const image = project.gallery[0] ?? project.heroImage
 
   return (
-    <section id="overview" className="bg-ivory py-20 sm:py-28">
+    <section id="overview" className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[auto_1fr_1fr] lg:gap-16 lg:px-10">
         <span
           aria-hidden="true"

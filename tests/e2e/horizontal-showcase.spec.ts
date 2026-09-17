@@ -11,6 +11,13 @@ test('track translates horizontally as the page scrolls', async ({ page }) => {
   await page.goto('/')
   const track = page.locator('[data-showcase-track]')
   await page.locator('[data-showcase]').scrollIntoViewIfNeeded()
+  // Wait for the component's own "pinned path is live" signal before touching the wheel.
+  // Activation requires the GSAP chunk to load and ScrollTrigger to register the pin, and
+  // under parallel workers sharing one server that can land after the wheel gesture would
+  // otherwise fire — in which case the wheel scrolls straight past the section and the track
+  // never translates at all. Gating on the attribute makes this deterministic rather than a
+  // race against chunk-load time.
+  await expect(page.locator('[data-showcase-active]')).toBeAttached({ timeout: 15000 })
   const x = () => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)
   const before = await x()
   await page.mouse.wheel(0, 1500)

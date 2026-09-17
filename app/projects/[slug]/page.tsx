@@ -4,6 +4,11 @@ import { getAllProjectSlugs, getProject } from '@/lib/data'
 import { ProjectHero } from '@/components/project/ProjectHero'
 import { Overview } from '@/components/project/Overview'
 import { KeyStats } from '@/components/project/KeyStats'
+import { PlansTabs } from '@/components/project/PlansTabs'
+import { GallerySwiper } from '@/components/project/GallerySwiper'
+import { Amenities } from '@/components/project/Amenities'
+import { Specifications } from '@/components/project/Specifications'
+import { ConstructionTimeline } from '@/components/project/ConstructionTimeline'
 import { Connectivity } from '@/components/project/Connectivity'
 import { SectionNav } from '@/components/layout/SectionNav'
 
@@ -74,24 +79,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       <SectionNav sections={SECTIONS} />
       <Overview project={project} />
       <KeyStats project={project} />
-
-      {/* Ruling 3: empty stubs — Task 15 replaces every one of these five sections with
-          a real component (PlansTabs, GallerySwiper, Amenities, Specifications,
-          ConstructionTimeline). Each already carries the id SectionNav links to and the
-          data-* attribute its own future component renders, so Task 15's diff here is a
-          pure content swap, not an attribute-plumbing change too.
-
-          Height is a fixed 480px, not an arbitrary placeholder: SectionNav's observer
-          clears its own sticky chrome with a 180px top rootMargin (see SectionNav.tsx),
-          so a section shorter than ~180px can never produce a real overlap when a test
-          (or a user) lands on it flush with the viewport top — 480px keeps every stub
-          comfortably clear of that boundary case on any viewport this suite runs at. */}
-      <section id="plans" data-plans className="min-h-[480px] bg-ivory" />
-      <section id="gallery" data-gallery className="min-h-[480px] bg-navy-800" />
-      <section id="amenities" data-amenities className="min-h-[480px] bg-navy-800" />
-      <section id="specifications" data-specs className="min-h-[480px] bg-ivory" />
-      <section id="updates" data-updates className="min-h-[480px] bg-ivory" />
-
+      <PlansTabs project={project} />
+      <GallerySwiper project={project} />
+      <Amenities project={project} />
+      <Specifications project={project} />
+      <ConstructionTimeline project={project} />
       <Connectivity project={project} />
     </>
   )
