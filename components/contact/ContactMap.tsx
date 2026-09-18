@@ -36,17 +36,25 @@ export function ContactMap({ address }: Props) {
   }, [])
 
   return (
-    <div ref={wrapRef} className="relative min-h-[320px] overflow-hidden rounded-sm bg-navy-700">
+    // Restyled for the monochrome system: square corners, an `aspect-*` frame instead of a fixed
+    // `min-h` (the box is reserved before the embed arrives, so a late-loading map cannot shift the
+    // page), and the two dead `navy-*` classes replaced with `hairline`/`edge` — those tokens were
+    // deleted with the accent palette and were silently rendering as no background at all.
+    //
+    // `grayscale` is the one non-obvious class here: a Google embed is the single most colourful
+    // thing that can land on this site, and desaturating it is what keeps it reading as a drawing
+    // on the page rather than as a widget pasted onto it. It is a static filter, not an animation.
+    <div ref={wrapRef} className="relative aspect-[3/2] w-full overflow-hidden rounded-none bg-hairline max-sm:aspect-[4/3]">
       {shouldLoadMap ? (
         <iframe
           title={`Map showing ${address}`}
           src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
-          className="absolute inset-0 h-full w-full border-0"
+          className="absolute inset-0 h-full w-full border-0 grayscale"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
         />
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-navy-600" />
+        <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-edge/40" />
       )}
     </div>
   )

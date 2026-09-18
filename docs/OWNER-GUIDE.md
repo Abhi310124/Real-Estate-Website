@@ -3,14 +3,20 @@
 This guide is for whoever looks after the BKR INFRA website day to day. You do not need to
 know anything about code. Everything here is done through a web page, in a browser.
 
-The editing area is called the **Studio**. You get to it by adding `/studio` to the end of the
-website address — for example `https://www.bkrinfra.com/studio`.
+The editing area is called the **Studio**. You get to it by adding `/admin` to the end of the
+website address — for example `https://www.bkrinfra.com/admin`.
+
+One thing worth knowing so it does not catch you out: the website itself now has a page called
+**Studio** too — it is the public page about BKR INFRA, the one visitors reach from the menu at the
+top of the site. That is a page anyone can read. The editing area at `/admin` is the private one,
+and only people with an account can open it. Same word, two different things.
 
 ---
 
 ## 1. Signing in
 
-1. Go to the website address with `/studio` on the end.
+1. Go to the website address with `/admin` on the end — for example
+   `https://www.bkrinfra.com/admin`.
 2. Sign in with the account you were given.
 3. You will see a menu down the left-hand side: **Projects**, **Leads**, **Amenities** and
    **Site Settings**.
@@ -109,9 +115,10 @@ Click **Site Settings** in the left menu. Everything here affects the whole webs
   remove the strip entirely; switch it on and type your text to show it. You can also give it a
   link so people can click through.
 - **Pillars**, **Categories**, **Footer text**, **RERA disclaimer** — the standing text used in
-  several places across the site.
-- **Stats** — the four big numbers on the home page. **These need your real figures** — see
-  section 9.
+  several places across the site. The three **Pillars** (Develop, Design, Deliver) are the numbered
+  rows on the public **Studio** page, so the wording you put here is the wording visitors read.
+- **Stats** — the four big numbers on the public **Studio** page. **These need your real figures** —
+  see section 9.
 
 Click **Publish** when you are done.
 
@@ -174,9 +181,11 @@ photographs, so nobody will mistake one for a real BKR development:
 **Media**, **Plans** and **Content** sections. Upload the brochure PDF in the **Plans** section.
 The home page background is the one item a developer has to swap for you — ask them.
 
-### Placeholder numbers on the home page
+### Placeholder numbers on the Studio page
 
-The four big figures on the home page are **placeholders, not verified facts**:
+The four big figures on the public **Studio** page are **placeholders, not verified facts**. They
+are shown there under the heading "At a glance — indicative figures", which is honest wording while
+they remain estimates, but it is not a substitute for the real numbers:
 
 | Shown on the site | Needs |
 | --- | --- |
@@ -206,6 +215,7 @@ Neither is a bug. Both start working the moment you fill them in.
 
 | I want to… | Where |
 | --- | --- |
+| Open the editing area | add `/admin` to the website address |
 | Add a property | Projects → **+** |
 | Hide a property from the site | open it → **Published** off → **Publish** |
 | Bring a hidden property back | Projects → Hidden Projects → **Published** on → **Publish** |
@@ -213,4 +223,4 @@ Neither is a bug. Both start working the moment you fill them in.
 | See who has enquired | **Leads** |
 | Change a phone number or the address | **Site Settings** |
 | Turn the top announcement strip on or off | Site Settings → **Announcement bar** |
-| Fix the four home page numbers | Site Settings → **Stats** |
+| Fix the four numbers on the Studio page | Site Settings → **Stats** |

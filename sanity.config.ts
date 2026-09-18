@@ -19,7 +19,10 @@ import { structure } from './sanity/structure'
 // action list per schema type. Keeping `publish` and `discardChanges` (so editing and saving still
 // works normally) while dropping `unpublish`/`duplicate`/`delete`/`restore` for siteSettings only.
 export default defineConfig({
-  basePath: '/studio',
+  // The Studio is mounted at /admin, not /studio: the redesign gives `/studio` to the public
+  // practice page (the reference's nav is Projects · Studio · Journal). This must match the
+  // catch-all route folder `app/admin/[[...tool]]/` exactly — see the comment in that file.
+  basePath: '/admin',
   projectId: projectId ?? '',
   dataset,
   schema: { types: schemaTypes },

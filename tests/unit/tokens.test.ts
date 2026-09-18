@@ -1,46 +1,76 @@
 import { describe, expect, it } from 'vitest'
-import { COLORS, contrastRatio } from '@/lib/tokens'
+import { COLORS, contrastRatio, relativeLuminance } from '@/lib/tokens'
 
-describe('brand tokens', () => {
-  it('exposes the exact hexes from the spec', () => {
-    expect(COLORS['navy-900']).toBe('#071628')
-    expect(COLORS['navy-800']).toBe('#0A1A2F')
-    expect(COLORS['navy-700']).toBe('#16233A')
-    expect(COLORS['navy-600']).toBe('#1D2733')
-    expect(COLORS['ivory']).toBe('#F7F4EE')
-    expect(COLORS['ivory-warm']).toBe('#FBF9F5')
-    expect(COLORS['orange']).toBe('#FF4907')
-    expect(COLORS['orange-600']).toBe('#E63F05')
-    expect(COLORS['champagne']).toBe('#C9A227')
+/**
+ * Drift guard on the monochrome palette.
+ *
+ * The previous version of this suite spent most of its assertions proving that a navy/orange
+ * palette cleared AA — which was genuinely hard, and where a real bug was eventually found (white
+ * on orange measured 3.38:1 and had shipped on every button). A monochrome palette makes those
+ * pairings trivial, so the interesting assertions have moved: what matters now is that the palette
+ * stays monochrome, and that nothing reintroduces an accent colour by the back door.
+ */
+
+const MONO = ['primary', 'secondary', 'muted', 'hairline', 'offwhite', 'edge'] as const
+
+describe('palette', () => {
+  it('is exactly the six tokens the design uses', () => {
+    expect(Object.keys(COLORS).sort()).toEqual([...MONO].sort())
+  })
+
+  it('exposes the measured hex values verbatim', () => {
+    expect(COLORS.primary).toBe('#FFFFFF')
+    expect(COLORS.secondary).toBe('#000000')
+    expect(COLORS.muted).toBe('#3D3D3D')
+    expect(COLORS.hairline).toBe('#E6E6E6')
+    expect(COLORS.offwhite).toBe('#F2F2F2')
+    expect(COLORS.edge).toBe('#BFBFBF')
+  })
+
+  // The real guard. A monochrome colour has equal R, G and B channels; anything with a hue is by
+  // definition an accent, and the design's entire premise is that there isn't one. This catches a
+  // "just a touch of orange" edit far more reliably than listing forbidden values would.
+  it('contains no hue — every channel is equal in every token', () => {
+    for (const name of MONO) {
+      const hex = COLORS[name].replace('#', '')
+      const [r, g, b] = [hex.slice(0, 2), hex.slice(2, 4), hex.slice(4, 6)]
+      expect([name, r, g, b]).toEqual([name, r, r, r])
+    }
   })
 })
 
-describe('contrast rules from the spec', () => {
-  const near = (a: number, b: number) => Math.abs(a - b) < 0.15
-
-  it('navy-800 on ivory is safe for body text', () => {
-    expect(near(contrastRatio(COLORS['navy-800'], COLORS['ivory']), 15.9)).toBe(true)
+describe('contrast', () => {
+  it('gives the two page inks the maximum possible ratio on their own surface', () => {
+    // 21:1 is the theoretical ceiling. Both chapter types hit it, which is why this design needs
+    // no contrast carve-outs of the kind the previous palette required.
+    expect(contrastRatio(COLORS.secondary, COLORS.primary)).toBeCloseTo(21, 1)
   })
 
-  it('white on navy-800 is safe for body text', () => {
-    expect(near(contrastRatio('#FFFFFF', COLORS['navy-800']), 17.5)).toBe(true)
+  it('keeps muted text legible on both chapter backgrounds', () => {
+    // muted is the only token used for body-size secondary text, so it is the only one that has
+    // to clear 4.5:1 rather than the 3:1 that applies to rules and large display type.
+    expect(contrastRatio(COLORS.muted, COLORS.primary)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('orange on navy-800 passes AA for body text', () => {
-    expect(contrastRatio(COLORS['orange'], COLORS['navy-800'])).toBeGreaterThanOrEqual(4.5)
+  it('treats hairline and edge as non-text only', () => {
+    // Both fail AA for text by a wide margin and are deliberately never used for it — they are
+    // rules, borders and the ghosted numerals. Asserting the failure documents the constraint, so
+    // that anyone tempted to set a label in `text-hairline` finds the reason here.
+    expect(contrastRatio(COLORS.hairline, COLORS.primary)).toBeLessThan(4.5)
+    expect(contrastRatio(COLORS.edge, COLORS.primary)).toBeLessThan(4.5)
   })
 
-  it('orange on ivory FAILS AA — large text and UI only', () => {
-    const r = contrastRatio(COLORS['orange'], COLORS['ivory'])
-    expect(r).toBeLessThan(4.5)
-    expect(r).toBeGreaterThanOrEqual(3)
+  it('is symmetric regardless of argument order', () => {
+    expect(contrastRatio(COLORS.primary, COLORS.muted)).toBeCloseTo(
+      contrastRatio(COLORS.muted, COLORS.primary),
+      10
+    )
   })
+})
 
-  it('champagne on ivory is decorative only — fails even large text', () => {
-    expect(contrastRatio(COLORS['champagne'], COLORS['ivory'])).toBeLessThan(3)
-  })
-
-  it('champagne on navy-800 is safe for text', () => {
-    expect(contrastRatio(COLORS['champagne'], COLORS['navy-800'])).toBeGreaterThanOrEqual(4.5)
+describe('relativeLuminance', () => {
+  it('anchors at the two extremes', () => {
+    expect(relativeLuminance('#000000')).toBeCloseTo(0, 6)
+    expect(relativeLuminance('#FFFFFF')).toBeCloseTo(1, 6)
   })
 })

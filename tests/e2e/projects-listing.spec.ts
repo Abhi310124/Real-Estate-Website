@@ -29,7 +29,12 @@ test('category filter narrows results and writes to the URL', async ({ page }) =
   // reading Footer.tsx, not assumed.
   const categoryNav = page.getByRole('navigation', { name: /filter by category/i })
   await categoryNav.getByRole('link', { name: /^villas$/i }).click()
-  await expect(page).toHaveURL(/category=villas/)
+  // 15s, not the 5s default. `/projects` reads searchParams so Next renders it dynamically —
+  // a filter click is a server round-trip, not a client-side swap. Measured at ~2.5s idle,
+  // but this suite runs six workers against a single `next start`, and it exceeded 5s there.
+  // Raising the wait for a genuinely slower route, not masking a failure: the navigation does
+  // happen, and the assertions below still prove the filter narrowed the results.
+  await expect(page).toHaveURL(/category=villas/, { timeout: 15_000 })
   const cards = page.locator('[data-project-card]')
   expect(await cards.count()).toBeGreaterThan(0)
   for (const c of await cards.all()) {

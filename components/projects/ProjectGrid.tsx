@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { ProjectCard } from './ProjectCard'
 import { Button } from '@/components/ui/Button'
+import { RuleDraw } from '@/components/motion/RuleDraw'
 import { useReducedMotion } from '@/components/motion/useReducedMotion'
 import { getGsap } from '@/components/motion/gsap'
 import type { ProjectSummary } from '@/lib/data/types'
@@ -17,17 +18,24 @@ type FlipState = ReturnType<typeof import('gsap/Flip').Flip.getState>
 /**
  * Client wrapper around the filtered grid. `app/projects/page.tsx` does the actual
  * category/status filtering server-side (see that file for why) — this component only ever
- * renders whatever `projects` it is given and, per brief Step 4, uses GSAP Flip so that when a
- * filter click swaps that array for a different one, cards that appear in both the old and new
- * result sets animate to their new positions instead of the grid just snapping.
+ * renders whatever `projects` it is given and uses GSAP Flip so that when a filter click swaps
+ * that array for a different one, cards that appear in both the old and new result sets animate
+ * to their new positions instead of the grid just snapping.
  *
  * This works with zero click/navigation interception — FilterBar stays a plain set of
- * server-rendered `<Link>`s exactly as the master prompt requires — because React reconciles
- * this component as an *update*, never a remount, across a filter change: PageTransition.tsx
- * (the client component every route's {children} pass through) keys nothing off
- * `useSearchParams()`, only off `usePathname()`, and `/projects?category=x` -> `/projects?category=y`
- * never changes the pathname, so `{children}` never leaves the fixed slot PageTransition always
- * renders it in. That is what lets the refs below survive from one filtered render to the next.
+ * server-rendered `<Link>`s — because React reconciles this component as an *update*, never a
+ * remount, across a filter change: PageTransition.tsx (the client component every route's
+ * {children} pass through) keys nothing off `useSearchParams()`, only off `usePathname()`, and
+ * `/projects?category=x` -> `/projects?category=y` never changes the pathname, so `{children}`
+ * never leaves the fixed slot PageTransition always renders it in. That is what lets the refs
+ * below survive from one filtered render to the next.
+ *
+ * Layout: two columns of five on the twelve-column grid (cols 1–5 and 8–12, so the middle column
+ * stays empty and the pair reads as two plates rather than a table), **vertically staggered** —
+ * odd-indexed cards drop by 10vw, the same device JournalPreview uses on the home page, which
+ * makes the eye travel diagonally down the listing instead of scanning rows. The stagger is a
+ * `sm:mt` on odd cards rather than two hand-built columns, so it survives any number of results;
+ * it is dropped below `sm`, where a single column makes an offset read as inconsistent spacing.
  */
 export function ProjectGrid({ projects }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
@@ -46,9 +54,9 @@ export function ProjectGrid({ projects }: Props) {
     const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-project-card]'))
 
     if (reduced) {
-      // Step 4: skip Flip entirely under reduced motion — the grid just re-renders. Drop any
-      // stashed snapshot too, so toggling reduced motion back off mid-session can't suddenly
-      // animate a diff against a now-stale layout it never saw settle.
+      // Skip Flip entirely under reduced motion — the grid just re-renders. Drop any stashed
+      // snapshot too, so toggling reduced motion back off mid-session can't suddenly animate a
+      // diff against a now-stale layout it never saw settle.
       prevStateRef.current = null
       isFirstRender.current = false
       return
@@ -70,14 +78,13 @@ export function ProjectGrid({ projects }: Props) {
       // invisible to it. Passing the live, post-render set lets Flip diff old vs. new itself:
       // elements in both fire the normal position/size tween; elements only in `cards` (new
       // matches) have no prior state to interpolate from, so Flip routes them through
-      // `onEnter` instead, which is where the "fade and rise" from brief Step 4 happens.
+      // `onEnter` instead, which is where the "fade and rise" happens.
       //
       // Elements only in the *old* snapshot (cards that stopped matching) intentionally get no
       // exit tween: React has already removed them from the DOM before this effect ever runs
       // (their removal was part of the same commit that added the new cards), so there is no
       // live element left to animate without keeping "logically removed" cards mounted an extra
-      // tick — a bigger feature than brief Step 4 asks for (it names survivor-reposition and
-      // entrant-fade only, never an exit animation).
+      // tick.
       Flip.from(prevStateRef.current, {
         targets: cards,
         duration: 0.5,
@@ -96,22 +103,67 @@ export function ProjectGrid({ projects }: Props) {
     }
   }, [projects, reduced])
 
-  if (projects.length === 0) {
+  // The count is the listing's only piece of chrome, set as stamped mono metadata above the rule
+  // the way the reference labels a section. Zero-padded and tabular so it does not reflow the line
+  // as the filters change it, and rendered in the empty branch too — "00 Projects" above the
+  // explanation is itself part of the explanation.
+  const count = projects.length
+  const header = (
+    <div className="layout-grid mt-[5vw] max-sm:mt-[12vw]">
+      <RuleDraw className="col-span-12 text-edge" />
+      <p
+        data-project-count={count}
+        className="tnum col-span-12 mt-[1.2vw] font-mono text-mono uppercase text-muted max-sm:mt-[4vw] max-sm:text-mono-sm"
+      >
+        {String(count).padStart(2, '0')} {count === 1 ? 'Project' : 'Projects'}
+      </p>
+    </div>
+  )
+
+  if (count === 0) {
     return (
-      <div className="mt-12 rounded-sm bg-ivory-warm p-12 text-center ring-1 ring-navy-800/10">
-        <p className="text-body text-navy-700">No projects match this combination yet.</p>
-        <Button href="/projects" variant="outline" className="mt-6">
-          View all projects
-        </Button>
-      </div>
+      <>
+        {header}
+        <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
+          <div className="col-span-12 sm:col-span-6">
+            <p className="text-lead font-display max-sm:text-lead-sm">
+              No projects match this combination yet.
+            </p>
+            <p className="mt-[1.5vw] text-body text-muted max-sm:mt-[5vw] max-sm:text-body-sm">
+              Every development is filed under exactly one category and one status, so some pairings
+              are simply empty — a completed plot layout is never also upcoming. Clear the filters to
+              see the whole portfolio.
+            </p>
+            <div className="mt-[2.5vw] max-sm:mt-[8vw]">
+              <Button href="/projects" tone="dark" className="max-sm:w-full">
+                View all projects
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
     )
   }
 
   return (
-    <div ref={gridRef} className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {projects.map((project) => (
-        <ProjectCard key={project.slug} project={project} />
-      ))}
-    </div>
+    <>
+      {header}
+      <div
+        ref={gridRef}
+        className="layout-grid mt-[6vw] gap-y-[10vw] max-sm:mt-[10vw] max-sm:gap-y-[16vw]"
+      >
+        {projects.map((project, i) => (
+          <ProjectCard
+            key={project.slug}
+            project={project}
+            className={
+              i % 2 === 1
+                ? 'col-span-12 sm:col-span-5 sm:col-start-8 sm:mt-[10vw]'
+                : 'col-span-12 sm:col-span-5'
+            }
+          />
+        ))}
+      </div>
+    </>
   )
 }

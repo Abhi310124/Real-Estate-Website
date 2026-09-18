@@ -20,6 +20,11 @@ test('a buyer can go from the home page to an enquiry', async ({ page }) => {
 })
 
 test('no placeholder image 404s', async ({ page }) => {
+  // Four full page loads, each with a long scroll and a settle wait, and one of them (`/projects`)
+  // is a dynamic route. That is comfortably over the 30s default when six workers share a single
+  // `next start`. The work itself is not slow — there is just a lot of it in one test.
+  test.setTimeout(90_000)
+
   const failed: string[] = []
   page.on('response', (r) => {
     if (r.status() === 404 && /\.(jpg|jpeg|png|webp|avif)/i.test(r.url())) failed.push(r.url())

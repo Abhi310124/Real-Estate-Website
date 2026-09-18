@@ -1,16 +1,20 @@
 import { cn } from '@/lib/cn'
 
-type RuleProps = {
-  className?: string
-}
-
 /**
- * Purely decorative orange hairline — one of the explicit allowed uses of orange from
- * Ruling 9 (display text ≥24px, rules, icons, filled buttons with white labels). Always
- * `aria-hidden`: it carries no content, so exposing it to assistive tech would only add
- * noise. Callers size it with `className` (width/height utilities); defaults to a small
- * flanking rule matching the one already traced into Logo.tsx's INFRA lockup.
+ * Static hairline. For the version that draws itself in on scroll, use
+ * `components/motion/RuleDraw.tsx` — this is the inert one, for places where a rule is structural
+ * (a table edge, a footer divider) rather than a gesture.
+ *
+ * Height matches the animated variant exactly: `max(0.1vw, 1px)`, so it thins with the viewport but
+ * never vanishes on a small screen. `currentColor` so it inherits the chapter's ink instead of
+ * needing a colour passed at every call site.
  */
-export function Rule({ className }: RuleProps) {
-  return <span aria-hidden="true" className={cn('block h-[3px] w-10 bg-orange', className)} />
+export function Rule({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn('block w-full bg-current', className)}
+      style={{ height: 'max(0.1vw, 1px)' }}
+    />
+  )
 }

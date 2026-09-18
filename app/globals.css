@@ -1,38 +1,115 @@
-/*
- * Task 1, Step 8 decision gate — does next/font/google serve Archivo's `wdth` axis?
- * VERIFIED YES. Measured with Playwright against the live `h1.font-display-expanded`
- * in app/page.tsx: a Range over its text node measured 785.76px at `wdth 118` vs
- * 663.25px at `wdth 100` — an 18.5% width delta, fully reversible by toggling the
- * `--wdth-display` custom property back and forth. document.fonts confirms the
- * loaded @font-face for "Archivo" declares `font-weight: 100 900` and
- * `font-stretch: 62% 125%`, i.e. the true variable file, not a static wght-only
- * instance. Kept the single Archivo family below; no fallback to the separately
- * published Archivo_Expanded family was needed.
- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root { --wdth-display: 118; }
-  .font-display-expanded {
-    font-family: var(--font-archivo);
-    font-variation-settings: 'wdth' var(--wdth-display), 'wght' 800;
-    text-transform: uppercase;
+  /*
+   * 1.3889vw resolves to exactly 20px at a 1440px viewport, which is where the reference's
+   * proportions were measured. Both the outer page margin and the inter-column gutter use the
+   * same value — that single equality is what makes the grid read as a grid rather than as a
+   * centred container with padding.
+   */
+  :root {
+    --margin: 1.3889vw;
+    --gutter: 1.3889vw;
   }
-  .eyebrow {
-    font-family: var(--font-archivo);
-    font-variation-settings: 'wdth' 100, 'wght' 600;
-    text-transform: uppercase;
+
+  /* Below `sm` a 1.39vw margin is barely 5px, which crowds every edge. The reference widens it
+     on small screens rather than scaling it down proportionally. */
+  @media (max-width: 639px) {
+    :root {
+      --margin: 4vw;
+      --gutter: 3vw;
+    }
   }
-  .tnum { font-variant-numeric: tabular-nums; }
+
+  html {
+    /* Lenis drives scrolling; a competing CSS smooth-scroll fights it for control of the same
+       gesture. Next 16 no longer overrides this during navigation, so leaving it `auto` is what
+       Lenis wants. */
+    scroll-behavior: auto;
+  }
+
+  body {
+    background-color: theme('colors.primary');
+    color: theme('colors.secondary');
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /*
+   * The page's single layout primitive, copied from the reference verbatim. Twelve columns with
+   * a gutter between them and the page margin as inline padding. Every section is a
+   * `.layout-grid` and every child claims columns with `col-span-*` / `col-start-*` — there are
+   * no ad-hoc max-width containers anywhere, which is why the whole site stays optically aligned
+   * down a single set of column edges.
+   */
+  .layout-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    padding-inline: var(--margin);
+  }
 }
 
 @layer utilities {
-  /* Task 14's SectionNav scrolls horizontally on mobile (more section labels than fit a
-     390px viewport) but the reference has no visible scrollbar there — scoped to a utility
-     class rather than a global scrollbar reset so every other scroll container on the site
-     keeps its native scrollbar. */
+  /*
+   * The hairline that draws itself in, and the most-used motion on the reference. Height is
+   * `max(0.1vw, 1px)` so it thins with the viewport but never disappears on a small screen.
+   *
+   * `transform-origin: right` is the detail worth preserving: it draws from the right edge
+   * leftwards, against the reading direction, which is what makes it register as a deliberate
+   * gesture rather than an underline appearing. 300ms on Tailwind's default ease-in-out curve.
+   */
+  .in-out-line {
+    width: 100%;
+    height: max(0.1vw, 1px);
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  .in-out-line[data-drawn='true'] {
+    transform: scaleX(1);
+  }
+
+  /* Reduced motion: the line is information (it separates blocks), so it must be present — it
+     just arrives already drawn instead of animating. */
+  @media (prefers-reduced-motion: reduce) {
+    .in-out-line {
+      transform: scaleX(1);
+      transition: none;
+    }
+  }
+
+  /*
+   * Fine grain for the intake form's paper. The reference's surface is visibly textured — a
+   * scanned-stock speckle — and a flat fill next to it reads as a screen rather than a sheet.
+   *
+   * Generated with an inline SVG feTurbulence rather than shipping a texture image: it costs no
+   * request, scales to any viewport without tiling seams, and stays crisp on a high-DPI display
+   * where a raster tile would soften. Kept very low contrast (opacity 0.035) — at anything
+   * stronger it stops reading as paper and starts reading as noise.
+   */
+  .paper-grain {
+    position: relative;
+  }
+  .paper-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
   .scrollbar-hide {
     scrollbar-width: none;
     -ms-overflow-style: none;

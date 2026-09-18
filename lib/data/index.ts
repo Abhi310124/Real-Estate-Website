@@ -25,3 +25,6 @@ export const getFeaturedProjects: DataSource['getFeaturedProjects'] = async () =
 export const getProject: DataSource['getProject'] = async (s) => (await source()).getProject(s)
 export const getAllProjectSlugs: DataSource['getAllProjectSlugs'] = async () => (await source()).getAllProjectSlugs()
 export const getSiteSettings: DataSource['getSiteSettings'] = async () => (await source()).getSiteSettings()
+export const getJournalPosts: DataSource['getJournalPosts'] = async () => (await source()).getJournalPosts()
+export const getJournalPost: DataSource['getJournalPost'] = async (s) => (await source()).getJournalPost(s)
+export const getAllJournalSlugs: DataSource['getAllJournalSlugs'] = async () => (await source()).getAllJournalSlugs()

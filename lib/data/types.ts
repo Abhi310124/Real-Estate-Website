@@ -61,6 +61,27 @@ export interface SiteSettings {
   announcementBar: { enabled: boolean; text: string; link?: string }
 }
 
+/**
+ * A journal post. Added for the Journal section and `/journal` routes.
+ *
+ * `isPublished` mirrors `Project`'s own switch deliberately — it is the owner's show/hide control,
+ * and every query must gate on it so flipping one toggle removes a post from the listing, the home
+ * page preview and the sitemap at once. `tests/unit/sanity-source.test.ts` enforces that gating
+ * across every project-and-post query, so a new query that forgets it fails a test rather than
+ * silently leaking a draft.
+ */
+export interface JournalPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  /** Paragraphs. Portable Text from Sanity is flattened to this shape by the Sanity source. */
+  body: string[]
+  coverImage: Img
+  publishedAt: string
+  isPublished: boolean
+}
+
 export interface LeadInput {
   name: string; phone: string; email?: string; message?: string
   projectSlug?: string
@@ -73,4 +94,8 @@ export interface DataSource {
   getProject(slug: string): Promise<Project | null>
   getAllProjectSlugs(): Promise<string[]>
   getSiteSettings(): Promise<SiteSettings>
+  /** Newest first. Published only. */
+  getJournalPosts(): Promise<JournalPost[]>
+  getJournalPost(slug: string): Promise<JournalPost | null>
+  getAllJournalSlugs(): Promise<string[]>
 }

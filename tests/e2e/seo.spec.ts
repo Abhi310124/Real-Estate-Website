@@ -26,9 +26,10 @@ test('sitemap lists published projects only', async ({ page }) => {
   expect(xml).not.toContain('/motion-lab')
 })
 
-test('robots.txt keeps the Studio and motion lab out of the index', async ({ page }) => {
+test('robots.txt keeps the CMS and motion lab out of the index', async ({ page }) => {
   const txt = await (await page.request.get('/robots.txt')).text()
-  expect(txt).toMatch(/Disallow: \/studio/)
+  // The CMS moved to /admin so the public /studio practice page could take that URL.
+  expect(txt).toMatch(/Disallow: \/admin/)
   expect(txt).toMatch(/Disallow: \/motion-lab/)
 })
 

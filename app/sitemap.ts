@@ -1,29 +1,43 @@
 import type { MetadataRoute } from 'next'
-import { getAllProjectSlugs } from '@/lib/data'
+import { getAllJournalSlugs, getAllProjectSlugs } from '@/lib/data'
 
 // Same fallback as app/layout.tsx's metadataBase (see the comment there) — duplicated rather
 // than factored into a shared lib module, matching this codebase's own precedent in
-// Footer.tsx's PRIMARY_LINKS comment: a brief that scopes specific files, reaching into a new
+// SiteFooter.tsx's link-list comment: a brief that scopes specific files, reaching into a new
 // unlisted file for one shared constant would widen the diff for a minor DRY gain.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
-// Static routes only — /motion-lab is a development harness (see its own file comment) and is
-// deliberately never listed here, and /studio (Task 19, not yet built) never will be either:
-// both are kept out of the index by robots.ts instead. getAllProjectSlugs() already filters to
-// isPublished projects (lib/data/mock.ts's published() helper), so an unpublished project is
-// excluded for free, not by any extra logic here.
-const STATIC_ROUTES = ['', '/projects', '/about', '/contact']
+// Static routes only.
+//
+// `/studio` is the public practice page and belongs in the index. `/about` is gone from this list
+// because it no longer renders anything — it is a permanent redirect to `/studio` (see
+// app/about/page.tsx), and listing a redirect in a sitemap asks crawlers to index a URL that only
+// ever points elsewhere.
+//
+// Two routes are deliberately absent and always will be: `/motion-lab` (a development harness) and
+// `/admin` (the embedded Sanity Studio). Both are also `Disallow`ed in robots.ts — the sitemap is
+// the invitation, robots.txt is the refusal, and a route that should never be indexed needs both.
+//
+// getAllProjectSlugs() and getAllJournalSlugs() already filter to published records (see the
+// `published()` / `publishedPosts()` helpers in lib/data/mock.ts and the same gating in the Sanity
+// queries), so hiding a project or a post removes it from the sitemap for free rather than by any
+// extra logic here.
+const STATIC_ROUTES = ['', '/projects', '/studio', '/journal', '/contact']
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const slugs = await getAllProjectSlugs()
+  const [projectSlugs, journalSlugs] = await Promise.all([getAllProjectSlugs(), getAllJournalSlugs()])
 
   return [
     ...STATIC_ROUTES.map((route) => ({
       url: `${SITE_URL}${route}`,
       lastModified: new Date(),
     })),
-    ...slugs.map((slug) => ({
+    ...projectSlugs.map((slug) => ({
       url: `${SITE_URL}/projects/${slug}`,
+      lastModified: new Date(),
+    })),
+    ...journalSlugs.map((slug) => ({
+      url: `${SITE_URL}/journal/${slug}`,
       lastModified: new Date(),
     })),
   ]

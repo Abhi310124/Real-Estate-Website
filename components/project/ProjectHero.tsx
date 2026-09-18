@@ -1,79 +1,104 @@
 import Image from 'next/image'
-import { Eyebrow } from '@/components/ui/Eyebrow'
-import { Pill } from '@/components/ui/Pill'
-import { Rule } from '@/components/ui/Rule'
-import { SplitWords } from '@/components/motion/SplitWords'
+import { RuleDraw } from '@/components/motion/RuleDraw'
+import { resolvePhoto } from './photo'
 import { formatPrice } from '@/lib/format'
 import type { Project } from '@/lib/data/types'
 
 type Props = { project: Project }
 
 /**
- * Full-bleed hero for a single project's detail page (Ruling 1) — the same structural
- * convention as `components/home/Hero.tsx` (`min-h-[100svh]`, `items-end`, a raw
- * `next/image` with `priority`+`fill` for the LCP background rather than `ImageReveal`,
- * which starts clipped and would race the first paint, and a navy scrim strong enough
- * that white text over it clears 4.5:1 regardless of the photo underneath), so the
- * header can sit transparently over it exactly as it does on the home page. That only
- * holds because `/projects/<slug>` is listed in `isFullBleedHeroRoute` in
- * `components/layout/Header.tsx` (Ruling 2) — without it the header would paint its own
- * navy background here and double up on the scrim.
+ * Full-bleed opening for a single project, built to the same shape as `components/storey/Hero.tsx`:
+ * `110svh`, one `priority` `fill` photograph, a gradient scrim, and the copy anchored a fixed
+ * fraction of the *viewport height* up from the bottom.
+ *
+ * `110svh` is the detail that carries it. The photograph is always taller than the screen, so the
+ * first content chapter is already encroaching as the visitor starts to scroll and the page reads as
+ * continuous rather than paged. `svh` rather than `vh` so mobile browser chrome cannot crop it, and
+ * the copy block is positioned in `svh` too — a `vw` offset inside a height-sized section pushes the
+ * metadata off the bottom edge at wide-but-short viewports.
+ *
+ * A raw `next/image` rather than `ImageReveal`: this is unambiguously the LCP element, and
+ * ImageReveal starts its subject at `opacity: 0` and would race the first paint.
+ *
+ * The scrim is stronger here than on the home hero (`/90` at the bottom rather than `/70`) because
+ * what sits over it is different. The home hero puts one `text-body` line there — large text, which
+ * needs only 3:1 — while this puts a row of `mono` labels at 1.1vw ≈ 16px, which needs 4.5:1. At
+ * `/70` a photograph that happens to be pale at the bottom brought white-at-70% down to ~3:1.
+ *
+ * No `Pill` and no status chip. Over photography, `Pill`'s outlined variants resolve to `secondary`
+ * or `muted` ink, which is unreadable on a dark scrim and cannot be overridden from the outside
+ * (same class specificity, so which of `text-secondary`/`text-primary` wins depends on stylesheet
+ * order, not on the order they are passed). Status becomes one entry in the metadata row instead,
+ * which is where the rest of the project's facts already are.
+ *
+ * The RERA number is in that row for a legal reason, not a design one: it must be displayed, so it
+ * is on screen in plain sight rather than in a footnote or behind a tooltip.
  */
+/**
+ * `'sold-out'` → `'Sold Out'`. Done in JS rather than with `capitalize`/`uppercase` on purpose: the
+ * e2e suite asserts case-sensitively against this section's text (`/Hyderabad|Kokapet|…/`), and a
+ * CSS text-transform is invisible to `textContent` but not to every way a value could later be
+ * read, so casing that is meant to be part of the content belongs in the content.
+ */
+function titleCase(value: string): string {
+  return value
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export function ProjectHero({ project }: Props) {
+  const hero = resolvePhoto(project.heroImage)
+
+  // Order is "what it is" → "where it is" → "what it costs" → "what you can buy" → the registration.
+  const meta: Array<{ term: string; value: string }> = [
+    { term: 'Status', value: titleCase(project.status) },
+    { term: 'Typology', value: titleCase(project.category) },
+    { term: 'Location', value: `${project.location.area}, ${project.location.city}` },
+    { term: 'Price', value: formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest) },
+    ...(project.unitTypes.length > 0 ? [{ term: 'Units', value: project.unitTypes.join(' / ') }] : []),
+    { term: 'RERA', value: project.reraNumber },
+  ]
+
   return (
-    <section data-project-hero className="relative flex min-h-[100svh] items-end overflow-hidden bg-navy-800">
-      <Image
-        src={project.heroImage.url}
-        alt={project.heroImage.alt}
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
-      />
-
-      {/* Navy scrim: white text over it clears 4.5:1 regardless of what sits underneath —
-          same gradient as components/home/Hero.tsx. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-navy-900/85 via-navy-900/40 to-navy-900/20"
-      />
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-32 sm:px-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <Pill status={project.status} />
-          <Eyebrow className="text-champagne">{project.category.replace(/-/g, ' ').toUpperCase()}</Eyebrow>
-        </div>
-
-        <SplitWords
-          as="h1"
-          text={project.title}
-          className="mt-5 font-display-expanded text-display-xl text-white"
+    <section data-project-hero className="relative h-[110svh] w-full bg-secondary text-primary">
+      <div className="absolute inset-0">
+        <Image src={hero.url} alt={hero.alt} fill priority sizes="100vw" className="object-cover" />
+        {/* A gradient, not a flat wash: the copy only needs protecting at the bottom, and a flat
+            overlay would mute the whole photograph, which is most of what the section is for. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/45 to-secondary/15"
         />
-
-        <p className="mt-4 text-body-lg text-white/90">
-          {project.location.area}, {project.location.city}
-        </p>
-
-        <Rule className="mt-6" />
-
-        <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-2">
-          <p className="tnum font-display-expanded text-2xl text-white">
-            {formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest)}
-          </p>
-          {project.unitTypes.length > 0 && (
-            <p className="text-body text-white/80">{project.unitTypes.join(' · ')}</p>
-          )}
-        </div>
-
-        {/* RERA display is a legal requirement, not a design choice (master prompt) — kept
-            plain and always on-screen rather than in a footnote or tooltip a buyer could miss. */}
-        <p className="mt-4 text-caption text-white/70">RERA No. {project.reraNumber}</p>
       </div>
 
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-8 z-10 flex justify-center">
-        <div className="flex h-10 w-6 items-start justify-center rounded-full border-2 border-white/60 p-1 motion-safe:animate-bounce">
-          <span className="h-2 w-1 rounded-full bg-white/80" />
+      {/* Anchored in `svh`, not `vw`. The section is sized in `svh`, so a viewport-relative *width*
+          offset inside it pushes the metadata strip off the bottom edge at wide-but-short viewports.
+          The section is 110svh and this sits 13svh up from its bottom, which puts the block's own
+          bottom edge at 97svh — inside the fold with a little air, rather than exactly on it. */}
+      <div className="layout-grid absolute inset-x-0 bottom-[13svh] max-sm:bottom-[12svh]">
+        <div className="col-span-12 sm:col-span-10">
+          <p className="font-mono text-mono uppercase text-primary/70 max-sm:text-mono-sm">
+            {project.tagline}
+          </p>
+          <h1 className="mt-[1.6vw] text-display-lg font-display max-sm:mt-[5vw] max-sm:text-display-sm-lg">
+            {project.title}
+          </h1>
         </div>
+
+        <RuleDraw className="col-span-12 mt-[3vw] text-primary/60 max-sm:mt-[8vw]" />
+
+        {/* The metadata strip. A definition list because that is what it is — six terms and their
+            values — laid out as a row on desktop and two columns below `sm`, where six items in one
+            line would each wrap to three words. */}
+        <dl className="col-span-12 mt-[2vw] grid grid-cols-2 gap-x-[3vw] gap-y-[6vw] max-sm:mt-[6vw] sm:flex sm:justify-between sm:gap-x-[2vw]">
+          {meta.map((entry) => (
+            <div key={entry.term}>
+              <dt className="font-mono text-mono uppercase text-primary/70 max-sm:text-mono-sm">{entry.term}</dt>
+              <dd className="mt-[0.6vw] text-label max-sm:mt-[2vw] max-sm:text-label-sm">{entry.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   )

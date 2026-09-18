@@ -1,58 +1,69 @@
 import { ImageReveal } from '@/components/motion/ImageReveal'
-import { Reveal } from '@/components/motion/Reveal'
-import { SplitWords } from '@/components/motion/SplitWords'
+import { RuleDraw } from '@/components/motion/RuleDraw'
+import { cn } from '@/lib/cn'
+import { SECTION_SCROLL_MT } from './section-anchor'
+import { resolvePhoto } from './photo'
 import type { Project } from '@/lib/data/types'
 
 type Props = { project: Project }
 
 /**
- * `#overview` (ivory) — the first content chapter below `ProjectHero`. A decorative,
- * rotated "OVERVIEW" side label runs the height of the text column: champagne-on-ivory
- * is ~2.2:1 and would fail AA as real text, which is exactly why this is `aria-hidden`
- * ornament rather than the section's accessible name — the `<h2>` right beside it is
- * what a screen reader actually announces, and it is real navy-on-ivory text. Uses the
- * project's own first gallery photo (no dedicated "overview image" field exists on
- * `Project`), falling back to the hero image for a project with an empty gallery.
+ * `#overview` — the first white chapter, and the page's first ordinary section after the hero.
+ *
+ * Laid out on the 12-column grid the way the home page's white chapters are: a plain `display-lg`
+ * heading with nothing above it (`Expertise` and `JournalPreview` both open exactly this way — the
+ * mono eyebrow is reserved for a labelled aside, not used as a decorative kicker on every section),
+ * then the prose in a narrow measure with the photograph pushed to the right-hand columns.
+ *
+ * The rotated vertical "OVERVIEW" side label the previous version carried is gone. It was a device
+ * from a different design language, and it also failed contrast as real text while being marked
+ * `aria-hidden` — which hides it from assistive tech without making it legible to a sighted reader
+ * with low vision.
+ *
+ * Prose stays at four columns rather than filling the row. `text-body` is 1.6vw ≈ 23px, and a
+ * paragraph of that set across eight columns runs well past 100 characters a line; the narrow
+ * measure is a large part of why the reference's body copy reads as considered rather than dumped.
+ *
+ * Uses the project's own first gallery photograph — there is no dedicated overview image on
+ * `Project` — falling back to the hero for a project whose gallery is empty.
  */
 export function Overview({ project }: Props) {
-  const image = project.gallery[0] ?? project.heroImage
+  const image = resolvePhoto(project.gallery[0] ?? project.heroImage)
 
   return (
-    <section id="overview" className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[auto_1fr_1fr] lg:gap-16 lg:px-10">
-        {/* navy-700, not champagne. Task 14's brief called this side label "decorative" and
-            therefore exempt from the contrast rule, but champagne on ivory is 2.20:1 and axe
-            flagged it — correctly. Marking text aria-hidden hides it from assistive tech; it
-            does not make it legible to a sighted reader with low vision, and this label is
-            plainly meant to be read. Our own rule already says champagne on ivory is decoration
-            only, never text, so the original was in breach of it. It still reads as ornament
-            because it is small, letter-spaced and rotated — the colour was never what made it
-            subtle. */}
-        <span
-          aria-hidden="true"
-          className="eyebrow hidden shrink-0 text-sm tracking-[0.3em] text-navy-700 lg:block"
-          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-        >
-          OVERVIEW
-        </span>
+    <section
+      id="overview"
+      className={cn('w-full bg-primary py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
+    >
+      <div className="layout-grid">
+        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-8">
+          Overview
+        </h2>
+      </div>
 
-        <div>
-          <SplitWords as="h2" text="Overview" className="font-display-expanded text-display-md text-navy-800" />
-          <div className="mt-6 space-y-4">
-            {project.overview.map((paragraph, i) => (
-              <Reveal key={paragraph.slice(0, 24) + i} delay={i * 0.08}>
-                <p className="text-body text-navy-700">{paragraph}</p>
-              </Reveal>
-            ))}
-          </div>
+      <div className="layout-grid mt-[6vw] max-sm:mt-[14vw]">
+        <RuleDraw className="col-span-12 text-edge" />
+
+        <div className="col-span-12 mt-[2vw] max-sm:mt-[6vw] sm:col-span-4">
+          {project.overview.map((paragraph, i) => (
+            <p
+              key={paragraph.slice(0, 24) + i}
+              className={cn('text-body text-muted max-sm:text-body-sm', i > 0 && 'mt-[1.6vw] max-sm:mt-[5vw]')}
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
 
+        {/* Column 8 onwards, and a portrait crop: the asymmetry (narrow text left, tall image right,
+            with two empty columns between them) is the same device `ProjectsFeature` uses on the home
+            page. An even two-up split would read as a template. */}
         <ImageReveal
           src={image.url}
           alt={image.alt}
+          sizes="(min-width: 640px) 38vw, 92vw"
           data-testid="overview-image-reveal"
-          sizes="(min-width: 1024px) 40vw, 90vw"
-          className="aspect-[4/5] w-full rounded-sm lg:aspect-auto"
+          className="col-span-12 mt-[6vw] aspect-[4/5] w-full max-sm:mt-[12vw] sm:col-span-5 sm:col-start-8 sm:mt-[2vw]"
         />
       </div>
     </section>

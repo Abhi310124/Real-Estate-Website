@@ -1,66 +1,89 @@
 'use client'
 import { useState } from 'react'
-import { Eyebrow } from '@/components/ui/Eyebrow'
 import { cn } from '@/lib/cn'
+import { SECTION_SCROLL_MT } from './section-anchor'
 import type { Project } from '@/lib/data/types'
 
 type Props = { project: Project }
 
 /**
- * `#specifications` (ivory) — accordion over `project.specifications`, one panel per
- * category. The first category is open by default (the brief's own instruction). The
- * click handler sets `openIndex` to the clicked index unconditionally rather than
- * toggling it: a toggle would close the first panel again the moment a visitor (or the
- * e2e test) clicks that already-open first item, which conflicts with both "open the
- * first by default" and the test's click-then-still-`aria-expanded="true"` assertion on
- * that same first button. One consequence of "set, don't toggle": there is always
- * exactly one open panel, never zero — an intentional simplification, not an oversight,
- * since the brief never asks for a fully-collapsed state.
+ * `#specifications` — black chapter. An accordion over `project.specifications`, one panel per
+ * category, separated by hairlines rather than boxed into cards.
+ *
+ * The first category is open by default. The click handler sets `openIndex` to the clicked index
+ * unconditionally rather than toggling it: a toggle would close the first panel again the moment a
+ * visitor (or the e2e test) clicks that already-open first item, which conflicts with both "open the
+ * first by default" and the test's click-then-still-`aria-expanded="true"` assertion on that same
+ * button. One consequence of "set, don't toggle" is that there is always exactly one open panel and
+ * never zero — an intentional simplification, not an oversight.
+ *
+ * The `+` marker rotating to `×` is the only animation here, and it is a `transform`, so it costs
+ * nothing to composite and is disabled wholesale under `prefers-reduced-motion` by
+ * `motion-reduce:transition-none`. The panel itself is shown and hidden with the `hidden` attribute
+ * rather than an animated height: an auto-height transition needs a measured pixel height, and
+ * `hidden` is what keeps the closed panels genuinely out of the accessibility tree.
  */
 export function Specifications({ project }: Props) {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section id="specifications" data-specs className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10">
-        {/* navy-700, not orange: these sections are ivory, and orange on ivory is 3.08:1 —
-            below AA for text at the eyebrow size (11px). Flagged by Task 24's axe audit. */}
-        <Eyebrow className="text-navy-700">Specifications</Eyebrow>
-        <h2 className="mt-3 font-display-expanded text-display-md text-navy-800">Built to Last</h2>
+    <section
+      id="specifications"
+      data-specs
+      className={cn('w-full bg-secondary py-[8vw] text-primary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
+    >
+      <div className="layout-grid">
+        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-8">
+          Built to Last
+        </h2>
+      </div>
 
-        {project.specifications.length === 0 ? (
-          <p className="mt-8 text-body text-navy-700">
+      {project.specifications.length === 0 ? (
+        <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
+          <p className="col-span-12 text-body text-primary/70 max-sm:text-body-sm sm:col-span-5">
             Detailed specifications for this project will be published here soon.
           </p>
-        ) : (
-          <div className="mt-10 divide-y divide-navy-800/10 border-y border-navy-800/10">
+        </div>
+      ) : (
+        <div className="layout-grid mt-[6vw] max-sm:mt-[12vw]">
+          <div className="col-span-12 border-t border-primary/25">
             {project.specifications.map((spec, i) => {
               const isOpen = openIndex === i
               const panelId = `spec-panel-${i}`
               const buttonId = `spec-button-${i}`
               return (
-                <div key={spec.category}>
+                <div key={spec.category} className="border-b border-primary/25">
                   <button
                     type="button"
                     id={buttonId}
                     aria-expanded={isOpen}
                     aria-controls={panelId}
                     onClick={() => setOpenIndex(i)}
-                    className="flex min-h-11 w-full items-center justify-between gap-4 py-5 text-left font-semibold text-navy-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
+                    className="flex min-h-11 w-full items-center justify-between gap-[2vw] rounded-none py-[1.6vw] text-left text-lead font-display focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current max-sm:py-[5vw] max-sm:text-lead-sm"
                   >
                     {spec.category}
                     <span
                       aria-hidden="true"
-                      className={cn('shrink-0 text-xl leading-none text-orange transition-transform', isOpen && 'rotate-45')}
+                      className={cn(
+                        'shrink-0 text-lead leading-none transition-transform duration-300 ease-in-out motion-reduce:transition-none max-sm:text-lead-sm',
+                        isOpen && 'rotate-45'
+                      )}
                     >
                       +
                     </span>
                   </button>
-                  <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!isOpen} className="pb-6">
-                    <ul className="space-y-2">
+
+                  <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!isOpen} className="pb-[2.4vw] max-sm:pb-[6vw]">
+                    {/* Items sit in the right-hand half of the row, indented off the category name —
+                        the same "term left, detail right" split the rest of the page uses, and it
+                        keeps the measure narrow enough to read at `text-body`. */}
+                    <ul className="space-y-[0.8vw] max-sm:space-y-[3vw] sm:w-1/2">
                       {spec.items.map((item) => (
-                        <li key={item} className="flex gap-3 text-body text-navy-700">
-                          <span aria-hidden="true" className="text-orange">
+                        <li
+                          key={item}
+                          className="flex gap-[0.8vw] text-body text-primary/80 max-sm:gap-[3vw] max-sm:text-body-sm"
+                        >
+                          <span aria-hidden="true" className="text-primary/40">
                             —
                           </span>
                           {item}
@@ -72,8 +95,8 @@ export function Specifications({ project }: Props) {
               )
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   )
 }

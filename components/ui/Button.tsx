@@ -1,97 +1,89 @@
-'use client'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
-
-export type ButtonVariant = 'solid' | 'outline' | 'ghost'
-export type ButtonTone = 'navy' | 'white'
-
-type ButtonProps = {
-  variant?: ButtonVariant
-  /** Only consulted by `outline`/`ghost` — `solid` is always orange-on-white (Ruling 9). */
-  tone?: ButtonTone
-  className?: string
-  children: React.ReactNode
-  /** Presence of `href` decides `<a>`/`<Link>` vs `<button>` — there is no separate `as` prop. */
-  href?: string
-  onClick?: () => void
-  type?: 'button' | 'submit'
-  target?: string
-  rel?: string
-  disabled?: boolean
-  'aria-label'?: string
-  'aria-expanded'?: boolean
-  'aria-haspopup'?: React.AriaAttributes['aria-haspopup']
-  'aria-controls'?: string
-}
-
-// Every animated state here is transform/opacity only, per the master prompt's animation
-// constraint — active:scale and the hover opacity fade are both compositor-only properties,
-// nothing that forces layout or paint.
-const BASE =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ' +
-  'transition-opacity duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange ' +
-  'disabled:pointer-events-none disabled:opacity-50'
-
-function toneClass(variant: ButtonVariant, tone: ButtonTone): string {
-  if (variant === 'solid') {
-    // Navy label, not white — `tone` has nothing to choose between here either way.
-    //
-    // This corrects an earlier rule of ours that said filled orange controls take a WHITE
-    // label. That was wrong on the arithmetic: white on `#FF4907` measures **3.38:1**, which
-    // fails AA's 4.5:1 for text at this size, and axe flagged it on all five routes. Navy-800
-    // on the same orange measures **5.17:1** and passes. Even `orange-600` under white only
-    // reaches 4.14:1, so darkening the fill was not a way out without changing the brand colour.
-    //
-    // Icon-only orange controls (see FloatingActions) may keep white, because a graphic that is
-    // not text needs 3:1, and 3.38:1 clears that.
-    return 'bg-orange text-navy-800 hover:opacity-90'
-  }
-  if (variant === 'outline') {
-    return tone === 'white'
-      ? 'border border-white text-white hover:bg-white/10'
-      : 'border border-navy-800 text-navy-800 hover:bg-navy-800/5'
-  }
-  // ghost
-  return tone === 'white' ? 'text-white hover:opacity-80' : 'text-navy-800 hover:opacity-80'
-}
+import { DotOrnament } from '@/components/motion/DotOrnament'
 
 /**
- * Shared CTA atom for the whole site — Header's "Enquire Now", FloatingActions' call/WhatsApp
- * rail, and every later task's project-card and form actions all render through this one
- * component so the three variants and the touch-target/focus-ring rules stay in exactly one
- * place. Renders a `next/link` for internal hrefs (`/...`), a plain `<a>` for external/`tel:`/
- * `wa.me` hrefs, and a `<button>` when no `href` is given at all.
+ * The site's only button shape, measured off the reference:
+ *
+ *   inline-flex justify-between items-center · gap-[3vw] sm:gap-[2.3vw]
+ *   pl-[2vw] pr-[3vw] · border-radius: 0 · black on white / white on black
+ *   contents: label, then the dot ornament, pushed apart
+ *
+ * Two things are easy to get wrong and both change the character completely:
+ *
+ * 1. **Square corners.** `border-radius: 0`. Every instinct says round a button; the reference
+ *    does not, and the sharp corner is what keeps it reading as architectural drafting rather
+ *    than as a web control.
+ * 2. **`justify-between`, not `gap`-only centring.** The label sits hard left and the ornament
+ *    hard right, so the button's width is driven by its container rather than hugging its text.
+ *    That is why the reference's buttons look placed rather than sized.
+ *
+ * Asymmetric padding (`pl` < `pr`) is deliberate too: it optically centres the pairing, because
+ * the ornament is visually lighter than the text it sits opposite.
  */
-export function Button({
-  variant = 'solid',
-  tone = 'navy',
-  className,
-  children,
-  href,
-  type = 'button',
-  ...rest
-}: ButtonProps) {
-  const cls = cn(BASE, toneClass(variant, tone), className)
 
-  if (href) {
-    if (href.startsWith('/') || href.startsWith('#')) {
-      return (
-        <Link href={href} className={cls} {...rest}>
-          {children}
-        </Link>
-      )
-    }
+export type ButtonTone = 'dark' | 'light'
+
+/**
+ * `variant` is retained purely for back-compatibility. The previous design had three variants
+ * (`solid` / `outline` / `ghost`); this one has a single shape in two tones, because the reference
+ * uses exactly one button. Rather than edit eight call sites for no visual gain, the old names map
+ * onto the new tones: `solid` → dark, everything else → light. New code should pass `tone`.
+ */
+type LegacyVariant = 'solid' | 'outline' | 'ghost'
+
+type CommonProps = {
+  children: React.ReactNode
+  tone?: ButtonTone
+  /** @deprecated Pass `tone` instead. */
+  variant?: LegacyVariant
+  className?: string
+  ornament?: boolean
+}
+
+type Props = CommonProps &
+  (
+    | ({ href: string } & Omit<React.ComponentProps<typeof Link>, 'href' | 'className' | 'children'>)
+    | ({ href?: undefined } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'>)
+  )
+
+const BASE =
+  'group inline-flex items-center justify-between rounded-none text-label sm:text-label ' +
+  'gap-[3vw] sm:gap-[2.3vw] pl-[4vw] pr-[5vw] sm:pl-[2vw] sm:pr-[3vw] py-[2.6vw] sm:py-[0.65vw] ' +
+  'max-sm:text-label-sm ' +
+  'transition-colors duration-150 ease-in-out ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current'
+
+const TONES: Record<ButtonTone, string> = {
+  // White text on black. Contrast is 21:1 — the monochrome palette makes every pairing here
+  // trivially AA, which is one real benefit of losing the accent colour.
+  dark: 'bg-secondary text-primary hover:bg-muted',
+  light: 'bg-primary text-secondary hover:bg-hairline',
+}
+
+export function Button({ children, tone, variant, className, ornament = true, ...rest }: Props) {
+  const resolved: ButtonTone = tone ?? (variant === undefined || variant === 'solid' ? 'dark' : 'light')
+  const cls = cn(BASE, TONES[resolved], className)
+  const inner = (
+    <>
+      <span>{children}</span>
+      {ornament && <DotOrnament spinOnGroupHover />}
+    </>
+  )
+
+  if ('href' in rest && rest.href !== undefined) {
+    const { href, ...linkRest } = rest as { href: string }
     return (
-      <a href={href} className={cls} {...rest}>
-        {children}
-      </a>
+      <Link href={href} className={cls} {...linkRest}>
+        {inner}
+      </Link>
     )
   }
 
+  const { type = 'button', ...btnRest } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>
   return (
-    <button type={type} className={cls} {...rest}>
-      {children}
+    <button type={type} className={cls} {...btnRest}>
+      {inner}
     </button>
   )
 }

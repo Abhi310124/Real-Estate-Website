@@ -3,9 +3,12 @@ import type { SanityImageSource } from '@sanity/image-url'
 import { sanityClient } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import {
+  allJournalSlugsQuery,
   allProjectSlugsQuery,
   featuredProjectsQuery,
   projectBySlugQuery,
+  journalPostBySlugQuery,
+  journalPostsQuery,
   projectsQuery,
   siteSettingsQuery,
 } from '@/sanity/lib/queries'
@@ -13,6 +16,7 @@ import {
 import type {
   DataSource,
   Img,
+  JournalPost,
   MasterPlanPlot,
   Project,
   ProjectCategory,
@@ -258,6 +262,60 @@ const FALLBACK_SETTINGS: SiteSettings = {
 // calls revalidateTag('project', 'max') / revalidateTag('settings', 'max') from Sanity's webhook.
 // ---------------------------------------------------------------------------------------------
 
+
+// Journal post as GROQ returns it. `coverImage` is pre-resolved to a URL string here rather than
+// left as a raw asset reference, because a journal cover is displayed at one fixed crop and has no
+// hotspot to honour — unlike project imagery, which goes through urlFor() for exactly that reason.
+interface RawJournalPost {
+  _id?: string
+  title?: string
+  slug?: string
+  excerpt?: string
+  publishedAt?: string
+  isPublished?: boolean
+  body?: unknown
+  coverImage?: { url?: string; alt?: string; lqip?: string } | null
+}
+
+/**
+ * Flattens Sanity's Portable Text `body` into the `string[]` of paragraphs that JournalPost
+ * declares, so the mock and Sanity sources return the same shape.
+ *
+ * Deliberately lossy: it keeps the text of each block and discards marks, links and embedded
+ * objects. That is the right trade here because the journal renders as plain paragraphs — carrying
+ * full Portable Text through would mean the two sources no longer share a type, which is the one
+ * property that makes them interchangeable.
+ */
+function mapPortableTextToParagraphs(body: unknown): string[] {
+  if (!Array.isArray(body)) return typeof body === 'string' ? [body] : []
+  return body
+    .map((block) => {
+      if (typeof block === 'string') return block
+      const b = block as { _type?: string; children?: Array<{ text?: string }> }
+      if (b._type !== 'block' || !Array.isArray(b.children)) return ''
+      return b.children.map((c) => c.text ?? '').join('')
+    })
+    .map((t) => t.trim())
+    .filter(Boolean)
+}
+
+function mapJournalPost(raw: RawJournalPost): JournalPost {
+  return {
+    id: raw._id ?? '',
+    title: raw.title ?? '',
+    slug: raw.slug ?? '',
+    excerpt: raw.excerpt ?? '',
+    body: mapPortableTextToParagraphs(raw.body),
+    coverImage: {
+      url: raw.coverImage?.url ?? '',
+      alt: raw.coverImage?.alt ?? '',
+      ...(raw.coverImage?.lqip ? { lqip: raw.coverImage.lqip } : {}),
+    },
+    publishedAt: raw.publishedAt ?? '',
+    isPublished: raw.isPublished ?? false,
+  }
+}
+
 export const sanitySource: DataSource = {
   async getProjects(filter) {
     try {
@@ -318,6 +376,45 @@ export const sanitySource: DataSource = {
     } catch (err) {
       console.error('[sanitySource.getSiteSettings] Sanity fetch failed, returning fallback settings:', err)
       return FALLBACK_SETTINGS
+    }
+  },
+  // Journal. Same shape as the project methods: gate on isPublished in the query itself (never in
+  // JS after the fetch), tag the fetch so the revalidate webhook can invalidate it, and degrade to
+  // an empty result rather than throwing — a Sanity outage should cost the journal listing, not the
+  // whole page.
+  async getJournalPosts() {
+    try {
+      const raw = (await sanityClient.fetch(journalPostsQuery, {}, {
+        next: { tags: ['journal'] },
+      })) as RawJournalPost[] | null
+      return (raw ?? []).map(mapJournalPost)
+    } catch (err) {
+      console.error('[sanitySource.getJournalPosts] Sanity fetch failed, returning []:', err)
+      return []
+    }
+  },
+
+  async getJournalPost(slug) {
+    try {
+      const raw = (await sanityClient.fetch(journalPostBySlugQuery, { slug }, {
+        next: { tags: ['journal'] },
+      })) as RawJournalPost | null
+      return raw ? mapJournalPost(raw) : null
+    } catch (err) {
+      console.error('[sanitySource.getJournalPost] Sanity fetch failed, returning null:', err)
+      return null
+    }
+  },
+
+  async getAllJournalSlugs() {
+    try {
+      const raw = (await sanityClient.fetch(allJournalSlugsQuery, {}, {
+        next: { tags: ['journal'] },
+      })) as Array<{ slug: string }> | null
+      return (raw ?? []).map((r) => r.slug).filter(Boolean)
+    } catch (err) {
+      console.error('[sanitySource.getAllJournalSlugs] Sanity fetch failed, returning []:', err)
+      return []
     }
   },
 }

@@ -1,66 +1,66 @@
 import type { Metadata } from 'next'
-import { Archivo, Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { LenisProvider } from '@/components/motion/LenisProvider'
-import { PageTransition } from '@/components/motion/PageTransition'
-import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
-import { FloatingActions } from '@/components/layout/FloatingActions'
-import { MagneticCursor } from '@/components/motion/MagneticCursor'
+import { LoadCurtain } from '@/components/motion/LoadCurtain'
+import { SiteHeader } from '@/components/layout/SiteHeader'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { getSiteSettings } from '@/lib/data'
 
-const archivo = Archivo({
+/*
+ * One sans, one mono, two weights between them.
+ *
+ * The reference licenses "New Grotesk", which cannot be shipped here. Inter is the closest
+ * freely-available neutral grotesque and is near-indistinguishable at the sizes this design
+ * uses once the -3% tracking is applied — the tracking does more work than the face does.
+ * Weights are restricted to 400 and 500 deliberately: the reference ships only those two, and
+ * reaching for 600/700 is the fastest way to lose the look.
+ *
+ * The mono carries the small letter-spaced labels (`ST / CTF`, `THANK YOU`, the domain in the
+ * footer) which on the reference are set in a typewriter face at -10% tracking.
+ */
+const sans = Inter({
   subsets: ['latin'],
-  axes: ['wdth'],
-  variable: '--font-archivo',
+  weight: ['400', '500'],
+  variable: '--font-sans',
   display: 'swap',
 })
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
-// Ruling 8: metadataBase from an env var, never a hardcoded guess at a production domain BKR
-// INFRA may not even have registered yet. The fallback is the same http://localhost:3000
-// Next.js itself already assumes when metadataBase is unset (see the build warning this
-// silences) — inert and obviously-local, not a fabricated production URL. Set
-// NEXT_PUBLIC_SITE_URL (documented in .env.example) once a real domain exists.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'BKR INFRA — Redefining Real Estate Excellence',
+  title: 'BKR INFRA — Contemporary Residential Development, Hyderabad',
   description:
-    'Open plots, villas, apartments and independent houses in Hyderabad. BKR INFRA develops, designs and delivers.',
+    'BKR INFRA develops open plots, villas, apartments and independent houses across Hyderabad, shaped through simplicity and material-led thinking.',
 }
 
-// Ruling 6: app/layout.tsx now takes sole ownership of <main id="main"> — it has been
-// removed from app/page.tsx and app/motion-lab/page.tsx (their own content is unchanged,
-// only their wrapping <main> tag moved here) so there is exactly one <main> per page, not a
-// nested pair. Ruling 5: every pre-existing piece of this file (the LenisProvider wrapper,
-// the skip link and its z-[130], both font variables, the body classes, the metadata export)
-// is unchanged below — Task 7 and Task 8 only ever added new chrome around {children}. Task 9
-// is the same shape again: <main id="main"> still wraps exactly one thing, only now that one
-// thing is <PageTransition> rather than {children} directly.
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
 
   return (
-    <html lang="en" className={`${archivo.variable} ${inter.variable}`}>
-      <body className="bg-ivory font-body text-navy-800 antialiased">
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="bg-primary font-sans text-secondary antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[130] focus:bg-navy-800 focus:px-4 focus:py-2 focus:text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[130] focus:bg-secondary focus:px-4 focus:py-2 focus:text-primary"
         >
           Skip to content
         </a>
         <LenisProvider>
-          <AnnouncementBar settings={settings} />
-          <Header settings={settings} />
-          <main id="main">
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <Footer settings={settings} />
-          <FloatingActions settings={settings} />
-          <MagneticCursor />
+          {/* Fixed full-viewport black panel that fades 1 → 0 on first paint. Sits above the
+              page but below the skip link, and is pointer-events-none throughout so it can
+              never intercept a click even mid-fade. */}
+          <LoadCurtain />
+          <SiteHeader settings={settings} />
+          <main id="main">{children}</main>
+          <SiteFooter settings={settings} />
         </LenisProvider>
       </body>
     </html>

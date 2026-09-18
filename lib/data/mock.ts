@@ -1,4 +1,4 @@
-import type { DataSource, Project, ProjectSummary, SiteSettings } from './types'
+import type { DataSource, JournalPost, Project, ProjectSummary, SiteSettings } from './types'
 
 // Six mock projects standing in for Sanity until Task 20 wires the real source.
 // Slugs are load-bearing — later tasks assert against these exact strings:
@@ -571,6 +571,98 @@ const toSummary = (p: Project): ProjectSummary => ({
 // `MOCK_PROJECTS` directly, so hiding a project via `isPublished` removes it from every query.
 const published = () => MOCK_PROJECTS.filter((p) => p.isPublished)
 
+/**
+ * Four journal posts, matching the count the home page's Journal grid is designed around.
+ *
+ * `unpublished-journal-sample` is deliberately `isPublished: false` so the gating on every journal
+ * query has something to actually exclude — the same role `unpublished-sample` plays for projects.
+ * Without it, a query that forgot its `isPublished` filter would pass every test.
+ */
+const MOCK_JOURNAL: JournalPost[] = [
+  {
+    id: 'jp-1',
+    title: 'Designing for Long-Term Living Rather Than Trends',
+    slug: 'designing-for-long-term-living',
+    excerpt:
+      'A house that photographs well in its first year and dates in its fifth has solved the wrong problem.',
+    body: [
+      'The materials that age well are rarely the ones that look newest on handover day. Brick weathers, timber silvers, stone takes on the colour of the place it sits in. Finishes chosen for immediate effect tend to move in the opposite direction.',
+      'We plan for the second decade rather than the first year. That shapes small decisions — where a downpipe runs, how a threshold sheds water, whether a junction can be repaired without being replaced — long before it shapes anything visible.',
+    ],
+    coverImage: {
+      url: '/photography/interior-06.jpg',
+      alt: 'Living space with timber floors and full-height glazing to a garden',
+    },
+    publishedAt: '2026-08-14',
+    isPublished: true,
+  },
+  {
+    id: 'jp-2',
+    title: 'The Role of Material Honesty in a Warm Climate',
+    slug: 'material-honesty-warm-climate',
+    excerpt:
+      'Hyderabad asks different questions of a building than a temperate climate does, and the answers are mostly about shade.',
+    body: [
+      'Deep reveals, generous eaves and screened openings do more for comfort here than any amount of glazing specification. Shade is cheaper than cooling, and it lasts longer.',
+      'Material honesty is not an aesthetic position in this climate so much as a practical one: surfaces that show what they are tend also to be the ones that survive being rained on for three months a year.',
+    ],
+    coverImage: {
+      url: '/photography/detail-06.jpg',
+      alt: 'Vertical timber screen casting shadow across a rendered wall',
+    },
+    publishedAt: '2026-07-02',
+    isPublished: true,
+  },
+  {
+    id: 'jp-3',
+    title: 'Balancing Openness, Privacy, and Everyday Comfort',
+    slug: 'openness-privacy-comfort',
+    excerpt:
+      'Open plan is a means, not a goal. The useful question is which rooms need to be closable.',
+    body: [
+      'A single volume that cannot be subdivided works well for entertaining and badly for a household where two people need to do different things at the same time.',
+      'We tend toward plans that open fully and close partially — sliding partitions, offset sightlines, a study that can be shut without being isolated. The flexibility is what makes a plan last through a family changing shape.',
+    ],
+    coverImage: {
+      url: '/photography/interior-07.jpg',
+      alt: 'Sliding partition between a study and a living room',
+    },
+    publishedAt: '2026-05-21',
+    isPublished: true,
+  },
+  {
+    id: 'jp-4',
+    title: 'Creating a Strong Relationship Between Home and Site',
+    slug: 'home-and-site',
+    excerpt: 'The first drawing we make of any plot is not of a building.',
+    body: [
+      'It is of where the sun lands in June and December, where water runs after rain, which neighbouring windows look in, and which trees are worth keeping.',
+      'Everything afterwards is a response to that drawing. A plan developed before the site is understood can only be adjusted to fit it, never shaped by it.',
+    ],
+    coverImage: {
+      url: '/photography/detail-07.jpg',
+      alt: 'Mature tree retained between two new building volumes',
+    },
+    publishedAt: '2026-03-09',
+    isPublished: true,
+  },
+  {
+    id: 'jp-hidden',
+    title: 'Unpublished Journal Sample',
+    slug: 'unpublished-journal-sample',
+    excerpt: 'Never served. Exists so publish-gating has something to exclude.',
+    body: ['If this is ever visible on the site, a journal query has lost its isPublished filter.'],
+    coverImage: { url: '/photography/detail-08.jpg', alt: 'Placeholder' },
+    publishedAt: '2026-09-01',
+    isPublished: false,
+  },
+]
+
+const publishedPosts = () =>
+  MOCK_JOURNAL.filter((p) => p.isPublished).sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  )
+
 export const mockSource: DataSource = {
   async getProjects(filter) {
     return published()
@@ -593,5 +685,14 @@ export const mockSource: DataSource = {
   },
   async getSiteSettings() {
     return MOCK_SETTINGS
+  },
+  async getJournalPosts() {
+    return publishedPosts()
+  },
+  async getJournalPost(slug) {
+    return publishedPosts().find((p) => p.slug === slug) ?? null
+  },
+  async getAllJournalSlugs() {
+    return publishedPosts().map((p) => p.slug)
   },
 }

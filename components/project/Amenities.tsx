@@ -1,12 +1,13 @@
 import { Reveal } from '@/components/motion/Reveal'
-import { Eyebrow } from '@/components/ui/Eyebrow'
+import { RuleDraw } from '@/components/motion/RuleDraw'
+import { cn } from '@/lib/cn'
+import { SECTION_SCROLL_MT } from './section-anchor'
 import type { Project } from '@/lib/data/types'
 
 type Props = { project: Project }
 
-// The eight amenity `icon` keys actually used across every fixture in `lib/data/mock.ts`.
-// Each is a small stroke-only glyph, orange, `aria-hidden` — decorative only, never the
-// accessible name for its `<li>`.
+// The eight amenity `icon` keys actually used across every fixture in `lib/data/mock.ts`. Each is a
+// small stroke-only glyph, `aria-hidden` — decoration, never the accessible name for its `<li>`.
 const ICON_PATHS: Record<string, string> = {
   clubhouse: 'M4 21V10l8-6 8 6v11M9 21v-6h6v6',
   pool: 'M3 17c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0M3 12h18M6 7h3M15 7h3',
@@ -20,51 +21,67 @@ const ICON_PATHS: Record<string, string> = {
 const FALLBACK_PATH = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'
 
 /**
- * `#amenities` (navy) — a real `<ul>`, one `<li>` per `project.amenities`, staggered by
- * `Reveal`. Icons are decorative (`aria-hidden`); the visible amenity title is what
- * carries meaning to a screen reader, per the brief's instruction and the global
- * "icons never substitute for text" rule. An unrecognised `icon` key falls back to a
- * plain ring glyph rather than rendering nothing — none of the six fixtures needs this
- * fallback today, but it keeps a future data typo from silently dropping an amenity's
- * icon.
+ * `#amenities` — white chapter. A real `<ul>`, one `<li>` per `project.amenities`, each row opened by
+ * a drawn hairline and staggered by `Reveal`.
+ *
+ * Three columns of ruled rows rather than a card grid: the rule is how every other list on this site
+ * is separated, and it means the row's shape comes from the grid rather than from a box drawn around
+ * each item.
+ *
+ * The glyphs are set in `edge` (#BFBFBF), not in the body ink. They are `aria-hidden` ornament and the
+ * amenity's name is what carries the meaning, so they should sit behind the text in the reading order
+ * — the same reasoning as `Expertise`'s ghosted numerals on the home page, which are `hairline` for
+ * exactly this reason. An unrecognised `icon` key falls back to a plain ring rather than rendering
+ * nothing, so a future data typo cannot silently drop an amenity's glyph.
+ *
+ * `Reveal` sits INSIDE the `<li>`. It renders a `<div>`, and wrapping the `<li>` would make that div a
+ * direct child of `<ul>`, which axe flags as both `list` and `listitem`.
  */
 export function Amenities({ project }: Props) {
   return (
-    <section id="amenities" data-amenities className="scroll-mt-[180px] bg-navy-800 py-20 text-white sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <Eyebrow className="text-champagne">Amenities</Eyebrow>
-        <h2 className="mt-3 font-display-expanded text-display-md text-white">Everything You Need, Within the Gate</h2>
-
-        {project.amenities.length === 0 ? (
-          <p className="mt-8 text-body text-white/80">The amenity list for this project is being finalised.</p>
-        ) : (
-          <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Reveal sits INSIDE the <li> — it renders a <div>, and wrapping the <li> made that
-                div a direct child of <ul>, which axe flags as both `list` and `listitem`. */}
-            {project.amenities.map((amenity, i) => (
-              <li key={amenity.title} className="border-b border-white/10 pb-4">
-                <Reveal delay={i * 0.05} className="flex items-center gap-4">
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                    className="shrink-0 text-orange"
-                  >
-                    <path d={ICON_PATHS[amenity.icon] ?? FALLBACK_PATH} />
-                  </svg>
-                  <span className="text-body text-white/90">{amenity.title}</span>
-                </Reveal>
-              </li>
-            ))}
-          </ul>
-        )}
+    <section
+      id="amenities"
+      data-amenities
+      className={cn('w-full bg-primary py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
+    >
+      <div className="layout-grid">
+        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-9">
+          Everything You Need, Within the Gate
+        </h2>
       </div>
+
+      {project.amenities.length === 0 ? (
+        <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
+          <p className="col-span-12 text-body text-muted max-sm:text-body-sm sm:col-span-5">
+            The amenity list for this project is being finalised.
+          </p>
+        </div>
+      ) : (
+        <ul className="layout-grid mt-[6vw] gap-y-[2vw] max-sm:mt-[12vw] max-sm:gap-y-[6vw]">
+          {project.amenities.map((amenity, i) => (
+            <li key={amenity.title} className="col-span-12 sm:col-span-4">
+              <RuleDraw delayMs={i * 60} className="text-edge" />
+              <Reveal delay={i * 0.05} className="flex items-center gap-[1vw] pt-[1.2vw] max-sm:gap-[4vw] max-sm:pt-[4vw]">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="shrink-0 text-edge"
+                >
+                  <path d={ICON_PATHS[amenity.icon] ?? FALLBACK_PATH} />
+                </svg>
+                <span className="text-body max-sm:text-body-sm">{amenity.title}</span>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

@@ -124,3 +124,35 @@ export const siteSettingsQuery = /* groq */ `
     announcementBar { enabled, text, link }
   }
 `
+
+// ---------------------------------------------------------------------------------------------
+// Journal
+//
+// Every one of these gates on `isPublished == true`, exactly as the project queries do. That is
+// the owner's show/hide switch, and tests/unit/sanity-source.test.ts asserts the filter is present
+// on every query whose _type is a publishable document — so a query added later without it fails a
+// test rather than quietly serving a draft.
+//
+// `"lqip": asset->metadata.lqip` is projected alongside every image so blur placeholders come from
+// the real asset rather than being generated at request time.
+// ---------------------------------------------------------------------------------------------
+
+export const journalPostsQuery = /* groq */ `
+  *[_type == "journalPost" && isPublished == true] | order(publishedAt desc) {
+    _id, title, "slug": slug.current, excerpt, publishedAt, isPublished,
+    body,
+    coverImage { "url": asset->url, alt, "lqip": asset->metadata.lqip }
+  }
+`
+
+export const journalPostBySlugQuery = /* groq */ `
+  *[_type == "journalPost" && isPublished == true && slug.current == $slug][0] {
+    _id, title, "slug": slug.current, excerpt, publishedAt, isPublished,
+    body,
+    coverImage { "url": asset->url, alt, "lqip": asset->metadata.lqip }
+  }
+`
+
+export const allJournalSlugsQuery = /* groq */ `
+  *[_type == "journalPost" && isPublished == true] | order(publishedAt desc) { "slug": slug.current }
+`
