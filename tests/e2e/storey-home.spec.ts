@@ -194,6 +194,71 @@ test.describe('the 3D image ring', () => {
     expect(ring.count).toBeGreaterThanOrEqual(8)
     expect(parseFloat(ring.opacity)).toBeCloseTo(0.4, 1)
   })
+
+  // The rotation is the whole point of the element and nothing above sees it: the assertions there
+  // pass identically against a ring welded at one angle, which is exactly the bug that shipped once.
+  //
+  // Sampled against the reference's own measured curve at 1440×900 — 0° at scrollY 90 (section top
+  // crossing the viewport bottom) to 100° at 2070 (section bottom reaching the viewport top), linear
+  // at 0.0505°/px, then clamped. Read off the ROTATOR, not the outer pose: the pose wrapper is a
+  // fixed 85° tilt and probing it instead reports a perfectly static ring, which is how the earlier
+  // measurement went wrong.
+  test('scrubs the ring rotation to scroll along the reference curve', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/')
+    await page.waitForTimeout(2500)
+
+    const read = () =>
+      page.evaluate(() => {
+        const el = document.querySelector('[data-ring-rotator]')
+        if (!el) return null
+        const m = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+        return (Math.atan2(m.m12, m.m11) * 180) / Math.PI
+      })
+
+    // Lenis eases rather than jumps, and the scrub follows the eased position, so the angle is still
+    // moving right after a `scrollTo`. Settle in two stages, because settling on the angle alone is
+    // wrong in a way that silently passes: for the first frames after `scrollTo`, Lenis has not begun
+    // easing, so two consecutive reads are trivially equal and the helper returns the PREVIOUS
+    // sample's angle. Waiting for the scroll position to arrive first is what makes the angle reading
+    // mean anything.
+    const settle = async (label: string, probe: () => Promise<number | null>) => {
+      // Unconditional lead-in for the same reason: a probe read before Lenis has begun easing is
+      // equal to the one before it, and "equal twice" would exit on motion that has not started.
+      await page.waitForTimeout(250)
+      let last: number | null = null
+      for (let i = 0; i < 60; i++) {
+        const now = await probe()
+        if (now !== null && last !== null && Math.abs(now - last) < 0.05) return now
+        last = now
+        await page.waitForTimeout(100)
+      }
+      throw new Error(`${label} never settled (last ${last})`)
+    }
+
+    const angleAt = async (y: number) => {
+      await page.evaluate((yy) => window.scrollTo(0, yy), y)
+      // Settles wherever Lenis lands, not necessarily at `y` — 2400 may be past the document's max
+      // scroll, and the clamp assertion is about the angle, not about reaching an exact offset.
+      await settle(`scroll to ${y}`, () => page.evaluate(() => window.scrollY))
+      return settle(`ring rotation at ${y}`, read)
+    }
+
+    // Tolerance ±3°: Lenis may still be settling by a pixel or two, which at 0.0505°/px is noise.
+    // Wide enough to survive that, far too tight to pass if the scrub is absent or half-speed.
+    expect(await angleAt(90)).toBeCloseTo(0, 0)
+
+    const at900 = await angleAt(900)
+    expect(at900).toBeGreaterThan(37)
+    expect(at900).toBeLessThan(44)
+
+    const at1400 = await angleAt(1400)
+    expect(at1400).toBeGreaterThan(63)
+    expect(at1400).toBeLessThan(69)
+
+    // Clamps rather than continuing to spin past the section.
+    expect(await angleAt(2400)).toBeCloseTo(100, 0)
+  })
 })
 
 test.describe('the load curtain', () => {

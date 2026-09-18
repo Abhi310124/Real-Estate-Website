@@ -69,8 +69,10 @@ export function Manifesto({ projects }: { projects: ProjectSummary[] }) {
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
           {/* A miniature of the same constellation, scaled right down — the reference shows the ring
               inside the frame too, so the card previews what it labels. */}
+          {/* scrub={false}: on the reference the card's miniature holds still while the full-size
+              ring turns — its own rotator sits at a constant 0° at every scroll offset. */}
           <div className="absolute left-1/2 top-1/2 origin-center -translate-x-1/2 -translate-y-1/2 scale-[0.14]">
-            <ImageRing3D items={items} />
+            <ImageRing3D items={items} scrub={false} />
           </div>
         </div>
         <p className="mt-[0.5vw] border-b border-secondary pb-[0.3vw] font-mono text-mono uppercase text-secondary max-sm:mt-[1.5vw] max-sm:pb-[1vw] max-sm:text-mono-sm">
