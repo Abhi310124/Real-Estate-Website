@@ -12,6 +12,7 @@ import { Amenities } from '@/components/project/Amenities'
 import { Specifications } from '@/components/project/Specifications'
 import { ConstructionTimeline } from '@/components/project/ConstructionTimeline'
 import { Connectivity } from '@/components/project/Connectivity'
+import { BrochureGate } from '@/components/project/BrochureGate'
 import { SectionNav } from '@/components/layout/SectionNav'
 
 // Order here is the page's real reading order top to bottom: overview -> plans ->
@@ -143,6 +144,22 @@ export default async function ProjectDetailPage({ params }: Props) {
   // project — neither ever leaks a 200.
   if (!project) notFound()
 
+  // `brochureUrl` is deliberately withheld from every section component below, and this is
+  // load-bearing rather than tidiness.
+  //
+  // Several of those sections are client components (the gallery swiper, the plans tabs, the
+  // specifications accordion, the masterplan). Passing `project` into any client component makes
+  // Next serialise the WHOLE object into the RSC flight payload, which is inlined into the served
+  // HTML — so the brochure's URL was sitting in view-source, readable by anyone, while the page
+  // rendered no link to it at all. That defeats the gate completely: the point of BrochureGate is
+  // that the PDF is exchanged for a contact detail, not merely left unlinked.
+  //
+  // The spec's own assertion (`a[href$=".pdf"]` has count 0) passed throughout, because there
+  // genuinely is no anchor. Only scanning the whole served document caught it.
+  const hasBrochure = Boolean(project.brochureUrl)
+  const projectForSections: Project = { ...project }
+  delete projectForSections.brochureUrl
+
   return (
     <>
       {/* Real project fields only — see projectJsonLd's own comment. Sibling to the visible
@@ -155,17 +172,22 @@ export default async function ProjectDetailPage({ params }: Props) {
         // no injection risk despite the name.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd(project, SITE_URL)) }}
       />
-      <ProjectHero project={project} />
-      <SectionNav sections={sectionsFor(project)} />
-      <Overview project={project} />
-      <KeyStats project={project} />
-      {project.masterPlan && <MasterPlan plan={project.masterPlan} />}
-      <PlansTabs project={project} />
-      <GallerySwiper project={project} />
-      <Amenities project={project} />
-      <Specifications project={project} />
-      <ConstructionTimeline project={project} />
-      <Connectivity project={project} />
+      <ProjectHero project={projectForSections} />
+      <SectionNav sections={sectionsFor(projectForSections)} />
+      <Overview project={projectForSections} />
+      <KeyStats project={projectForSections} />
+      {projectForSections.masterPlan && <MasterPlan plan={projectForSections.masterPlan} />}
+      <PlansTabs project={projectForSections} />
+      <GallerySwiper project={projectForSections} />
+      <Amenities project={projectForSections} />
+      <Specifications project={projectForSections} />
+      <ConstructionTimeline project={projectForSections} />
+      {/* Only where a brochure actually exists — a gate that captures a lead and then has
+          nothing to hand back would be a bait-and-switch. */}
+      {hasBrochure && (
+        <BrochureGate projectSlug={project.slug} projectTitle={project.title} />
+      )}
+      <Connectivity project={projectForSections} />
     </>
   )
 }

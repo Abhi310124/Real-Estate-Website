@@ -3,7 +3,7 @@ import { ContactMap } from '@/components/contact/ContactMap'
 import { PageShell } from '@/components/layout/PageShell'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
-import { Field } from '@/components/ui/Field'
+import { EnquiryForm } from '@/components/project/EnquiryForm'
 import { getSiteSettings } from '@/lib/data'
 import { whatsappLink } from '@/lib/whatsapp'
 
@@ -47,23 +47,9 @@ export default async function ContactPage() {
       </p>
 
       <div className="mt-16 grid gap-16 lg:grid-cols-2">
-        {/* Markup only, per Task 18 — no onSubmit, no client-side validation. Task 21 wires up
-            real submission and decides when each Field's `error` prop is populated. */}
-        <form className="space-y-6" aria-label="Enquiry form">
-          <Field label="Full Name" name="name" type="text" required />
-          <Field label="Phone Number" name="phone" type="tel" required />
-          <Field label="Email Address" name="email" type="email" required={false} />
-          <Field
-            label="Message"
-            name="message"
-            type="textarea"
-            required={false}
-            placeholder="Tell us which project or location you're interested in"
-          />
-          <Button type="submit" className="w-full sm:w-auto">
-            Send Enquiry
-          </Button>
-        </form>
+        {/* Task 21 replaces Task 18's markup-only form with the live one. `EnquiryForm` renders
+            the same `Field` set and owns validation, submission and the success announcement. */}
+        <EnquiryForm source="enquiry" />
 
         <div className="space-y-10">
           <div>

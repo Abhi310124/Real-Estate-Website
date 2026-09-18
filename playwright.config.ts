@@ -23,9 +23,12 @@ export default defineConfig({
     command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    // Not specified by the controller ruling; added because a cold `next build` can
-    // exceed Playwright's 60s default webServer startup timeout on its own, before
-    // `next start` even binds the port.
-    timeout: 180_000,
+    // Playwright's default is 60s, which a cold `next build` exceeds on its own before
+    // `next start` even binds the port. Originally 180s, when a cold build measured ~1.4 min.
+    // Raised to 420s after Task 19 added Sanity: the embedded Studio route pushes a cold build
+    // to ~2m20s, and 180s was timing out during the build rather than because anything hung.
+    // This timeout exists to catch a server that never comes up, not to police build duration —
+    // warm rebuilds are still a few seconds.
+    timeout: 420_000,
   },
 })
