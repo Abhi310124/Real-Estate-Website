@@ -31,7 +31,7 @@ const CONTROL_BUTTON =
 const STATUS_META: Record<MasterPlanPlot['status'], { label: string; className: string }> = {
   available: { label: 'Available', className: 'bg-champagne/20 text-champagne' },
   blocked: { label: 'Blocked', className: 'bg-white/10 text-white/70' },
-  sold: { label: 'Sold', className: 'bg-orange text-white' },
+  sold: { label: 'Sold', className: 'bg-orange text-navy-800' },
 }
 
 // The data model carries no explicit viewBox, and the placeholder art's actual pixel content

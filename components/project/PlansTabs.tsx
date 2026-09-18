@@ -52,7 +52,9 @@ export function PlansTabs({ project }: Props) {
   return (
     <section id="plans" data-plans className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <Eyebrow className="text-orange">Floor Plans</Eyebrow>
+        {/* navy-700, not orange: these sections are ivory, and orange on ivory is 3.08:1 —
+            below AA for text at the eyebrow size (11px). Flagged by Task 24's axe audit. */}
+        <Eyebrow className="text-navy-700">Floor Plans</Eyebrow>
         <h2 className="mt-3 font-display-expanded text-display-md text-navy-800">Plans &amp; Layouts</h2>
 
         {groups.length === 0 ? (

@@ -35,9 +35,17 @@ const BASE =
 
 function toneClass(variant: ButtonVariant, tone: ButtonTone): string {
   if (variant === 'solid') {
-    // Ruling 9: orange is only ever paired with a white label on a filled control —
-    // `tone` has nothing to choose between here.
-    return 'bg-orange text-white hover:opacity-90'
+    // Navy label, not white — `tone` has nothing to choose between here either way.
+    //
+    // This corrects an earlier rule of ours that said filled orange controls take a WHITE
+    // label. That was wrong on the arithmetic: white on `#FF4907` measures **3.38:1**, which
+    // fails AA's 4.5:1 for text at this size, and axe flagged it on all five routes. Navy-800
+    // on the same orange measures **5.17:1** and passes. Even `orange-600` under white only
+    // reaches 4.14:1, so darkening the fill was not a way out without changing the brand colour.
+    //
+    // Icon-only orange controls (see FloatingActions) may keep white, because a graphic that is
+    // not text needs 3:1, and 3.38:1 clears that.
+    return 'bg-orange text-navy-800 hover:opacity-90'
   }
   if (variant === 'outline') {
     return tone === 'white'

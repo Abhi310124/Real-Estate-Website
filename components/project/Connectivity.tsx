@@ -50,13 +50,18 @@ export function Connectivity({ project }: Props) {
             className="mt-3 font-display-expanded text-display-md text-white"
           />
           <ul className="mt-8 space-y-4">
+            {/* Reveal sits INSIDE the <li>, not around it. Reveal renders a <div>, so wrapping
+                the <li> put a <div> as a direct child of <ul> — which axe flags twice, as
+                `list` (a ul may only directly contain li) and `listitem` (an li outside any
+                list). Nesting it inward keeps the markup valid and looks identical, since the
+                div fills the li. */}
             {project.connectivity.map((entry, i) => (
-              <Reveal key={entry.place} delay={i * 0.05}>
-                <li className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-3">
+              <li key={entry.place} className="border-b border-white/10 pb-3">
+                <Reveal delay={i * 0.05} className="flex items-baseline justify-between gap-4">
                   <span className="text-body text-white/90">{entry.place}</span>
                   <span className="tnum shrink-0 text-sm font-semibold text-champagne">{entry.distance}</span>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ul>
         </div>

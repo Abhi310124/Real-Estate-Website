@@ -39,9 +39,11 @@ export function Amenities({ project }: Props) {
           <p className="mt-8 text-body text-white/80">The amenity list for this project is being finalised.</p>
         ) : (
           <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Reveal sits INSIDE the <li> — it renders a <div>, and wrapping the <li> made that
+                div a direct child of <ul>, which axe flags as both `list` and `listitem`. */}
             {project.amenities.map((amenity, i) => (
-              <Reveal key={amenity.title} delay={i * 0.05}>
-                <li className="flex items-center gap-4 border-b border-white/10 pb-4">
+              <li key={amenity.title} className="border-b border-white/10 pb-4">
+                <Reveal delay={i * 0.05} className="flex items-center gap-4">
                   <svg
                     width="28"
                     height="28"
@@ -57,8 +59,8 @@ export function Amenities({ project }: Props) {
                     <path d={ICON_PATHS[amenity.icon] ?? FALLBACK_PATH} />
                   </svg>
                   <span className="text-body text-white/90">{amenity.title}</span>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ul>
         )}

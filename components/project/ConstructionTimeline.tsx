@@ -30,7 +30,9 @@ export function ConstructionTimeline({ project }: Props) {
   return (
     <section id="updates" data-updates className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10">
-        <Eyebrow className="text-orange">Construction Updates</Eyebrow>
+        {/* navy-700, not orange: these sections are ivory, and orange on ivory is 3.08:1 —
+            below AA for text at the eyebrow size (11px). Flagged by Task 24's axe audit. */}
+        <Eyebrow className="text-navy-700">Construction Updates</Eyebrow>
         <h2 className="mt-3 font-display-expanded text-display-md text-navy-800">Progress on Site</h2>
 
         {updates.length === 0 ? (
@@ -39,9 +41,12 @@ export function ConstructionTimeline({ project }: Props) {
           </p>
         ) : (
           <ol className="mt-10 space-y-10 border-l border-navy-800/10 pl-8">
+            {/* Reveal sits INSIDE the <li> — it renders a <div>, and wrapping the <li> made that
+                div a direct child of <ol>, which axe flags as both `list` and `listitem`. Same
+                fix as Amenities and Connectivity. */}
             {updates.map((update, i) => (
-              <Reveal key={update.date + update.title} delay={i * 0.06}>
-                <li className="relative">
+              <li key={update.date + update.title}>
+                <Reveal delay={i * 0.06} className="relative">
                   <span aria-hidden="true" className="absolute -left-[33px] top-1.5 h-2.5 w-2.5 rounded-full bg-orange" />
                   <time dateTime={update.date} className="text-sm font-semibold uppercase tracking-wide text-navy-700/70">
                     {new Date(update.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -63,8 +68,8 @@ export function ConstructionTimeline({ project }: Props) {
                       ))}
                     </div>
                   )}
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ol>
         )}

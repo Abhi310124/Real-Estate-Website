@@ -255,154 +255,170 @@ export function HorizontalShowcase({ projects }: Props) {
   if (projects.length === 0) return null
 
   return (
-    <section
-      ref={sectionRef}
-      data-showcase
-      {...(active ? { 'data-showcase-active': '' } : {})}
-      // `overflow-hidden` on the SECTION, never on the track: a clip on the track would travel
-      // with the track's own transform, so the visible window would move together with the
-      // content and the horizontal motion would cancel out to nothing. Clipping here also keeps
-      // the overflowing row from producing a document-level horizontal scrollbar. `svh`
-      // throughout, so mobile browser chrome cannot clip the section.
-      //
-      // The asymmetric padding is not a typo. While pinned, this section fills the viewport
-      // exactly, and the fixed announcement bar + header (~7rem together) sit on top of its first
-      // rows — so centring the content in the section's own box left it visually high, with the
-      // top gap hidden behind the header and all the slack pooling at the bottom. Measured at
-      // 1440x900 before the fix: content ended at y=730 with 170px of empty ivory below it.
-      // Padding the top by the chrome's height centres the content in the space the visitor can
-      // actually see. The full 7rem only from `md` up: below that the heading block wraps to two
-      // rows and the cards are proportionally taller, so spending the whole 7rem there pushed the
-      // row past the bottom of a 390x844 viewport. But the smaller mobile value is not zero
-      // either — at `6svh` alone, measured at 390x844 with the section's top edge at the viewport
-      // top (the worst case for a section that is not pinned), the header's bottom sat at 127px
-      // while the eyebrow's top sat at 105px, i.e. it covered the eyebrow by 22px. Note that
-      // `justify-center` returns only half of any padding added here, because shrinking the
-      // padding box also shrinks the slack it is centring within.
-      //
-      // `h-[100svh]` ONLY while pinned, where the section's height has to equal the viewport's or
-      // the pin leaves its own bottom off-screen. On the fallback path it is `min-h-`, so a short
-      // or narrow viewport grows the section instead of clipping the row against
-      // `overflow-hidden` — at 360x640 the fixed version was ~7px short of fitting.
-      className={cn(
-        'relative flex flex-col justify-center overflow-hidden bg-ivory pb-[6svh] pt-[calc(6svh+5rem)] md:pt-[calc(6svh+7rem)]',
-        active ? 'h-[100svh]' : 'min-h-[100svh]',
-      )}
-    >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
-          <div>
-            {/* Eyebrow sets no colour of its own; navy-700, not orange — at 11px orange fails AA
-                on ivory, and the contrast law limits orange to display text ≥24px, rules, icons
-                and filled buttons with white labels. */}
-            <Eyebrow className="text-navy-700">FEATURED DEVELOPMENTS</Eyebrow>
-            <SplitWords
-              as="h2"
-              className="mt-3 font-display-expanded text-display-md text-navy-800"
-              text="Where BKR is building"
-            />
-            <Rule className="mt-4" />
-          </div>
-          {/* Hidden below `sm` rather than allowed to wrap: on a 390-wide viewport it wraps to a
-              second row and costs ~64px of the heading block, which is the difference between the
-              eyebrow clearing the fixed header and sitting under it. Supporting context only —
-              the count it states is plainly visible from the row of cards beside it. */}
-          <p className="hidden max-w-xs text-caption text-navy-700 sm:block">
-            {projects.length} featured developments across Hyderabad&apos;s growth corridors.
-          </p>
-        </div>
-      </div>
-
-      <div
-        ref={trackRef}
-        data-showcase-track
-        data-cursor="drag"
+    // This plain wrapper is load-bearing, not decoration. GSAP's `pin` reparents the pinned
+    // element into a `div.pin-spacer` it inserts, which React knows nothing about. With the
+    // section as a direct child of <main>, React's unmount on a client-side navigation called
+    // `main.removeChild(section)` while the section's real parent was the spacer, throwing
+    // "The node to be removed is not a child of this node" — every visitor who clicked any link
+    // on the home page got Next's "This page couldn't load" screen. Diagnosed by patching
+    // Node.prototype.removeChild to name the nodes: parent=MAIN#main, child=SECTION,
+    // actualParent=DIV.pin-spacer.
+    //
+    // With this wrapper, the topmost node React deletes is the wrapper — whose parent GSAP never
+    // touched — so removal succeeds and the spacer detaches along with it. Layout is unaffected:
+    // an unstyled block div around a block child creates no containing block and no box of its
+    // own. Killing the ScrollTrigger in cleanup does revert the pin, but not reliably before
+    // React's own removal, which is why this is structural rather than a lifecycle fix.
+    <div>
+      <section
+          ref={sectionRef}
+        data-showcase
+        {...(active ? { 'data-showcase-active': '' } : {})}
+        // `overflow-hidden` on the SECTION, never on the track: a clip on the track would travel
+        // with the track's own transform, so the visible window would move together with the
+        // content and the horizontal motion would cancel out to nothing. Clipping here also keeps
+        // the overflowing row from producing a document-level horizontal scrollbar. `svh`
+        // throughout, so mobile browser chrome cannot clip the section.
+        //
+        // The asymmetric padding is not a typo. While pinned, this section fills the viewport
+        // exactly, and the fixed announcement bar + header (~7rem together) sit on top of its first
+        // rows — so centring the content in the section's own box left it visually high, with the
+        // top gap hidden behind the header and all the slack pooling at the bottom. Measured at
+        // 1440x900 before the fix: content ended at y=730 with 170px of empty ivory below it.
+        // Padding the top by the chrome's height centres the content in the space the visitor can
+        // actually see. The full 7rem only from `md` up: below that the heading block wraps to two
+        // rows and the cards are proportionally taller, so spending the whole 7rem there pushed the
+        // row past the bottom of a 390x844 viewport. But the smaller mobile value is not zero
+        // either — at `6svh` alone, measured at 390x844 with the section's top edge at the viewport
+        // top (the worst case for a section that is not pinned), the header's bottom sat at 127px
+        // while the eyebrow's top sat at 105px, i.e. it covered the eyebrow by 22px. Note that
+        // `justify-center` returns only half of any padding added here, because shrinking the
+        // padding box also shrinks the slack it is centring within.
+        //
+        // `h-[100svh]` ONLY while pinned, where the section's height has to equal the viewport's or
+        // the pin leaves its own bottom off-screen. On the fallback path it is `min-h-`, so a short
+        // or narrow viewport grows the section instead of clipping the row against
+        // `overflow-hidden` — at 360x640 the fixed version was ~7px short of fitting.
         className={cn(
-          'mt-[5svh] flex w-full items-stretch gap-5 px-4 sm:gap-6 sm:px-6 lg:gap-8 lg:px-10',
-          active ? 'overflow-visible' : 'snap-x snap-mandatory overflow-x-auto pb-3',
+          'relative flex flex-col justify-center overflow-hidden bg-ivory pb-[6svh] pt-[calc(6svh+5rem)] md:pt-[calc(6svh+7rem)]',
+          active ? 'h-[100svh]' : 'min-h-[100svh]',
         )}
       >
-        {projects.map((project) => (
-          <article
-            key={project.id}
-            data-showcase-card
-            data-showcase-item
-            // An image well above an ivory info panel, rather than the text overlaid on the image
-            // over a scrim. Changed after looking at the first render (see check-showcase-1.png in
-            // the task report): `Pill` maps `upcoming` to `bg-champagne/20 text-navy-800`, which is
-            // designed for a light surface — over a navy card that became dark-on-dark and was
-            // genuinely hard to read, and `completed` (`bg-navy-800 text-white`) lost its chip
-            // shape entirely against the same navy. Putting the metadata on ivory puts every one
-            // of Pill's four statuses back on the background it was contrast-checked against,
-            // instead of overriding a shared atom for this one call site.
-            // `ring-1` because an ivory-warm card on an ivory section needs a hairline to read as
-            // a card at all.
-            className="relative flex h-[50svh] max-h-[32rem] min-h-[18rem] w-[82vw] shrink-0 snap-center flex-col overflow-hidden rounded-sm bg-ivory-warm ring-1 ring-navy-800/10 sm:w-[60vw] lg:w-[46vw] lg:max-w-[40rem]"
-          >
-            {/* bg-navy-800 on the well itself, so the card reads as a deliberate navy panel until
-                (and if) the image resolves — `heroImage.url` points into `public/placeholder/`,
-                which Task 26 populates. */}
-            <div className="relative flex-1 overflow-hidden bg-navy-800">
-              <ImageReveal
-                src={project.heroImage.url}
-                alt={project.heroImage.alt}
-                sizes="(min-width: 1024px) 46vw, 82vw"
-                // Overrides ImageReveal's default `data-testid="image-reveal"`, which is shared by
-                // every instance and would otherwise make that selector ambiguous under
-                // Playwright's strict mode once three of them share a page.
-                data-testid={`showcase-image-${project.slug}`}
-                className="absolute inset-0 h-full w-full"
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+            <div>
+              {/* Eyebrow sets no colour of its own; navy-700, not orange — at 11px orange fails AA
+                  on ivory, and the contrast law limits orange to display text ≥24px, rules, icons
+                  and filled buttons with white labels. */}
+              <Eyebrow className="text-navy-700">FEATURED DEVELOPMENTS</Eyebrow>
+              <SplitWords
+                as="h2"
+                className="mt-3 font-display-expanded text-display-md text-navy-800"
+                text="Where BKR is building"
               />
+              <Rule className="mt-4" />
             </div>
-            {/* Deliberately NOT `relative`: the stretched link's `::after` below resolves
-                `inset-0` against the nearest POSITIONED ancestor, so a `relative` here would
-                shrink the card-covering hit area down to this text block. */}
-            <div className="w-full p-6">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <Pill status={project.status} />
-                <span className="text-caption text-navy-700">{project.location.area}</span>
-              </div>
-              <h3 className="mt-3 font-display-expanded text-2xl leading-[1.05] text-navy-800 lg:text-[1.75rem]">
-                {/* One link per card, covering the card via `::after` rather than wrapping it, so
-                    the accessible name is the project title instead of the whole tile's text.
-                    The focus ring draws around the title — the link's own box — which keeps a
-                    visible focus state on a hit area that is otherwise invisible. */}
-                <Link
-                  href={`/projects/${project.slug}`}
-                  className="inline-flex min-h-11 items-end rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange"
-                >
-                  {project.title}
-                </Link>
-              </h3>
-              {/* navy-800, not champagne: champagne on ivory is 2.20:1 and decorative-only, and
-                  orange is barred below 24px. `tnum` so the figures align between cards. */}
-              <p className="tnum mt-2 text-body font-semibold text-navy-800">
-                {formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest)}
-              </p>
-            </div>
-          </article>
-        ))}
-
-        {/* End panel, deliberately the last item and deliberately transparent: it both extends
-            the horizontal travel enough for the pin to read as a real move (roughly 0.5 of a
-            viewport width more than the cards alone would give) and absorbs the scrollbar-width
-            overshoot described on `travel()` above, since it has no visible box edge to look
-            clipped. Not a `[data-showcase-card]` — the first-card assertion in the spec must
-            keep resolving to a project. */}
-        <div
-          data-showcase-outro
-          data-showcase-item
-          className="flex h-[50svh] max-h-[32rem] min-h-[18rem] w-[74vw] shrink-0 snap-center flex-col justify-end gap-5 pr-4 sm:w-[44vw] lg:w-[24vw] lg:max-w-[22rem] lg:pr-10"
-        >
-          <Rule />
-          <p className="font-display-expanded text-xl leading-[1.1] text-navy-800">
-            Every BKR development, in one place
-          </p>
-          <Button href="/projects" variant="outline" className="self-start">
-            View all projects
-          </Button>
+            {/* Hidden below `sm` rather than allowed to wrap: on a 390-wide viewport it wraps to a
+                second row and costs ~64px of the heading block, which is the difference between the
+                eyebrow clearing the fixed header and sitting under it. Supporting context only —
+                the count it states is plainly visible from the row of cards beside it. */}
+            <p className="hidden max-w-xs text-caption text-navy-700 sm:block">
+              {projects.length} featured developments across Hyderabad&apos;s growth corridors.
+            </p>
+          </div>
         </div>
-      </div>
-    </section>
+
+        <div
+          ref={trackRef}
+          data-showcase-track
+          data-cursor="drag"
+          className={cn(
+            'mt-[5svh] flex w-full items-stretch gap-5 px-4 sm:gap-6 sm:px-6 lg:gap-8 lg:px-10',
+            active ? 'overflow-visible' : 'snap-x snap-mandatory overflow-x-auto pb-3',
+          )}
+        >
+          {projects.map((project) => (
+            <article
+              key={project.id}
+              data-showcase-card
+              data-showcase-item
+              // An image well above an ivory info panel, rather than the text overlaid on the image
+              // over a scrim. Changed after looking at the first render (see check-showcase-1.png in
+              // the task report): `Pill` maps `upcoming` to `bg-champagne/20 text-navy-800`, which is
+              // designed for a light surface — over a navy card that became dark-on-dark and was
+              // genuinely hard to read, and `completed` (`bg-navy-800 text-white`) lost its chip
+              // shape entirely against the same navy. Putting the metadata on ivory puts every one
+              // of Pill's four statuses back on the background it was contrast-checked against,
+              // instead of overriding a shared atom for this one call site.
+              // `ring-1` because an ivory-warm card on an ivory section needs a hairline to read as
+              // a card at all.
+              className="relative flex h-[50svh] max-h-[32rem] min-h-[18rem] w-[82vw] shrink-0 snap-center flex-col overflow-hidden rounded-sm bg-ivory-warm ring-1 ring-navy-800/10 sm:w-[60vw] lg:w-[46vw] lg:max-w-[40rem]"
+            >
+              {/* bg-navy-800 on the well itself, so the card reads as a deliberate navy panel until
+                  (and if) the image resolves — `heroImage.url` points into `public/placeholder/`,
+                  which Task 26 populates. */}
+              <div className="relative flex-1 overflow-hidden bg-navy-800">
+                <ImageReveal
+                  src={project.heroImage.url}
+                  alt={project.heroImage.alt}
+                  sizes="(min-width: 1024px) 46vw, 82vw"
+                  // Overrides ImageReveal's default `data-testid="image-reveal"`, which is shared by
+                  // every instance and would otherwise make that selector ambiguous under
+                  // Playwright's strict mode once three of them share a page.
+                  data-testid={`showcase-image-${project.slug}`}
+                  className="absolute inset-0 h-full w-full"
+                />
+              </div>
+              {/* Deliberately NOT `relative`: the stretched link's `::after` below resolves
+                  `inset-0` against the nearest POSITIONED ancestor, so a `relative` here would
+                  shrink the card-covering hit area down to this text block. */}
+              <div className="w-full p-6">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <Pill status={project.status} />
+                  <span className="text-caption text-navy-700">{project.location.area}</span>
+                </div>
+                <h3 className="mt-3 font-display-expanded text-2xl leading-[1.05] text-navy-800 lg:text-[1.75rem]">
+                  {/* One link per card, covering the card via `::after` rather than wrapping it, so
+                      the accessible name is the project title instead of the whole tile's text.
+                      The focus ring draws around the title — the link's own box — which keeps a
+                      visible focus state on a hit area that is otherwise invisible. */}
+                  <Link
+                    href={`/projects/${project.slug}`}
+                    className="inline-flex min-h-11 items-end rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange"
+                  >
+                    {project.title}
+                  </Link>
+                </h3>
+                {/* navy-800, not champagne: champagne on ivory is 2.20:1 and decorative-only, and
+                    orange is barred below 24px. `tnum` so the figures align between cards. */}
+                <p className="tnum mt-2 text-body font-semibold text-navy-800">
+                  {formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest)}
+                </p>
+              </div>
+            </article>
+          ))}
+
+          {/* End panel, deliberately the last item and deliberately transparent: it both extends
+              the horizontal travel enough for the pin to read as a real move (roughly 0.5 of a
+              viewport width more than the cards alone would give) and absorbs the scrollbar-width
+              overshoot described on `travel()` above, since it has no visible box edge to look
+              clipped. Not a `[data-showcase-card]` — the first-card assertion in the spec must
+              keep resolving to a project. */}
+          <div
+            data-showcase-outro
+            data-showcase-item
+            className="flex h-[50svh] max-h-[32rem] min-h-[18rem] w-[74vw] shrink-0 snap-center flex-col justify-end gap-5 pr-4 sm:w-[44vw] lg:w-[24vw] lg:max-w-[22rem] lg:pr-10"
+          >
+            <Rule />
+            <p className="font-display-expanded text-xl leading-[1.1] text-navy-800">
+              Every BKR development, in one place
+            </p>
+            <Button href="/projects" variant="outline" className="self-start">
+              View all projects
+            </Button>
+          </div>
+        </div>
+      </section>
+    </div>
   )
 }

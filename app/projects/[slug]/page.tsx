@@ -13,6 +13,8 @@ import { Specifications } from '@/components/project/Specifications'
 import { ConstructionTimeline } from '@/components/project/ConstructionTimeline'
 import { Connectivity } from '@/components/project/Connectivity'
 import { BrochureGate } from '@/components/project/BrochureGate'
+import { EnquiryForm } from '@/components/project/EnquiryForm'
+import { Eyebrow } from '@/components/ui/Eyebrow'
 import { SectionNav } from '@/components/layout/SectionNav'
 
 // Order here is the page's real reading order top to bottom: overview -> plans ->
@@ -188,6 +190,25 @@ export default async function ProjectDetailPage({ params }: Props) {
         <BrochureGate projectSlug={project.slug} projectTitle={project.title} />
       )}
       <Connectivity project={projectForSections} />
+
+      {/* An enquiry form on the project page itself, not only on /contact: this is the page a
+          buyer is on when they decide they are interested, and making them navigate away to ask
+          a question is where enquiries get lost. `projectSlug` is passed so the lead records
+          which development prompted it, which is what makes the follow-up call useful. */}
+      <section id="enquire" className="scroll-mt-[180px] bg-ivory px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-2xl">
+          <Eyebrow className="text-navy-700">Enquire</Eyebrow>
+          <h2 className="mt-3 font-display-expanded text-display-md text-navy-800">
+            Interested in {project.title}?
+          </h2>
+          <EnquiryForm
+            source="enquiry"
+            projectSlug={project.slug}
+            intro="Leave your number and a member of our team will call you back — not a call centre."
+            className="mt-8"
+          />
+        </div>
+      </section>
     </>
   )
 }

@@ -6,7 +6,7 @@ const STATUS_META: Record<ProjectStatus, { label: string; className: string }> =
   // Ruling 9's filled-button carve-out for orange-with-white-text applies here too: this is
   // the one status a buyer most needs to notice, so it gets the same treatment as a solid
   // Button rather than the quieter tints the other three statuses use.
-  ongoing: { label: 'Ongoing', className: 'bg-orange text-white' },
+  ongoing: { label: 'Ongoing', className: 'bg-orange text-navy-800' },
   completed: { label: 'Completed', className: 'bg-navy-800 text-white' },
   'sold-out': { label: 'Sold Out', className: 'bg-navy-700/10 text-navy-700' },
 }

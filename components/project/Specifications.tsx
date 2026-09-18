@@ -23,7 +23,9 @@ export function Specifications({ project }: Props) {
   return (
     <section id="specifications" data-specs className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10">
-        <Eyebrow className="text-orange">Specifications</Eyebrow>
+        {/* navy-700, not orange: these sections are ivory, and orange on ivory is 3.08:1 —
+            below AA for text at the eyebrow size (11px). Flagged by Task 24's axe audit. */}
+        <Eyebrow className="text-navy-700">Specifications</Eyebrow>
         <h2 className="mt-3 font-display-expanded text-display-md text-navy-800">Built to Last</h2>
 
         {project.specifications.length === 0 ? (

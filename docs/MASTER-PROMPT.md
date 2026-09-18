@@ -54,7 +54,9 @@ Measured ratios, not estimates. Two of them constrain the design in ways that ar
 | #FFFFFF on navy-800 | 17.5:1 | body text ✓ |
 | orange on navy-800 | 5.16:1 | body text ✓ (AA) |
 | champagne on navy-800 | 7.2:1 | body text ✓ |
-| **orange on ivory** | **3.08:1** | **fails AA — display ≥24px, rules, icons, and filled buttons with white labels only. Never body copy. Never small labels.** |
+| **orange on ivory** | **3.08:1** | **fails AA — display ≥24px, rules, icons and filled controls only. Never body copy. Never small labels.** |
+| **white on orange** | **3.38:1** | **fails AA for text.** Corrected after Task 24's axe audit flagged it on all five routes — an earlier version of this table said filled orange controls take a white label, which was wrong on the arithmetic. Permitted only for icon-only controls, where the 3:1 non-text threshold applies. |
+| **navy-800 on orange** | **5.17:1** | passes AA. **This is the label colour for any filled orange control carrying text** — buttons, status pills. Note `orange-600` under white only reaches 4.14:1, so darkening the fill was not a way out without abandoning the brand colour. |
 | **champagne on ivory** | **2.20:1** | **fails everything — decorative hairlines and ornament only. Never text.** |
 
 Orange as a background always carries `#FFFFFF` text. Text over photography always sits on a navy scrim heavy enough to clear 4.5:1 at the worst pixel, not the average one.

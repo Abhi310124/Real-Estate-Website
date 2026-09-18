@@ -20,9 +20,17 @@ export function Overview({ project }: Props) {
   return (
     <section id="overview" className="scroll-mt-[180px] bg-ivory py-20 sm:py-28">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[auto_1fr_1fr] lg:gap-16 lg:px-10">
+        {/* navy-700, not champagne. Task 14's brief called this side label "decorative" and
+            therefore exempt from the contrast rule, but champagne on ivory is 2.20:1 and axe
+            flagged it — correctly. Marking text aria-hidden hides it from assistive tech; it
+            does not make it legible to a sighted reader with low vision, and this label is
+            plainly meant to be read. Our own rule already says champagne on ivory is decoration
+            only, never text, so the original was in breach of it. It still reads as ornament
+            because it is small, letter-spaced and rotated — the colour was never what made it
+            subtle. */}
         <span
           aria-hidden="true"
-          className="eyebrow hidden shrink-0 text-sm tracking-[0.3em] text-champagne lg:block"
+          className="eyebrow hidden shrink-0 text-sm tracking-[0.3em] text-navy-700 lg:block"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
           OVERVIEW
