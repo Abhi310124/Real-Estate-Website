@@ -1,7 +1,13 @@
 node_modules/
 .next/
 out/
-.env*.local
+# Every env file except the committed template. `.env*.local` alone was not enough: it leaves a
+# plain `.env` tracked, and `.env` is where the Sanity API WRITE token goes — the one credential in
+# this project that can create documents in a live dataset. Negation last so `.env.example`, which is
+# placeholders only and is meant to be read, still ships.
+.env
+.env.*
+!.env.example
 .superpowers/
 .playwright-mcp/
 test-results/
