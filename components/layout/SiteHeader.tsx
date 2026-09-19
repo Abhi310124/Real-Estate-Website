@@ -381,7 +381,7 @@ function MobileNav({ settings }: { settings?: SiteSettings }) {
             className="pointer-events-auto fixed inset-0 z-[85] flex flex-col bg-primary text-secondary sm:hidden"
           >
             <div className="layout-grid items-start py-[4vw]">
-              <LogoMark className="col-span-8 h-auto w-[26vw] shrink-0" />
+              <LogoMark className="col-span-8 w-[30vw]" />
               <div className="col-span-4 flex justify-end">
                 <button
                   type="button"
@@ -459,7 +459,11 @@ function HeaderRow({ settings }: { settings?: SiteSettings }) {
               Sized by width (`w-[8.2vw]`, ~118px at 1440) so the band stays the measured 41.27px
               tall. Never give this a height budget: a flex parent then compresses the graphic, which
               is how a previous version of this header shipped an 8px-tall logo. */}
-          <LogoMark className="h-auto w-[8.2vw] shrink-0 max-sm:w-[26vw]" />
+          {/* Width, never height — a height budget lets a flex parent crush the graphic, which is how
+              a previous version of this header shipped an 8px-tall logo. 9.6vw is ~138px at 1440,
+              which keeps the BKR cap height inside the band's measured 41.27px once INFRA and its
+              rules are accounted for. */}
+          <LogoMark className="w-[9.6vw] max-sm:w-[30vw]" />
         </Link>
       </div>
 

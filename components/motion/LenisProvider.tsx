@@ -1,4 +1,5 @@
 'use client'
+import { LOAD_LOCK_CLASS } from './loadCues'
 import { useEffect } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 import { getGsap } from './gsap'
@@ -38,6 +39,8 @@ export function requestLoadScrollLock(): void {
   instance?.stop()
 }
 
+
+
 /**
  * Release the hold. Idempotent and safe at any time, including before the lock was ever applied:
  * every failure path in the load sequence routes through here, because a choreography that throws
@@ -46,6 +49,10 @@ export function requestLoadScrollLock(): void {
 export function releaseLoadScrollLock(): void {
   lockedForLoad = false
   instance?.start()
+  // Drop the SSR hold too. Unconditional and idempotent: every failure path in the load sequence
+  // routes through here, and a choreography that throws must never leave a visitor on a page that
+  // cannot scroll.
+  if (typeof document !== 'undefined') document.documentElement.classList.remove(LOAD_LOCK_CLASS)
 }
 
 export function LenisProvider({ children }: { children: React.ReactNode }) {

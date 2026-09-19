@@ -1,64 +1,88 @@
+import { cn } from '@/lib/cn'
+
 /**
- * The BKR INFRA mark, as vector paths rather than an image.
+ * The BKR INFRA mark — the real artwork, painted through two alpha masks so it adapts to its ground.
  *
- * These are the same paths as `app/icon.svg`, which is the source of truth for the identity and the
- * origin of the whole palette — navy ground, cream letterforms, one orange wedge. The favicon keeps
- * its navy ground because a favicon is a fixed tile on someone else's chrome. This component does
- * NOT, and that difference is the point.
+ * ## Where the assets come from
  *
- * ## Why the ground is dropped and the letterforms inherit `currentColor`
+ * The four PNGs in `public/brand/` were extracted from the supplied logo files, not redrawn. The
+ * source was a JPEG of the lockup on a flat near-white ground, so every pixel is ink laid over that
+ * ground at some coverage; recovering the coverage by projecting `(ground − pixel)` onto
+ * `(ground − ink)` un-composites it exactly across the flat interiors and degrades gracefully on the
+ * anti-aliased edges, which is what yields a clean alpha channel rather than a hard-thresholded,
+ * jagged one. The same pass splits the result by which ink each pixel belongs to, giving one mask for
+ * the letterforms and one for the orange wedge and rules.
  *
- * The mark has to sit in a header that crosses navy chapters, cream chapters and full-bleed
- * photography, and whose ink is sampled per band. A logo carrying its own navy rectangle would be a
- * navy block on a navy chapter — invisible — and a hard-edged tile over a photograph. So the
- * letterforms are `currentColor`: they become cream over navy and navy over cream, following the
- * header's own decision, and a single instance works on every ground.
+ * `app/icon.svg` used to hold a hand-traced approximation, and it was crude — wrong letterforms, and
+ * the ligature between B, K and R missing entirely. It did get the colours right: sampling the real
+ * artwork put navy at #04162E against the token's #0A1A2F, and orange at #FD4A0B against #FF4907,
+ * both inside JPEG compression error. So the palette needed no change; only the drawing did.
  *
- * The orange wedge stays orange in every context, because it is the one element that makes the mark
- * recognisable rather than just a set of initials. It is a graphic, not text, so the bar it has to
- * clear is 3:1 rather than 4.5:1 — it measures 3.08:1 on cream and 5.17:1 on navy, so it holds on
- * both. That is also exactly why it is not used for the letterforms.
+ * ## Why masks rather than two coloured images
  *
- * ## Sizing
+ * The header decides its ink at runtime — it samples what is actually painted behind the band and
+ * toggles `text-primary` / `text-secondary` — and a raster cannot follow `currentColor`.
  *
- * Sized by WIDTH, never by height, and this is a bug that has already been shipped here once: the
- * previous mark mixed a scalable graphic with fixed-px text, so giving the lockup a height budget
- * let flex-shrink crush the graphic to 8px tall in the header. `w-*` plus `h-auto` on an SVG with a
- * `viewBox` cannot do that — the aspect ratio does the rest. `shrink-0` stops a flex parent from
- * compressing it regardless.
+ * The obvious workaround is to ship a navy image and a cream one and hide whichever does not apply.
+ * That was the first attempt here and it was broken: keying the choice off an ancestor's ink class
+ * (`[.text-secondary_&]:opacity-0`) also matches `<body>`, which carries `text-secondary` for the
+ * whole document, so on a light-ink band BOTH variants were hidden and the logo vanished. A
+ * descendant selector cannot express "the nearest ink decision" — that is not something CSS can ask
+ * about.
  *
- * The 240x96 viewBox is 2.5:1, so a 9.5vw width gives roughly the 54px cap height the header band
- * was measured at.
+ * Masking sidesteps the question entirely. The letterform layer is a block of `currentColor` clipped
+ * to the letterform alpha, so it inherits whatever the band decided, exactly like the SVG did, and
+ * cross-fades on the band's own `transition-colors`. The accent layer is a block of the brand orange
+ * clipped to the wedge-and-rules alpha, so the wedge stays orange on every ground. One source of
+ * truth, no variants, and nothing to keep in sync.
+ *
+ * If a true SVG of the mark ever arrives, replace the two layers with its paths, give the letterforms
+ * `currentColor`, keep the orange literal, and delete these four PNGs.
  */
-export function LogoMark({ className }: { className?: string }) {
+
+/** Intrinsic pixel size of the extracted crops, used to hold the aspect box before paint. */
+const GEOMETRY = {
+  mark: { w: 856, h: 336, letters: '/brand/bkr-logo-letters.png', accent: '/brand/bkr-logo-accent.png' },
+  lockup: { w: 856, h: 396, letters: '/brand/bkr-lockup-letters.png', accent: '/brand/bkr-lockup-accent.png' },
+} as const
+
+/** `mask` needs the `-webkit-` prefix for Safari, which still ships the prefixed property only. */
+function maskStyle(url: string): React.CSSProperties {
+  return {
+    WebkitMaskImage: `url(${url})`,
+    maskImage: `url(${url})`,
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+  }
+}
+
+export function LogoMark({
+  variant = 'mark',
+  className,
+}: {
+  /** `mark` is BKR over INFRA; `lockup` adds the "REDEFINING REAL ESTATE EXCELLENCE" line. */
+  variant?: keyof typeof GEOMETRY
+  className?: string
+}) {
+  const g = GEOMETRY[variant]
+
   return (
-    <svg
-      viewBox="0 0 240 96"
-      // Purely decorative here: every call site wraps this in an element carrying the accessible
-      // name, so announcing it again would read the brand twice.
+    <span
       aria-hidden="true"
-      focusable="false"
-      className={className}
+      // The caller sets width; the aspect box comes from the asset's own dimensions so the layout is
+      // correct before either mask has loaded and nothing reflows. Never give this a height — a flex
+      // parent then compresses it, which is how a previous header shipped an 8px-tall logo.
+      className={cn('relative block shrink-0', className)}
+      style={{ aspectRatio: `${g.w} / ${g.h}` }}
     >
-      {/* BKR — the letterforms, following the header's sampled ink. */}
-      <path
-        fillRule="evenodd"
-        fill="currentColor"
-        d="M8,8 L44,8 C54,8 59,14 59,22 C59,28 55,32 48,34 L41,38 C56,40 62,45 62,52
-           C62,60 55,68 44,68 L8,68 Z
-           M19,16 L38,16 C43,16 43,20 43,23 C43,26 41,29 36,29 L19,29 Z
-           M19,41 L40,41 C47,41 47,46 47,49 C47,54 43,60 36,60 L19,60 Z"
-      />
-      {/* The wedge. The one element that is always orange. */}
-      <path fill="#FF4907" d="M66,8 L96,8 L66,32 Z" />
-      <path fill="currentColor" d="M64,24 L82,24 L112,68 L94,68 Z" />
-      <path
-        fillRule="evenodd"
-        fill="currentColor"
-        d="M100,8 L124,8 C136,8 141,13 141,21 C141,29 136,34 124,34 L114,34 L114,68 L100,68 Z
-           M114,15 L124,15 C130,15 132,17 132,21 C132,25 130,27 124,27 L114,27 Z"
-      />
-      <path fill="currentColor" d="M114,34 L124,34 L146,74 L136,74 Z" />
-    </svg>
+      {/* Letterforms: `currentColor`, so they follow the band's sampled ink. */}
+      <span className="absolute inset-0 bg-current" style={maskStyle(g.letters)} />
+      {/* Wedge and rules: always the brand orange, on every ground. */}
+      <span className="absolute inset-0 bg-accent" style={maskStyle(g.accent)} />
+    </span>
   )
 }

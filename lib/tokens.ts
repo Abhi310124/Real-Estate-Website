@@ -1,5 +1,5 @@
 /**
- * Brand design tokens, derived from the logo in `app/icon.svg` rather than invented.
+ * Brand design tokens, sampled from the supplied logo artwork rather than invented.
  *
  * The logo is three colours and nothing else: a deep navy ground, warm cream letterforms, and one
  * vivid orange wedge. Those are the palette:

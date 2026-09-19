@@ -36,7 +36,7 @@ describe('palette', () => {
   })
 
   it('exposes the logo-derived hex values verbatim', () => {
-    // The three that come straight off app/icon.svg. If the logo is ever redrawn, these are the
+    // The three sampled from the logo artwork. If the logo is ever redrawn, these are the
     // values that have to move with it — and everything below re-checks the consequences.
     expect(COLORS.secondary).toBe('#0A1A2F')
     expect(COLORS.primary).toBe('#F7F4EE')

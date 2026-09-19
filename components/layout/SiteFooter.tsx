@@ -348,7 +348,9 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
                     Wider here than in the header (11.5vw against 8.2vw): this quadrant is the closing
                     beat of the page and the mark is the thing closing it, where in the header it has
                     to share a 41.27px band with the nav and the CTA. */}
-                <LogoMark className="h-auto w-[11.5vw] shrink-0 max-sm:w-[34vw]" />
+                {/* The full lockup here, tagline included: this quadrant is the closing beat of the
+                    page and has the room the 41px header band does not. */}
+                <LogoMark variant="lockup" className="w-[13vw] max-sm:w-[38vw]" />
               </Link>
             </div>
           </div>

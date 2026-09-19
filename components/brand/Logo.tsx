@@ -2,25 +2,16 @@ import { cn } from '@/lib/cn'
 import { LogoMark } from '@/components/brand/LogoMark'
 
 /**
- * The lockup: the BKR INFRA mark, optionally over the tagline.
+ * The accessible wrapper around the mark: it supplies the name, `LogoMark` supplies the artwork.
  *
- * This replaces a type-only wordmark — the letters "BKR" set in the body face beside the dot
- * ornament. That was the right call while the design was monochrome and borrowed its identity from
- * the reference, whose own mark is a word and an ornament and nothing else. It is the wrong call now:
- * the palette is derived from this mark, so the mark is the thing the palette has to agree with, and
- * setting the brand as plain text throws away the one element anybody recognises — the orange wedge.
+ * `withTagline` no longer renders a separate line of type. The real lockup has "REDEFINING REAL
+ * ESTATE EXCELLENCE" set inside it, as two colours and a rule, so the `lockup` variant of the mark IS
+ * the tagline — reproducing it in mono type beside the image would show it twice, in the wrong face,
+ * at the wrong tracking, in one colour instead of two.
  *
- * The earlier objection to shipping the real mark was that a two-colour logo needs a light variant, a
- * dark variant and a minimum legible size. That objection was sound and `LogoMark` answers it rather
- * than ignoring it: the letterforms are `currentColor`, so one instance inverts with whatever ink the
- * header has sampled, and there is no second file to keep in sync.
- *
- * `variant` is kept for the existing call sites: `dark` means dark ink for a light ground, `light`
- * means light ink for a dark one. The header overrides this at runtime — it samples what is actually
- * painted behind the band — so the value here only decides the server-rendered first paint.
- *
- * Sized by width. See the note in `LogoMark` about the 8px-tall header logo this project already
- * shipped once.
+ * `variant` decides only the SERVER-RENDERED first paint. On the header the ink sampler takes over
+ * on the first frame and cross-fades between the mark's two inks from there, so being wrong here
+ * costs a frame rather than a page.
  */
 export function Logo({
   variant = 'dark',
@@ -31,20 +22,16 @@ export function Logo({
   withTagline?: boolean
   className?: string
 }) {
+  // The mark picks its own ink off this class, the same way the header band does.
   const ink = variant === 'dark' ? 'text-secondary' : 'text-primary'
 
   return (
     <span
       role="img"
       aria-label="BKR INFRA — Redefining Real Estate Excellence"
-      className={cn('inline-flex shrink-0 flex-col', ink, className)}
+      className={cn('inline-flex shrink-0', ink, className)}
     >
-      <LogoMark className="h-auto w-[9.5vw] shrink-0 max-sm:w-[30vw]" />
-      {withTagline && (
-        <span className="mt-[0.4vw] font-mono text-mono uppercase text-muted max-sm:mt-[2vw] max-sm:text-mono-sm">
-          Redefining Real Estate Excellence
-        </span>
-      )}
+      <LogoMark variant={withTagline ? 'lockup' : 'mark'} className="w-full" />
     </span>
   )
 }

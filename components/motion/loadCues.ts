@@ -1,4 +1,18 @@
 /**
+ * Class the SERVER renders on `<html>` so the opening's scroll hold applies from the very first paint,
+ * and which `releaseLoadScrollLock()` removes.
+ *
+ * It lives in THIS module, not in `LenisProvider`, and that is load-bearing rather than tidiness:
+ * `LenisProvider` is a `'use client'` module, so importing a value from it into the server-rendered
+ * root layout does not give you the value — Next replaces it with a client reference that throws
+ * "Attempted to call LOAD_LOCK_CLASS() from the server". The symptom was silent: the class name
+ * interpolated into markup as a stringified error, no hold was applied, and a wheel at t=120ms still
+ * scrolled the page 900px behind an opaque curtain. This file has no directive, so both sides can
+ * import it.
+ */
+export const LOAD_LOCK_CLASS = 'load-locked'
+
+/**
  * The cue bus for the first-load choreography.
  *
  * The reference's opening is a single 4.1s composition whose beats land in three different parts of

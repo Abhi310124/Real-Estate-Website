@@ -30,6 +30,37 @@
     scroll-behavior: auto;
   }
 
+  /*
+   * The opening's scroll hold, rendered by the server so it applies from the first paint.
+   *
+   * Lenis cannot cover this window: it only exists once its chunk resolves, and that moment moves
+   * with the page's weight. Before this class existed the hold began somewhere between 148ms and
+   * 1215ms depending on the build, and every millisecond before it was a window in which a wheel
+   * scrolled the document away behind a fully opaque curtain.
+   *
+   * `overflow: hidden` on the root, not `position: fixed` on the body: fixing the body loses the
+   * scroll position on release, which matters because a reload deep in the page restores one.
+   */
+  html.load-locked,
+  html.load-locked body {
+    overflow: hidden;
+  }
+
+  /*
+   * Two escapes, because a hold applied by markup and released by script is a trap if the script
+   * never runs.
+   *
+   * Reduced motion never gets held at all — there is no choreography to protect, so holding them
+   * would be pure obstruction. This is a media query rather than a JS check so it applies
+   * pre-hydration, which is the entire point of moving the hold into the markup.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    html.load-locked,
+    html.load-locked body {
+      overflow: visible;
+    }
+  }
+
   body {
     background-color: theme('colors.primary');
     color: theme('colors.secondary');

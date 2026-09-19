@@ -1,24 +1,32 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { COLORS } from '@/lib/tokens'
+
+/**
+ * The real lockup, inlined as a data URI.
+ *
+ * Satori renders this route and cannot resolve a bare `/brand/...` path — it has no origin to resolve
+ * against — so the bytes have to be embedded. Read at module scope so it happens once per server
+ * rather than once per request, and the reversed (cream-ink) variant because this card is navy.
+ */
+const LOCKUP = `data:image/png;base64,${readFileSync(
+  join(process.cwd(), 'public/brand/bkr-lockup-light.png')
+).toString('base64')}`
 
 export const alt = 'BKR INFRA — Contemporary Residential Development, Hyderabad'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 /**
- * Branded Open Graph card: the wordmark and the dot ornament on black.
+ * Branded Open Graph card: the real lockup on the brand navy.
  *
- * Rebuilt for the monochrome palette. Note the ornament is drawn here with plain absolutely
- * positioned divs rather than by importing `DotOrnament` — Satori (which renders this) supports
- * only a subset of CSS and does not implement `transform-origin`, so the component's
- * rotate-about-bottom-edge construction would collapse into eight overlapping bars. Here each
- * spoke is positioned by its own pre-computed offset instead, which Satori can render.
+ * It previously set the word "BKR" in the body face beside a hand-built dot ornament, because no
+ * usable artwork existed in the repo. It does now, so the card uses it.
  *
  * Sizes are in px, not vw: there is no viewport in an OG image, and `vw` resolves to 0.
  */
 export default function OpengraphImage() {
-  const SPOKES = [0, 45, 90, 135, 180, 225, 270, 315]
-
   return new ImageResponse(
     (
       <div
@@ -34,30 +42,12 @@ export default function OpengraphImage() {
           fontFamily: 'sans-serif',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <span style={{ fontSize: 64, fontWeight: 500, letterSpacing: '-0.03em' }}>BKR</span>
-          <div style={{ position: 'relative', width: 34, height: 34, display: 'flex' }}>
-            {SPOKES.map((deg) => {
-              // Satori has no transform-origin, so each spoke's position is computed rather than
-              // rotated into place: polar coordinates from the centre, at a fixed radius.
-              const rad = (deg * Math.PI) / 180
-              const r = 11
-              return (
-                <div
-                  key={deg}
-                  style={{
-                    position: 'absolute',
-                    left: 17 + r * Math.sin(rad) - 2,
-                    top: 17 - r * Math.cos(rad) - 2,
-                    width: 4,
-                    height: 4,
-                    background: COLORS.primary,
-                  }}
-                />
-              )
-            })}
-          </div>
-        </div>
+        {/* The actual artwork rather than the word "BKR" set in the body face beside a drawn
+            ornament, which is what this used to be. A social card is often the first and only
+            impression of the brand, so the mark on it should be the mark. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders this route, not the
+            browser; next/image has no meaning here and would not resolve. */}
+        <img src={LOCKUP} alt="" width={420} height={194} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ width: 220, height: 2, background: COLORS.primary }} />

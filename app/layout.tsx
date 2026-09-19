@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Caveat, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { LenisProvider } from '@/components/motion/LenisProvider'
+import { LOAD_LOCK_CLASS } from '@/components/motion/loadCues'
 import { LoadSequence } from '@/components/motion/LoadSequence'
 import { LoadCurtain } from '@/components/motion/LoadCurtain'
 import { RouteCurtain } from '@/components/motion/RouteCurtain'
@@ -61,7 +62,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const settings = await getSiteSettings()
 
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${script.variable}`}>
+    /*
+     * `LOAD_LOCK_CLASS` is rendered here, by the server, so the opening's scroll hold applies from the
+     * first paint. It used to be applied by Lenis instead, which meant it began only once that chunk
+     * resolved — measured at 148ms on one build and 1215ms on another once two mask images joined the
+     * header — and every millisecond before it was a window in which a wheel scrolled the document
+     * away behind a fully opaque curtain. `releaseLoadScrollLock()` removes it, and every failure path
+     * in the load sequence routes through that function.
+     */
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${script.variable} ${LOAD_LOCK_CLASS}`}>
+      <head>
+        {/*
+          The rescue. A hold applied by markup and released by script is a trap if the script never
+          runs, so with scripting off the hold is overridden outright. This is the same pattern the
+          hero uses for its own from-states, and it is the reason the hold is safe to put in markup at
+          all.
+        */}
+        <noscript
+          dangerouslySetInnerHTML={{
+            __html: `<style>html.${LOAD_LOCK_CLASS},html.${LOAD_LOCK_CLASS} body{overflow:visible!important}</style>`,
+          }}
+        />
+      </head>
       <body className="bg-primary font-sans text-secondary antialiased">
         <a
           href="#main"
