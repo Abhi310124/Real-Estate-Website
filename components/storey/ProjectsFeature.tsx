@@ -139,13 +139,13 @@ export function ProjectsFeature() {
                 foot — even though the ruled block filling the middle already produces it. */}
             <div className="relative flex h-full w-full flex-col justify-between bg-primary px-[10%] pb-[8%] pt-[10%] text-muted">
               <div className="mb-[10%] flex items-center justify-between">
-                <p className="w-[35%] font-mono text-mono-note uppercase max-sm:text-mono-sm">
+                <p className="w-[35%] font-mono text-mono-note max-sm:text-mono-sm uppercase max-sm:text-mono-sm">
                   {note.eyebrow}
                 </p>
                 <div className="flex items-center gap-[0.5vw] max-sm:gap-[2vw]">
                   {/* The one small run on the page at weight 500: a letterhead wordmark, not a
                       label. */}
-                  <span className="text-label-md font-display max-sm:text-label-sm">BKR</span>
+                  <span className="text-label-md max-sm:text-label-sm font-display max-sm:text-label-sm">BKR</span>
                   <DotOrnament size="md" />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export function ProjectsFeature() {
                 ))}
               </div>
 
-              <ul className="flex w-full justify-between font-mono text-mono-xs uppercase max-sm:text-mono-sm">
+              <ul className="flex w-full justify-between font-mono text-mono-xs max-sm:text-mono-sm uppercase max-sm:text-mono-sm">
                 {note.monoLabels.map((label) => (
                   <li key={label}>{label}</li>
                 ))}

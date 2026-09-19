@@ -91,7 +91,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               of them animates the result is visually identical. */}
           <RouteCurtain />
           <SiteHeader settings={settings} />
-          <main id="main">{children}</main>
+          {/*
+            `overflow-x-clip` is the page's horizontal-overflow backstop, and it belongs here rather
+            than on `body` because `<main>` is the direct parent of every route's sections and is
+            therefore the box whose `scrollWidth` the viewport reads. Several sections deliberately
+            paint outside themselves — the 3D ring is a 114.4vw stage under a 132vw perspective, every
+            photograph renders at 1.2x its frame, the testimonial band is carried 391px down over the
+            chapter below it — and although each of those clips itself, a clipped box still REPORTS
+            its overflowing width. On a phone that is enough to widen the layout viewport: the home
+            page resolved to an 812px viewport on a 390px device, so the entire mobile design rendered
+            zoomed out. The reference absorbs this on its own app root; this is the equivalent.
+
+            `clip`, never `hidden`. `overflow-x: hidden` would make this a scroll container, which
+            breaks every `position: sticky` descendant — the intro's preview card, the footer's
+            closing slab — and hands Lenis a scrollport it does not own. `clip` clips without creating
+            one, and it does not force the other axis to compute as `auto` the way `hidden` does.
+          */}
+          <main id="main" className="overflow-x-clip">
+            {children}
+          </main>
           <SiteFooter settings={settings} />
         </LenisProvider>
       </body>
