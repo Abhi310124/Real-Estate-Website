@@ -572,7 +572,31 @@ const toSummary = (p: Project): ProjectSummary => ({
 const published = () => MOCK_PROJECTS.filter((p) => p.isPublished)
 
 /**
- * Four journal posts, matching the count the home page's Journal grid is designed around.
+ * Five journal posts: one for each of the four themes the practice writes about, plus the piece on
+ * clarity that the other four kept implying and none of them stated.
+ *
+ * **Five, not four, and the fifth is not padding.** The home page's Journal grid shows four and
+ * `JournalPreview` slices to exactly that, so a fourth post is all that route ever needed. `/journal`
+ * is the listing, and a listing that shows every post it has is a listing whose top item is also its
+ * last — there is no sense of a body of writing behind the one being featured. The fifth post is what
+ * makes the featured row on that page a *selection* rather than a label on the only thing available.
+ *
+ * **Order in this array is editorial, not functional.** `publishedPosts()` sorts by date, so the
+ * newest post is the one every consumer sees first regardless of where it sits here. It is kept
+ * newest-first anyway because that is the order a reader of this file expects, and because the
+ * newest entry is the one that becomes `/journal`'s featured row — worth being able to see at a
+ * glance which record that is.
+ *
+ * **Every `coverImage.url` is a frame `components/project/photo.ts` lists as usable, and every `alt`
+ * describes the photograph actually at that path.** Both halves of that matter and the second is the
+ * easier one to lose: an `alt` written for the picture an editor had in mind rather than the one on
+ * disk passes every automated check we have — the a11y suite asserts that alt text exists, not that
+ * it is true — while telling a screen-reader user something about the page that is simply false.
+ * `photo.ts` documents which of the 26 frames are not contemporary residential development at all
+ * (a barn, log cabins, a person in a field); those are unusable here for the same reason they are
+ * unusable in a project gallery, and a cover is the most prominent slot on the site for one to land
+ * in. When genuine BKR INFRA photography replaces the placeholder set, these five paths and these
+ * five descriptions change together or not at all.
  *
  * `unpublished-journal-sample` is deliberately `isPublished: false` so the gating on every journal
  * query has something to actually exclude — the same role `unpublished-sample` plays for projects.
@@ -590,8 +614,8 @@ const MOCK_JOURNAL: JournalPost[] = [
       'We plan for the second decade rather than the first year. That shapes small decisions — where a downpipe runs, how a threshold sheds water, whether a junction can be repaired without being replaced — long before it shapes anything visible.',
     ],
     coverImage: {
-      url: '/photography/interior-06.jpg',
-      alt: 'Living space with timber floors and full-height glazing to a garden',
+      url: '/photography/exterior-05.jpg',
+      alt: 'White cubic massing in raking afternoon sun, seen from the street',
     },
     publishedAt: '2026-08-14',
     isPublished: true,
@@ -607,8 +631,8 @@ const MOCK_JOURNAL: JournalPost[] = [
       'Material honesty is not an aesthetic position in this climate so much as a practical one: surfaces that show what they are tend also to be the ones that survive being rained on for three months a year.',
     ],
     coverImage: {
-      url: '/photography/detail-06.jpg',
-      alt: 'Vertical timber screen casting shadow across a rendered wall',
+      url: '/photography/exterior-04.jpg',
+      alt: 'White villa with deep eaves shading a planted forecourt',
     },
     publishedAt: '2026-07-02',
     isPublished: true,
@@ -624,8 +648,8 @@ const MOCK_JOURNAL: JournalPost[] = [
       'We tend toward plans that open fully and close partially — sliding partitions, offset sightlines, a study that can be shut without being isolated. The flexibility is what makes a plan last through a family changing shape.',
     ],
     coverImage: {
-      url: '/photography/interior-07.jpg',
-      alt: 'Sliding partition between a study and a living room',
+      url: '/photography/interior-01.jpg',
+      alt: 'Living room open to a stair, with a pool beyond the full-height glazing',
     },
     publishedAt: '2026-05-21',
     isPublished: true,
@@ -640,10 +664,27 @@ const MOCK_JOURNAL: JournalPost[] = [
       'Everything afterwards is a response to that drawing. A plan developed before the site is understood can only be adjusted to fit it, never shaped by it.',
     ],
     coverImage: {
-      url: '/photography/detail-07.jpg',
-      alt: 'Mature tree retained between two new building volumes',
+      url: '/photography/interior-05.jpg',
+      alt: 'Black upper storey over timber cladding, beside a mature gum kept on the plot',
     },
     publishedAt: '2026-03-09',
+    isPublished: true,
+  },
+  {
+    id: 'jp-5',
+    title: 'Choosing Clarity Over Complication in a Floor Plan',
+    slug: 'clarity-over-complication',
+    excerpt:
+      'A plan a family can read at a glance is doing more work than one that has to be explained.',
+    body: [
+      'Complication in a plan is usually a deferred decision. A room that could be a study or a second sitting room is often neither, because nothing about it commits: no wall is thick enough to sit against, no window is placed for one use over another, and the door is in the middle.',
+      'Those questions cost nothing to settle on paper and a great deal to settle later. The test we use is whether someone can walk a plan once and know where they would eat, where they would work and where the house goes quiet — before anybody has explained it to them.',
+    ],
+    coverImage: {
+      url: '/photography/exterior-03.jpg',
+      alt: 'Open-plan living room reading straight through to a timber deck',
+    },
+    publishedAt: '2026-01-26',
     isPublished: true,
   },
   {

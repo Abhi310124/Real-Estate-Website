@@ -15,6 +15,24 @@ export interface Amenity { title: string; icon: string; category?: string }
 export interface ProjectSummary {
   id: string; title: string; slug: string; tagline: string
   category: ProjectCategory; status: ProjectStatus
+  /**
+   * `featured` + `order` is the site's ONLY showcase selector, and it is deliberately the only one.
+   *
+   * Several routes need "the two or three projects to put on this page": the home page's feature
+   * chapter, the two-project Explore row on `/studio`, the project showcase that closes `/journal`.
+   * Each of those is `(await getFeaturedProjects()).slice(0, n)` — the query is already
+   * `isPublished && featured`, ordered by `order` ascending, in both the mock and the Sanity source,
+   * so the owner controls both *which* projects and *in what sequence* with the two fields that
+   * already exist.
+   *
+   * A separate `showcase?: boolean` is the obvious-looking addition and it buys nothing: it would
+   * express the same selection, and it would have to be threaded through `lib/data/sanity.ts`'s
+   * `RawProjectSummary` and `mapSummary`, `sanity/lib/queries.ts`'s summary projection, the Studio
+   * schema and the owner guide — five files for a second flag an editor would then have to reason
+   * about against the first. Two overlapping "is this important?" switches is how a CMS starts
+   * disagreeing with itself. If a route needs a *different* set from the home page's, that is an
+   * argument for `order`, not for a new boolean.
+   */
   isPublished: boolean; featured: boolean; order: number
   location: { area: string; city: string }
   priceFrom: number | null; priceUnit: 'Lakh' | 'Cr'; priceOnRequest: boolean
@@ -69,6 +87,14 @@ export interface SiteSettings {
  * page preview and the sitemap at once. `tests/unit/sanity-source.test.ts` enforces that gating
  * across every project-and-post query, so a new query that forgets it fails a test rather than
  * silently leaking a draft.
+ *
+ * **There is deliberately no `featured` flag here, unlike `ProjectSummary`.** `/journal`'s featured
+ * row is the newest post, and `getJournalPosts()` already returns published posts newest-first — so
+ * it is `posts[0]` and the rest are `posts.slice(1)`. A flag would let an editor feature a post and
+ * then publish a newer one, leaving a listing whose top row is older than the two rows beneath it;
+ * the date already answers the question, and for a journal it is the right answer. The same goes for
+ * card *shape*: which frame is square and which is 4:3 is composition, decided positionally by the
+ * component rendering the row, not metadata an editor should be asked to plan.
  */
 export interface JournalPost {
   id: string

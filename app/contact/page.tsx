@@ -9,33 +9,50 @@ import { getSiteSettings } from '@/lib/data'
 import { whatsappLink } from '@/lib/whatsapp'
 
 /**
- * The contact page: three white chapters, then the cream intake form.
+ * The contact page: three white chapters, then the intake block.
  *
  *   1. intro      white   eyebrow, display line, one paragraph
  *   2. channels   white   Call / Message / Visit in three columns, under a drawn hairline
  *   3. office     white   the lazy map and an offset photograph
- *   4. intake     cream   `ContactIntake`, mounted whole
+ *   4. intake     white section, cream card — `ContactIntake`, mounted whole
+ *
+ * **Why this route exists when the reference has no contact page at all.** The reference's Contact
+ * control opens a modal intake overlay; the same numbered form closes every one of its interior
+ * routes, and there is no `/contact` URL to link to. We keep one anyway, for three reasons that a
+ * modal cannot cover: a direct link or a bookmark has to land somewhere, the form has to be reachable
+ * with JavaScript off, and the header CTA points here. The page is therefore a *fallback with a
+ * front*, not a competing implementation — which is why it adds the things a modal has no room for
+ * (the phone numbers, the map, the directions link) and nothing that duplicates the form itself.
  *
  * Three decisions here are deliberate and each has a wrong-looking obvious alternative:
  *
- * **The form is not rebuilt.** `ContactIntake` already is the reference's contact page — numbered
- * fields, underline-only inputs, square checkboxes, cream paper, dark Submit — and it is mounted
- * here unchanged. Reproducing that markup with page-specific copy would fork the one form on the
- * site that has both client and server validation pointed at `/api/lead`.
+ * **The form is not rebuilt.** `ContactIntake` is the site's one enquiry form — numbered fields,
+ * underline-only inputs, square checkboxes, a cream sheet on a white section, dark Submit — and it is
+ * mounted here unchanged, exactly as it is at the foot of every other route. Reproducing that markup
+ * with page-specific copy would fork the one form on the site that has both client and server
+ * validation pointed at `/api/lead`. Note that the *section* is white and only the card is cream: the
+ * black/white alternation between chapters is load-bearing, and the paper is the sheet, not the page.
+ * That is also why chapter 3 carries no bottom padding — `ContactIntake` brings its own `mt-[20vw]`
+ * approach gap, and an 8vw padding underneath it stacked into 28vw where the measured gap is 20.
  *
  * **`PageShell` is not used.** It centres its children in a `max-w-7xl` container, which is exactly
  * the thing the 12-column `.layout-grid` exists to avoid: the header and footer both bleed to the
  * page margin, so a constrained page body would break the single set of column edges the rest of
- * the site aligns to. The cost is that this page owns its own header clearance, the way `Hero` does
- * — `pt-[12vw]` clears the fixed header's ~5.2vw with room to breathe, and `max-sm:pt-[30vw]`
- * clears the taller mobile row plus its 44px Menu target.
+ * the site aligns to. The cost is that this page owns its own top clearance. It is not a clearance
+ * number, though — the fixed band sits at `top-[1.5vw]` and is 41.27px tall, so it ends around 4.4vw
+ * and anything past that clears it. `pt-[20vw]` is the figure the reference opens every interior
+ * route on, and matching it is what keeps this page's first line on the same scanline as `/projects`
+ * and `/journal`. `max-sm:pt-[30vw]` is deliberately not proportional: 20vw at 390px is 78px, which
+ * clears the mobile band and its 44px Menu target by too little to look intended.
  *
  * **The postal address is never printed here.** `SiteFooter` renders it verbatim on every route
  * including this one, and `tests/e2e/about-contact.spec.ts` asserts on it with `getByText` and no
  * `.first()` — a second element carrying the same text is a Playwright strict-mode violation, not
  * a duplicate-content nicety. The verified address still drives the directions link and the map
  * embed; it is simply never rendered as a second text node. Same reasoning drives the phone
- * grouping below.
+ * grouping below, and it is why the number handed to the intake card's stamp row is the ungrouped
+ * one: a `<span>` cannot collide with `getByRole('link')`, and the grouped form in the Call column
+ * keeps its own accessible name distinct from the footer's.
  */
 
 // Groups the ten trailing digits 5+5 for display only ("+91 63019 99971"). The digits are exactly
@@ -77,7 +94,7 @@ export default async function ContactPage() {
     <>
       <section
         data-contact-intro
-        className="w-full bg-primary pb-[6vw] pt-[12vw] text-secondary max-sm:pb-[14vw] max-sm:pt-[30vw]"
+        className="w-full bg-primary pb-[6vw] pt-[20vw] text-secondary max-sm:pb-[14vw] max-sm:pt-[30vw]"
       >
         <div className="layout-grid">
           <Eyebrow className="col-span-12">Contact</Eyebrow>
@@ -186,7 +203,13 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      <section data-contact-office className="w-full bg-primary pb-[8vw] text-secondary max-sm:pb-[16vw]">
+      {/* No DESKTOP bottom padding: `ContactIntake` carries the 20vw (288px) approach gap itself, and
+          8vw underneath it stacked into 28vw where the measured gap is 20 — the reference spends its
+          vertical rhythm on section margins, not on the padding of the section above. The mobile pair
+          stays, and is the exception rather than an oversight: that `mt-[20vw]` has no `max-sm:`
+          variant, so at 390px it is 78px, and 78px is not an approach gap. 16vw here restores the
+          140px the two used to make together. */}
+      <section data-contact-office className="w-full bg-primary text-secondary max-sm:pb-[16vw]">
         {/* Own grid rather than a child of the pair below, because that grid carries `gap-y` and a
             rule placed inside it would inherit the row gap on top of its own `mb`. Same reason
             `ProjectsFeature` isolates its divider. */}
@@ -217,7 +240,12 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      <ContactIntake />
+      {/* The card's closing stamp row takes one verified contact fact, and `ContactIntake` is a client
+          component so it cannot read `getSiteSettings()` itself — it leaves the stamp out rather than
+          inventing one when no caller supplies it. This page has already awaited the settings, so it
+          is the one call site that can fill it. Ungrouped on purpose: see the note above on why the
+          grouped form belongs to the Call column's link and nowhere else. */}
+      <ContactIntake contact={settings.phones[0]} />
     </>
   )
 }

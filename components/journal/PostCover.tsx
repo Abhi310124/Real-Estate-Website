@@ -17,12 +17,23 @@ import type { JournalPost } from '@/lib/data/types'
  *   a `vw` offset here clips off the bottom edge at wide-but-short viewports.
  *
  * `next/image` with `priority` rather than `ImageReveal`: this is unambiguously the LCP element, and
- * withholding the largest paint is the one place the reveal actively hurts — ImageReveal now covers
- * its frame with an opaque scrim rather than fading the image, which makes that worse, not better.
- * Every other image on the route is revealed.
+ * the reveal is a black shutter, not a fade. `ImageReveal` lays an opaque `bg-secondary` panel over
+ * its frame and takes it away in 250ms once the frame intersects — which for a frame that is already
+ * on screen at load means the photograph paints, is covered black a frame later (the scrim's rest
+ * state is transparent and can only turn opaque once the reduced-motion hook has reported, i.e. after
+ * hydration), then uncovers. A largest-paint element that flashes to black after painting is worse
+ * than one that arrives plainly, so the shutter stays off the opening screen and every other image
+ * on the route — the two cards in the related strip — is revealed normally.
  *
- * The header already knows to render light ink here — `/journal/[slug]` is matched by
- * `isFullBleedRoute` in `components/layout/SiteHeader.tsx`, so this section must stay dark-topped.
+ * The header renders light ink over this section, and it works that out for itself: it samples what
+ * is actually painted behind its band and treats any image at least 90% of the viewport wide as
+ * full-bleed photography (`isFullBleedMedia` in `components/layout/SiteHeader.tsx`). This section's
+ * `fill` cover satisfies that at every width, and `bg-secondary` underneath it gives the same answer
+ * if the photograph is still loading. The consequence to respect is that the header is reading the
+ * top of the page, so the cover must remain the first thing on the route and stay full-bleed — a
+ * later change that insets it, or that puts a white band above it, silently turns the wordmark black
+ * on a dark photograph.
+ *
  * There is no dateline over the photograph: it lives beside the body in `PostBody`, where the left
  * columns are free, and stamping it in both places just duplicates a `<time>` element.
  */

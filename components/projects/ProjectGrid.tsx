@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import { ProjectCard } from './ProjectCard'
+import { ProjectCard, type CardSize } from './ProjectCard'
 import { Button } from '@/components/ui/Button'
 import { RuleDraw } from '@/components/motion/RuleDraw'
 import { useReducedMotion } from '@/components/motion/useReducedMotion'
@@ -14,6 +14,21 @@ type Props = { projects: ProjectSummary[] }
 // under that name — `typeof import(...)` in a type position is erased at compile time, so this
 // costs nothing at runtime and does not defeat getGsap()'s lazy-loading of the real module.
 type FlipState = ReturnType<typeof import('gsap/Flip').Flip.getState>
+
+/**
+ * The row pattern: a 6-column plate, then two 3-column thumbs, repeating.
+ *
+ * Written as data and applied with `i % 3` rather than by slicing the list into rows, because the
+ * listing is CMS-driven and an owner can publish any number of projects — five, which is what the
+ * reference has, or nineteen. A trailing partial row comes out as a plate alone or a plate and one
+ * thumb, and the columns it does not claim read as the composed whitespace the rest of the grid is
+ * already full of.
+ */
+const ROW_PATTERN: ReadonlyArray<{ size: CardSize; span: string }> = [
+  { size: 'plate', span: 'col-span-12 sm:col-span-6' },
+  { size: 'thumb', span: 'col-span-12 sm:col-span-3' },
+  { size: 'thumb', span: 'col-span-12 sm:col-span-3' },
+]
 
 /**
  * Client wrapper around the filtered grid. `app/projects/page.tsx` does the actual
@@ -30,12 +45,29 @@ type FlipState = ReturnType<typeof import('gsap/Flip').Flip.getState>
  * never leaves the fixed slot PageTransition always renders it in. That is what lets the refs
  * below survive from one filtered render to the next.
  *
- * Layout: two columns of five on the twelve-column grid (cols 1–5 and 8–12, so the middle column
- * stays empty and the pair reads as two plates rather than a table), **vertically staggered** —
- * odd-indexed cards drop by 10vw, the same device JournalPreview uses on the home page, which
- * makes the eye travel diagonally down the listing instead of scanning rows. The stagger is a
- * `sm:mt` on odd cards rather than two hand-built columns, so it survives any number of results;
- * it is dropped below `sm`, where a single column makes an offset read as inconsistent spacing.
+ * ## Layout: one grid, mixed card sizes, flush tops
+ *
+ * Every card is a direct child of a single `.layout-grid`, and the rows are produced by the
+ * browser's own auto-placement: a 6-column card followed by two 3-column cards fills twelve
+ * tracks, and the next 6-column card cannot fit beside them so it opens the next row. `gap-y-[15vw]`
+ * (216px at 1440) is the rhythm between those rows, measured off the reference's own second listing
+ * row.
+ *
+ * **No card carries a top margin, and that is the composition.** The reference's row is a 690x857
+ * plate beside two 335x443 thumbs, all three with `margin-top: 0` and the same document top: the
+ * stagger a listing needs comes from the cards being different *heights*, not from pushing every
+ * second one down. The `sm:mt-[10vw]` that used to sit on odd-indexed cards here — which also made
+ * every card the same 472px width — is exactly the invented offset `ProjectsFeature` had to have
+ * removed from its own pair.
+ *
+ * `items-start` is load-bearing rather than tidiness: a grid item stretches to its row by default,
+ * so the two thumbs beside a 925px plate would be handed a 925px box each and the metadata would
+ * stop sitting under its own photograph. It is the reference's own `h-fit`, hoisted to the parent.
+ *
+ * One flat list of siblings is also what keeps Flip honest. Slicing the projects into row wrappers
+ * reads more explicitly, but then a card whose row index changes under a filter is a *new* DOM node
+ * in a new parent: Flip loses the survivor it was supposed to move, and `ImageReveal` re-arms its
+ * shutter, so every filter click would blink the photographs black.
  */
 export function ProjectGrid({ projects }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
@@ -150,19 +182,19 @@ export function ProjectGrid({ projects }: Props) {
       {header}
       <div
         ref={gridRef}
-        className="layout-grid mt-[6vw] gap-y-[10vw] max-sm:mt-[10vw] max-sm:gap-y-[16vw]"
+        className="layout-grid mt-[6vw] items-start gap-y-[15vw] max-sm:mt-[10vw] max-sm:gap-y-[16vw]"
       >
-        {projects.map((project, i) => (
-          <ProjectCard
-            key={project.slug}
-            project={project}
-            className={
-              i % 2 === 1
-                ? 'col-span-12 sm:col-span-5 sm:col-start-8 sm:mt-[10vw]'
-                : 'col-span-12 sm:col-span-5'
-            }
-          />
-        ))}
+        {projects.map((project, i) => {
+          const slot = ROW_PATTERN[i % ROW_PATTERN.length]
+          return (
+            <ProjectCard
+              key={project.slug}
+              project={project}
+              size={slot.size}
+              className={slot.span}
+            />
+          )
+        })}
       </div>
     </>
   )

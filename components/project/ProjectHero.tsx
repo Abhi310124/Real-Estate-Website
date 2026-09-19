@@ -17,10 +17,15 @@ type Props = { project: Project }
  * the copy block is positioned in `svh` too — a `vw` offset inside a height-sized section pushes the
  * metadata off the bottom edge at wide-but-short viewports.
  *
- * A raw `next/image` rather than `ImageReveal`: this is unambiguously the LCP element, and
- * ImageReveal covers its frame with an opaque black scrim until the reveal fires. The conclusion is
- * the same as it always was but the reason is now stronger — a black panel over the largest paint is
- * worse for the metric than the fade this used to avoid.
+ * A raw `next/image` rather than `ImageReveal`: this is unambiguously the LCP element, and the reveal
+ * is a black shutter rather than a fade. `ImageReveal` covers its frame with an opaque `bg-secondary`
+ * panel and takes it away in 250ms on intersection — and because that panel's rest state is
+ * transparent and can only turn opaque once the reduced-motion hook has reported back, a frame this
+ * far up the page paints, is covered black immediately after hydration, and then uncovers. A largest
+ * paint that flashes to black after painting is the one thing worse than one that simply arrives, so
+ * the shutter belongs below the fold — where `Overview` uses it, and where the gallery, the plans and
+ * the construction strip do not, because each of those paints inside a control the visitor is already
+ * operating and a black panel over a swiped slide reads as a broken frame rather than as a reveal.
  *
  * The scrim is stronger here than on the home hero (`/90` at the bottom rather than `/70`) because
  * what sits over it is different. The home hero puts one `text-body` line there — large text, which
