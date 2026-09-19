@@ -2,7 +2,7 @@ import { SplitLines } from '@/components/motion/SplitLines'
 import { CORE_PRINCIPLES } from '@/lib/content/studio'
 
 /**
- * Black chapter: four numbered principles as ruled rows.
+ * Navy chapter: four numbered principles as ruled rows.
  *
  * ## The row is two stacked grids, and the numeral is in the second one
  *
@@ -25,10 +25,10 @@ import { CORE_PRINCIPLES } from '@/lib/content/studio'
  * floor and does nothing at this content length; it exists so the chapter cannot collapse if the copy
  * is ever cut.
  *
- * ## The rules are borders, they are `#2B2B2B`, and they are static
+ * ## The rules are borders, they are `#293648`, and they are static
  *
  * `border-t` on the row wrapper, deliberately OUTSIDE `layout-grid`: the grid carries the page margin
- * as `padding-inline`, so a rule placed inside it stops 20px short of both viewport edges. #2B2B2B is
+ * as `padding-inline`, so a rule placed inside it stops 20px short of both viewport edges. #293648 is
  * the measured value and is specific to the dark chapters — it is a rule that reads as drawn on black
  * rather than as the white `edge` grey knocked back, and `border-primary/20` would resolve to a
  * translucent white that changes value with whatever is painted behind it. They do not animate: there
@@ -45,7 +45,7 @@ import { CORE_PRINCIPLES } from '@/lib/content/studio'
  */
 
 /** Measured on the reference's dark rows. Not a palette token — it exists only on black bands. */
-const DARK_RULE = 'border-t border-[#2B2B2B]'
+const DARK_RULE = 'border-t border-[#293648]'
 
 export function CorePrinciples() {
   return (

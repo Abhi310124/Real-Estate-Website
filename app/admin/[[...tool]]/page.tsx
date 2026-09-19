@@ -42,7 +42,7 @@ export default function AdminStudioPage() {
   if (!projectId) {
     return (
       <main className="mx-auto flex min-h-screen max-w-[52rem] flex-col justify-center gap-6 p-8 font-sans">
-        <p className="font-mono text-sm uppercase tracking-[-0.1em] text-[#3d3d3d]">BKR INFRA — CMS</p>
+        <p className="font-mono text-sm uppercase tracking-[-0.1em] text-muted">BKR INFRA — CMS</p>
         <h1 className="text-3xl font-medium tracking-[-0.03em]">The editing area is not connected yet</h1>
         <p className="text-base leading-relaxed">
           This site is running on its built-in sample content, so there is nothing to sign in to. The

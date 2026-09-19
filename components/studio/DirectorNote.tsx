@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 import { DIRECTOR_NOTE } from '@/lib/content/studio'
 
 /**
- * Black chapter, in the position the reference gives to its team block.
+ * Navy chapter, in the position the reference gives to its team block.
  *
  * ## Why there is one person here and not six
  *

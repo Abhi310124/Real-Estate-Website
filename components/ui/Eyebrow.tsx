@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn'
  * instinct for a small uppercase label) reads as a 2010s eyebrow; negative tracking on a mono face
  * reads as stamped metadata, which is the register this design is in.
  *
- * `className` still overrides colour, so a label on a black chapter can pass `text-primary/50`.
+ * `className` still overrides colour, so a label on a navy chapter can pass `text-primary/50`.
  */
 export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
   return (

@@ -4,7 +4,7 @@ import { Eyebrow } from '@/components/ui/Eyebrow'
 import { STUDIO_INTRO } from '@/lib/content/studio'
 
 /**
- * White chapter: the statement the route is built on, then five plates.
+ * Cream chapter: the statement the route is built on, then five plates.
  *
  * ## The heading and the prose are a 7 + 3 + 3 row, not a stack
  *

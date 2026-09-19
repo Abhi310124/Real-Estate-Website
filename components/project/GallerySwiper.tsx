@@ -31,7 +31,7 @@ const NAV_BUTTON =
   'max-sm:px-[3vw] max-sm:text-mono-sm'
 
 /**
- * `#gallery` — black chapter. A Swiper carousel over `project.gallery`, deliberately overflowing the
+ * `#gallery` — navy chapter. A Swiper carousel over `project.gallery`, deliberately overflowing the
  * right-hand page margin (`!overflow-visible` plus a fractional `slidesPerView`) so the strip reads as
  * continuing off the edge of the page rather than as a boxed widget. That bleed is the reference's
  * device for a horizontal run of images.

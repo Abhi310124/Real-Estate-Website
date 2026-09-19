@@ -2,64 +2,147 @@ import { describe, expect, it } from 'vitest'
 import { COLORS, contrastRatio, relativeLuminance } from '@/lib/tokens'
 
 /**
- * Drift guard on the monochrome palette.
+ * Drift guard on the brand palette.
  *
- * The previous version of this suite spent most of its assertions proving that a navy/orange
- * palette cleared AA — which was genuinely hard, and where a real bug was eventually found (white
- * on orange measured 3.38:1 and had shipped on every button). A monochrome palette makes those
- * pairings trivial, so the interesting assertions have moved: what matters now is that the palette
- * stays monochrome, and that nothing reintroduces an accent colour by the back door.
+ * This suite has now been written three times, and the history is the reason it is shaped the way it
+ * is. The first version tried to prove a navy/orange palette cleared AA and missed the one pairing
+ * that mattered: white on orange measured 3.38:1 and had shipped on every button on the site. The
+ * second version, for the monochrome rebuild, asserted the opposite thing — that no token had any
+ * hue at all — which made contrast trivial and the assertions uninteresting.
+ *
+ * The palette is derived from the logo again, so the dangerous pairing is back. These assertions are
+ * therefore aimed squarely at it: hue is allowed, but only the logo's hues, and every pairing a
+ * clickable can actually produce has to clear its real threshold.
  */
 
-const MONO = ['primary', 'secondary', 'muted', 'hairline', 'offwhite', 'edge'] as const
+const TOKENS = [
+  'primary',
+  'secondary',
+  'accent',
+  'accentInk',
+  'muted',
+  'hairline',
+  'offwhite',
+  'edge',
+] as const
+
+/** WCAG 2.1: 4.5:1 for body text, 3:1 for large text and for non-text UI indicators. */
+const AA_TEXT = 4.5
+const AA_NON_TEXT = 3
 
 describe('palette', () => {
-  it('is exactly the six tokens the design uses', () => {
-    expect(Object.keys(COLORS).sort()).toEqual([...MONO].sort())
+  it('is exactly the eight tokens the design uses', () => {
+    expect(Object.keys(COLORS).sort()).toEqual([...TOKENS].sort())
   })
 
-  it('exposes the measured hex values verbatim', () => {
-    expect(COLORS.primary).toBe('#FFFFFF')
-    expect(COLORS.secondary).toBe('#000000')
-    expect(COLORS.muted).toBe('#3D3D3D')
-    expect(COLORS.hairline).toBe('#E6E6E6')
-    expect(COLORS.offwhite).toBe('#F2F2F2')
-    expect(COLORS.edge).toBe('#BFBFBF')
+  it('exposes the logo-derived hex values verbatim', () => {
+    // The three that come straight off app/icon.svg. If the logo is ever redrawn, these are the
+    // values that have to move with it — and everything below re-checks the consequences.
+    expect(COLORS.secondary).toBe('#0A1A2F')
+    expect(COLORS.primary).toBe('#F7F4EE')
+    expect(COLORS.accent).toBe('#FF4907')
+    // Derived.
+    expect(COLORS.accentInk).toBe('#CC3A06')
+    expect(COLORS.muted).toBe('#5D6672')
+    expect(COLORS.hairline).toBe('#DBDAD7')
+    expect(COLORS.offwhite).toBe('#EDEAE2')
+    expect(COLORS.edge).toBe('#BCBEBE')
   })
 
-  // The real guard. A monochrome colour has equal R, G and B channels; anything with a hue is by
-  // definition an accent, and the design's entire premise is that there isn't one. This catches a
-  // "just a touch of orange" edit far more reliably than listing forbidden values would.
-  it('contains no hue — every channel is equal in every token', () => {
-    for (const name of MONO) {
-      const hex = COLORS[name].replace('#', '')
-      const [r, g, b] = [hex.slice(0, 2), hex.slice(2, 4), hex.slice(4, 6)]
-      expect([name, r, g, b]).toEqual([name, r, r, r])
+  it('confines hue to the orange accent and a navy-tinted neutral ramp', () => {
+    // The palette is allowed colour now, but not arbitrary colour: every token is either one of the
+    // two oranges or a mix of the logo's navy into its cream. A mix of two colours can never be more
+    // saturated than the more saturated of them, so a neutral that has drifted into a third hue
+    // shows up here as a channel spread wider than navy's own.
+    const spread = (hex: string) => {
+      const [r, g, b] = (hex.replace('#', '').match(/\w\w/g) ?? []).map((h) => parseInt(h, 16))
+      return Math.max(r, g, b) - Math.min(r, g, b)
+    }
+    const navySpread = spread(COLORS.secondary)
+
+    for (const name of TOKENS) {
+      if (name === 'accent' || name === 'accentInk') continue
+      expect([name, spread(COLORS[name]) <= navySpread]).toEqual([name, true])
     }
   })
 })
 
-describe('contrast', () => {
-  it('gives the two page inks the maximum possible ratio on their own surface', () => {
-    // 21:1 is the theoretical ceiling. Both chapter types hit it, which is why this design needs
-    // no contrast carve-outs of the kind the previous palette required.
-    expect(contrastRatio(COLORS.secondary, COLORS.primary)).toBeCloseTo(21, 1)
+describe('the two page inks', () => {
+  it('read on each other far above the floor', () => {
+    expect(contrastRatio(COLORS.secondary, COLORS.primary)).toBeGreaterThanOrEqual(15)
+  })
+})
+
+describe('clickables', () => {
+  // This block is the reason the file exists.
+
+  it('puts a NAVY label on an orange fill, which is the only pairing that passes', () => {
+    expect(contrastRatio(COLORS.secondary, COLORS.accent)).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
-  it('keeps muted text legible on both chapter backgrounds', () => {
-    // muted is the only token used for body-size secondary text, so it is the only one that has
-    // to clear 4.5:1 rather than the 3:1 that applies to rules and large display type.
-    expect(contrastRatio(COLORS.muted, COLORS.primary)).toBeGreaterThanOrEqual(4.5)
+  it('proves the two tempting light labels on orange do NOT pass', () => {
+    // Asserting the failure is the point. A future edit that "brightens the button text" has to
+    // delete one of these lines to go green, which is a much louder act than changing a class.
+    expect(contrastRatio('#FFFFFF', COLORS.accent)).toBeLessThan(AA_TEXT)
+    expect(contrastRatio(COLORS.primary, COLORS.accent)).toBeLessThan(AA_TEXT)
   })
 
-  it('treats hairline and edge as non-text only', () => {
-    // Both fail AA for text by a wide margin and are deliberately never used for it — they are
-    // rules, borders and the ghosted numerals. Asserting the failure documents the constraint, so
-    // that anyone tempted to set a label in `text-hairline` finds the reason here.
-    expect(contrastRatio(COLORS.hairline, COLORS.primary)).toBeLessThan(4.5)
-    expect(contrastRatio(COLORS.edge, COLORS.primary)).toBeLessThan(4.5)
+  it('lets the full-strength accent be text on navy but not on cream', () => {
+    expect(contrastRatio(COLORS.accent, COLORS.secondary)).toBeGreaterThanOrEqual(AA_TEXT)
+    expect(contrastRatio(COLORS.accent, COLORS.primary)).toBeLessThan(AA_TEXT)
   })
 
+  it('uses the darkened accent for orange text on cream, and only there', () => {
+    expect(contrastRatio(COLORS.accentInk, COLORS.primary)).toBeGreaterThanOrEqual(AA_TEXT)
+    // And it is the wrong token on navy — which is why there are two rather than one.
+    expect(contrastRatio(COLORS.accentInk, COLORS.secondary)).toBeLessThan(AA_TEXT)
+  })
+
+  it('still clears the non-text floor where the accent is a rule rather than a word', () => {
+    // The link underline and the logo's wedge are graphics, so 3:1 applies, on both grounds.
+    expect(contrastRatio(COLORS.accent, COLORS.primary)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+    expect(contrastRatio(COLORS.accent, COLORS.secondary)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+  })
+
+  it('cannot be satisfied by one orange, which is why the split is arithmetic not taste', () => {
+    // To be body text on cream an orange needs luminance <= 0.163; on navy it needs >= 0.220. The
+    // ranges do not overlap, so no single value can do both jobs and the pair is forced.
+    const maxForCream = (1.05 - 0.05 * AA_TEXT) / AA_TEXT
+    const minForNavy = AA_TEXT * (relativeLuminance(COLORS.secondary) + 0.05) - 0.05
+    expect(maxForCream).toBeLessThan(minForNavy)
+  })
+})
+
+describe('body and secondary text', () => {
+  it('keeps muted legible on the cream chapters', () => {
+    expect(contrastRatio(COLORS.muted, COLORS.primary)).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('leaves muted a real margin rather than sitting on the threshold', () => {
+    // The 60%-navy mix measures 4.50:1 exactly. A token pinned to the boundary fails the moment
+    // anything is layered over it, so the shipped value is the 65% mix.
+    expect(contrastRatio(COLORS.muted, COLORS.primary)).toBeGreaterThan(5)
+  })
+})
+
+describe('non-text tokens', () => {
+  it('treats hairline, edge and offwhite as surfaces and rules only', () => {
+    // All three fail AA for text by a wide margin and are deliberately never used for it. Asserting
+    // the failure documents the constraint where someone tempted to set a label in `text-hairline`
+    // will actually find it.
+    expect(contrastRatio(COLORS.hairline, COLORS.primary)).toBeLessThan(AA_TEXT)
+    expect(contrastRatio(COLORS.edge, COLORS.primary)).toBeLessThan(AA_TEXT)
+    expect(contrastRatio(COLORS.offwhite, COLORS.primary)).toBeLessThan(AA_TEXT)
+  })
+
+  it('still separates the paper panel from the page it sits on', () => {
+    // Its whole job is to read as a sheet laid on the page. At 1.00 it would be invisible; the
+    // previous monochrome value was chosen for exactly this reason and then had to be revisited.
+    expect(contrastRatio(COLORS.offwhite, COLORS.primary)).toBeGreaterThan(1.05)
+  })
+})
+
+describe('contrastRatio', () => {
   it('is symmetric regardless of argument order', () => {
     expect(contrastRatio(COLORS.primary, COLORS.muted)).toBeCloseTo(
       contrastRatio(COLORS.muted, COLORS.primary),

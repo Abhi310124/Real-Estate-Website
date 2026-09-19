@@ -11,7 +11,7 @@ import { test, expect, type Page } from '@playwright/test'
  *   load curtain        ~1150ms hold (gated on fonts + hero decode), then opacity 1 -> 0 over 750ms
  *   scroll lock         engaged through the curtain, released as the content cascade begins
  *   line reveals        68 per-line masks, translateY(100%) -> 0, 750ms power3.out, 60ms stagger
- *   image reveal        a black scrim, opacity 1 -> 0 over 250ms; the photograph never fades
+ *   image reveal        an opaque scrim, opacity 1 -> 0 over 250ms; the photograph never fades
  *   image parallax      every frame scrubbed translateY 0 -> +16.667% of its own height, downward
  *   hero carousel       4 slides, 10.0s interval, 4 progress tracks at flex ratios 3:1:1:1
  *   header              absent over the opening, then opacity 0 -> 1; ink inverts per band, 500ms
@@ -55,7 +55,7 @@ async function openingOver(page: Page) {
 }
 
 test.describe('the first-load sequence', () => {
-  test('holds black, locks scroll, then releases — in that order', async ({ page }) => {
+  test('holds on the dark curtain, locks scroll, then releases — in that order', async ({ page }) => {
     await page.setViewportSize(VIEWPORT)
     await page.goto('/', { waitUntil: 'commit' })
 
@@ -186,7 +186,7 @@ test.describe('masked line reveals', () => {
 })
 
 test.describe('image reveal and parallax', () => {
-  test('a black scrim uncovers the photograph rather than the photograph fading', async ({ page }) => {
+  test('an opaque scrim uncovers the photograph rather than the photograph fading', async ({ page }) => {
     await page.setViewportSize(VIEWPORT)
     await page.goto('/')
     await openingOver(page)
@@ -197,7 +197,9 @@ test.describe('image reveal and parallax', () => {
     // A frame well below the fold: its scrim is still opaque black, covering the photograph.
     const frame = page.locator('[data-testid="feature-image-2"]')
     const scrim = frame.locator('[data-image-scrim]')
-    expect(await scrim.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(0, 0, 0)')
+    // The scrim is `bg-secondary`, which is the palette's dark ink — navy now that the theme is
+    // derived from the logo, not the literal black it was while the design was monochrome.
+    expect(await scrim.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(10, 26, 47)')
     expect(
       await scrim.evaluate((el) => parseFloat(getComputedStyle(el).opacity)),
       'the scrim is not covering a frame that has not entered yet'

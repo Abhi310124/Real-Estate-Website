@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { DotOrnament } from '@/components/motion/DotOrnament'
+import { LogoMark } from '@/components/brand/LogoMark'
 import { getGsap } from '@/components/motion/gsap'
 import { loadSequenceActive, onLoadStage, type LoadStage } from '@/components/motion/loadCues'
 import { useReducedMotion } from '@/components/motion/useReducedMotion'
@@ -36,7 +36,7 @@ import { relativeLuminance } from '@/lib/tokens'
  *
  * ## Ink, and why it is not a route decision
  *
- * The page alternates black and white chapters, so a fixed ink makes the header disappear over half
+ * The page alternates black and cream chapters, so a fixed ink makes the header disappear over half
  * of them — white on white for three of the home page's bands. An earlier version here decided ink
  * once per route from the first screen's colour, on the argument that sampling the scroll position
  * would put white ink on a white page at scroll 0. That argument is wrong in both directions: the
@@ -381,7 +381,7 @@ function MobileNav({ settings }: { settings?: SiteSettings }) {
             className="pointer-events-auto fixed inset-0 z-[85] flex flex-col bg-primary text-secondary sm:hidden"
           >
             <div className="layout-grid items-start py-[4vw]">
-              <span className="col-span-8 text-lead-sm">BKR</span>
+              <LogoMark className="col-span-8 h-auto w-[26vw] shrink-0" />
               <div className="col-span-4 flex justify-end">
                 <button
                   type="button"
@@ -447,16 +447,19 @@ function HeaderRow({ settings }: { settings?: SiteSettings }) {
           href="/"
           aria-label="BKR INFRA — Home"
           data-ink-probe
-          // `items-start`, not `items-center`: the ornament carries its own 3.6px top padding to
-          // sit on the wordmark's cap line, and centring it against a 31.68px line box throws that
-          // away. Wordmark and ornament tops are the same edge.
-          className="pointer-events-auto flex items-start gap-[0.25vw] rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+          // `items-center` now that this is a single graphic rather than a word plus an ornament
+          // that had to share a cap line.
+          className="pointer-events-auto flex items-center rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
         >
-          {/* Weight 400. The wordmark is a word at 31.68px, not a bolded logotype — nothing on the
-              reference is weight 500 below its two display steps, and `font-display` here is the
-              fastest way to lose the composure of a palette with no colour in it. */}
-          <span className="text-lead max-sm:text-lead-sm">BKR</span>
-          <DotOrnament size="md" />
+          {/* The real mark, not the letters "BKR" set as type. Its letterforms are `currentColor`,
+              so they take whatever ink the sampler has decided for this band — cream over a navy
+              chapter, navy over a cream one — while the orange wedge stays orange on both. That is
+              what lets ONE instance ride a header that crosses photography and both chapter colours.
+
+              Sized by width (`w-[8.2vw]`, ~118px at 1440) so the band stays the measured 41.27px
+              tall. Never give this a height budget: a flex parent then compresses the graphic, which
+              is how a previous version of this header shipped an 8px-tall logo. */}
+          <LogoMark className="h-auto w-[8.2vw] shrink-0 max-sm:w-[26vw]" />
         </Link>
       </div>
 

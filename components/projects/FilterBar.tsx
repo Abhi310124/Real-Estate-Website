@@ -46,9 +46,11 @@ function hrefFor(active: Active, override: { category?: ProjectCategory | null; 
  * item, and it is the same hairline vocabulary as every divider on the page.
  *
  * `min-h-11` on the link, not on the label span, so the 44px touch target exists even though the
- * visible text is ~16px tall. `outline-current` for the focus ring: the palette has no accent to
- * ring with, and the old `outline-orange` silently stopped generating any CSS when the colour was
- * removed from the theme, leaving these links with no visible focus state at all.
+ * visible text is ~16px tall. `outline-current` for the focus ring rather than the accent, so the
+ * ring is always the ink of the text it surrounds and cannot be mistaken for the orange that marks a
+ * clickable. An earlier version named a colour directly (`outline-orange`) and silently stopped
+ * generating any CSS when that token was renamed, leaving these links with no visible focus state at
+ * all — which is the argument for `current` over any named value here.
  */
 function FilterLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
   return (

@@ -64,7 +64,7 @@ export function StudioHero({ projects }: { projects: ProjectSummary[] }) {
       className="relative h-[170svh] w-full overflow-clip bg-secondary text-primary max-sm:h-[140svh]"
     >
       {/* Raw mono markup rather than `<Eyebrow>` on every dark chapter of this route. Eyebrow's own
-          colour is `text-muted` (#3D3D3D) and `cn()` is a plain join with no tailwind-merge, so a
+          colour is `text-muted` (#5D6672) and `cn()` is a plain join with no tailwind-merge, so a
           colour passed through `className` does not reliably win the cascade — it would be a
           coin-flip between white and near-black type on black. Same markup, minus the gamble. */}
       <div className="layout-grid relative z-10 items-start pt-[9vw] max-sm:pt-[30vw]">

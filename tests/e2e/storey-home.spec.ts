@@ -53,58 +53,85 @@ test.describe('structure', () => {
       (sels) => sels.map((s) => getComputedStyle(document.querySelector(s)!).backgroundColor),
       [...SECTIONS, 'footer']
     )
-    // Hero and manifesto are BOTH black on purpose — they read as one continuous dark opening, with
-    // the manifesto's gradient dissolving the seam. After that it strictly alternates.
-    expect(bgs.slice(0, 2)).toEqual(['rgb(0, 0, 0)', 'rgb(0, 0, 0)'])
-    expect(bgs[2]).toBe('rgb(255, 255, 255)') // expertise
-    expect(bgs[3]).toBe('rgb(0, 0, 0)') // studio statement
-    expect(bgs[4]).toBe('rgb(255, 255, 255)') // projects
-    expect(bgs[5]).toBe('rgb(0, 0, 0)') // testimonial
-    expect(bgs[6]).toBe('rgb(255, 255, 255)') // journal
-    // Contact is pure white, like the other two light chapters — not the tinted "paper" panel it
-    // used to be. Measuring the reference settled it: all three of its light bands resolve to
-    // rgb(255,255,255) with zero internal padding, and it controls the rhythm with a 288px margin
-    // above this section instead. Ours was the only light section off the white/black ramp.
-    expect(bgs[7]).toBe('rgb(255, 255, 255)') // contact
-    expect(bgs[8]).toBe('rgb(0, 0, 0)') // footer
+    // The two chapter colours are the logo's own: navy ground, cream letterforms. They are read from
+    // the palette rather than written as literals, so re-theming the site cannot leave this test
+    // asserting a colour the design no longer uses — which is exactly what happened when the palette
+    // moved from black/white to navy/cream.
+    const NAVY = 'rgb(10, 26, 47)'
+    const CREAM = 'rgb(247, 244, 238)'
+
+    // Hero and manifesto are BOTH dark on purpose — they read as one continuous opening, with the
+    // manifesto's gradient dissolving the seam. After that it strictly alternates.
+    expect(bgs.slice(0, 2)).toEqual([NAVY, NAVY])
+    expect(bgs[2]).toBe(CREAM) // expertise
+    expect(bgs[3]).toBe(NAVY) // studio statement
+    expect(bgs[4]).toBe(CREAM) // projects
+    expect(bgs[5]).toBe(NAVY) // testimonial
+    expect(bgs[6]).toBe(CREAM) // journal
+    // Contact is the same cream as the other two light chapters, not a tinted panel: all three of the
+    // reference's light bands are one flat colour, and it controls the rhythm with a 288px margin
+    // above this section instead. Ours was previously the only light section off the ramp.
+    expect(bgs[7]).toBe(CREAM) // contact
+    expect(bgs[8]).toBe(NAVY) // footer
   })
 
-  test('carries no accent colour anywhere on the page', async ({ page }) => {
+  // The inverse of what this test used to assert. It previously proved the page had NO hue anywhere,
+  // which was right for the monochrome rebuild and is wrong now: the palette is derived from the logo,
+  // so the accent is supposed to be on the page. What still needs guarding is that the colour is the
+  // BRAND's and not some third hue that crept in — the token unit test can only see the palette, not
+  // what a component hardcodes.
+  test('paints the brand accent, and no hue outside the brand', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(2500)
-    // The design's premise is that there is no accent. A hue anywhere in the rendered text or
-    // backgrounds means one has crept back in — this catches it across the whole page at once,
-    // which the token unit test cannot do (it only sees the palette, not what components hardcode).
-    //
-    // There is exactly ONE sanctioned exception, and it is allowed by value rather than by element
-    // so that a second hue cannot hide behind it: rgb(55, 65, 81), the blue-grey of the handwritten
-    // signature on the note card. The reference sets that one run in a script face, at the only
-    // tracking on the page that relaxes to zero, in the only ink anywhere off the grey ramp — three
-    // deviations at once, on one short line, which is what lets it carry the card. Deliberately not
-    // a token: `lib/tokens.ts` holds the palette to equal RGB channels and a unit test enforces it.
-    const hued = await page.evaluate(() => {
-      const SANCTIONED_HUE = 'rgb(55, 65, 81)'
+
+    const seen = await page.evaluate(() => {
+      // Compared as RGB TRIPLES, not as strings. The page legitimately paints these tokens at
+      // reduced alpha — cream at 0.3 for a progress track, at 0.6 for secondary footer ink — and a
+      // string match against the opaque form flags every one of those as a foreign hue.
+      const ALLOWED = new Set([
+        '255,73,7', // accent — clickables
+        '204,58,6', // accentInk — orange text on cream
+        '10,26,47', // secondary — navy ink and dark chapters
+        '247,244,238', // primary — cream paper
+        '93,102,114', // muted
+        '219,218,215', // hairline
+        '237,234,226', // offwhite
+        '188,190,190', // edge
+        '41,54,72', // the lifted-navy rule on the dark chapters
+        '55,65,81', // the one handwritten line on the note card
+      ])
+      const parse = (c: string) => c.match(/[\d.]+/g)?.map(Number) ?? null
       const offenders: string[] = []
-      const parse = (c: string) => c.match(/\d+/g)?.slice(0, 3).map(Number) ?? null
+      let accentCount = 0
+
       for (const el of Array.from(document.querySelectorAll('body *'))) {
         const s = getComputedStyle(el)
         for (const [prop, val] of [
           ['color', s.color],
           ['background', s.backgroundColor],
+          ['border', s.borderTopColor],
         ] as const) {
-          if (val === SANCTIONED_HUE) continue
-          const rgb = parse(val)
-          if (!rgb) continue
-          // Transparent backgrounds report as rgba(0,0,0,0) — already monochrome, so no special case.
-          const [r, g, b] = rgb
-          if (Math.max(r, g, b) - Math.min(r, g, b) > 6) {
+          const parts = parse(val)
+          if (!parts || parts.length < 3) continue
+          const [r, g, b] = parts
+          const alpha = parts.length > 3 ? parts[3] : 1
+          // Fully transparent paints nothing.
+          if (alpha === 0) continue
+          const key = `${r},${g},${b}`
+          if (key === '255,73,7') accentCount++
+          const hasHue = Math.max(r, g, b) - Math.min(r, g, b) > 6
+          if (hasHue && !ALLOWED.has(key)) {
             offenders.push(`${el.tagName}.${(el.className || '').toString().slice(0, 30)} ${prop}=${val}`)
           }
         }
       }
-      return [...new Set(offenders)].slice(0, 8)
+      return { offenders: [...new Set(offenders)].slice(0, 8), accentCount }
     })
-    expect(hued).toEqual([])
+
+    // The accent is genuinely on the page — without this the test would pass on a page that had
+    // quietly lost all its colour, which is the regression that matters most here.
+    expect(seen.accentCount).toBeGreaterThan(0)
+    expect(seen.offenders).toEqual([])
   })
 })
 

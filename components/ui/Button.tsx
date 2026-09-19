@@ -98,12 +98,26 @@ const LABEL =
   'block transition-transform duration-[400ms] ease-out group-hover:translate-x-[0.5vw] ' +
   'motion-reduce:transition-none motion-reduce:group-hover:translate-x-0'
 
+/*
+ * Both tones are the ORANGE fill. That is the whole point of a button here: the accent is the
+ * clickable, so a button that is not orange is not reading as a button.
+ *
+ * The label is NAVY in both, and this is the one value in the file that must not be changed on
+ * instinct. navy-on-orange measures 5.17:1 and clears AA. The two pairings that look more natural
+ * both fail: white-on-orange is 3.38:1 and cream-on-orange is 3.08:1 — and white-on-orange is not a
+ * hypothetical, it had shipped on every button on this site before anyone measured it. If a button
+ * ever looks like it wants a light label, the fix is a darker fill, not a lighter label.
+ *
+ * `dark` and `light` no longer describe the fill, because the fill is the same either way — they now
+ * say which ground the button is sitting ON, which is what decides the focus ring. `outline-current`
+ * would draw a navy ring on an orange fill inset 4px, which is legible on a cream page and muddy on
+ * a navy one, so the dark-ground tone rings in cream instead.
+ */
 const TONES: Record<ButtonTone, string> = {
-  // White text on black. Contrast is 21:1 — the monochrome palette makes every pairing here
-  // trivially AA, which is one real benefit of losing the accent colour. No hover tone in either
-  // row: see the note above on what the reference moves instead.
-  dark: 'bg-secondary text-primary',
-  light: 'bg-primary text-secondary',
+  /** On a navy chapter. */
+  dark: 'bg-accent text-secondary focus-visible:outline-primary',
+  /** On a cream chapter. */
+  light: 'bg-accent text-secondary',
 }
 
 export function Button({ children, tone, variant, className, ornament = true, ...rest }: Props) {

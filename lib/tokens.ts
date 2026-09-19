@@ -1,38 +1,74 @@
 /**
- * Monochrome design tokens, measured off the reference design.
+ * Brand design tokens, derived from the logo in `app/icon.svg` rather than invented.
  *
- * The names are deliberately counter-intuitive and match the reference: `primary` is WHITE and
- * `secondary` is BLACK. They read as "primary surface" / "secondary surface" rather than as ink
- * colours. Keeping the reference's own naming means a class like `bg-secondary text-primary`
- * transfers between the two codebases without a mental flip every time.
+ * The logo is three colours and nothing else: a deep navy ground, warm cream letterforms, and one
+ * vivid orange wedge. Those are the palette:
  *
- * There is no accent colour. That is the point of the palette, not an omission — the layout is
- * carried by photography, whitespace and type, so any accent would be the loudest thing on a
- * page and would fight the imagery.
+ *   #0A1A2F  navy    the ground            ->  `secondary`, the dark chapters and the page's ink
+ *   #F7F4EE  cream   the letterforms       ->  `primary`, the light chapters and the page's paper
+ *   #FF4907  orange  the wedge             ->  `accent`, every clickable
+ *
+ * The names stay counter-intuitive on purpose: `primary` is the LIGHT surface and `secondary` the
+ * DARK one. They read as "primary surface" / "secondary surface" rather than as ink colours, and
+ * every component on the site is already written against them — `bg-secondary text-primary` and so
+ * on — so the whole theme is these values, not fifty files.
+ *
+ * ── Why there are two oranges, which is arithmetic and not indecision ───────────────────────────
+ *
+ * A single orange cannot be body text on both grounds. To clear 4.5:1 on cream it needs a relative
+ * luminance at or below 0.163; to clear 4.5:1 on navy it needs 0.220 or above. There is no value
+ * that satisfies both, so the roles are split:
+ *
+ *   `accent`     #FF4907  fills, and text ON NAVY.  5.17:1 against navy, 3.38:1 against cream.
+ *   `accentInk`  #CC3A06  text ON CREAM only.       4.58:1 against cream.
+ *
+ * ── The rule that has already been broken once in this project ──────────────────────────────────
+ *
+ * **An orange fill takes a NAVY label, never a white or cream one.** navy-on-orange is 5.17:1;
+ * white-on-orange is 3.38:1 and cream-on-orange is 3.08:1. Both fail AA for body text, and the
+ * white-on-orange pairing had previously shipped on every button on the site before it was measured.
+ * If a button ever looks like it wants light text, the answer is a darker fill, not a lighter label.
+ *
+ * Every neutral below is navy mixed into cream rather than a grey off the shelf, so the ramp belongs
+ * to the palette instead of sitting beside it.
  */
 export const COLORS = {
-  primary: '#FFFFFF',
-  secondary: '#000000',
-  muted: '#3D3D3D',
-  hairline: '#E6E6E6',
+  /** Cream. The logo's letterforms; this site's paper. */
+  primary: '#F7F4EE',
+  /** Navy. The logo's ground; this site's ink and its dark chapters. 15.92:1 against cream. */
+  secondary: '#0A1A2F',
   /**
-   * Paper stock for the brochure gate and the enquiry panels, and the neutral fill sitting behind
-   * plan and master-plan imagery while it loads.
-   *
-   * This one has no reference counterpart: every light band on the reference is flat #FFFFFF, so a
-   * tinted surface is ours, and it is only legitimate on the lead-capture blocks the reference does
-   * not have. Those blocks ask a visitor for something, and a sheet that reads as laid ON the page
-   * rather than cut OUT of it is what separates a form from the editorial around it. Any section
-   * that does exist on the reference stays `primary` white — the strict white/black alternation is
-   * load-bearing, and one 13-step-darker band in the sequence is immediately legible as a mistake.
-   *
-   * #F2F2F2 rather than a near-white: at #FEFEFE the surface is indistinguishable from the page and
-   * buys nothing. Warm cream would be closer to real stock, but unequal RGB channels are hue and
-   * this palette has none by design (see the tokens test), so the separation is bought in value
-   * only.
+   * Orange. Every clickable: button fills, link affordances, and link text on a navy ground.
+   * 5.17:1 against navy and against a navy label. NOT usable as text on cream — see `accentInk`.
    */
-  offwhite: '#F2F2F2',
-  edge: '#BFBFBF',
+  accent: '#FF4907',
+  /**
+   * The same orange darkened 20% toward black, for orange TEXT on a light ground: 4.58:1 on cream
+   * where the full-strength accent manages only 3.08:1. Use it for nothing else — on navy it drops
+   * to 3.47:1, which is the wrong direction.
+   */
+  accentInk: '#CC3A06',
+  /**
+   * Secondary text on cream, at 65% navy. 5.30:1 — chosen over the 60% mix that measures 4.50:1
+   * exactly, because a token sitting precisely on the threshold fails the moment anything is
+   * layered over it.
+   */
+  muted: '#5D6672',
+  /** Subtle rules on cream, at 12% navy. Non-text only. */
+  hairline: '#DBDAD7',
+  /**
+   * Paper stock for the brochure gate and the enquiry panels, and the fill behind plan imagery
+   * while it loads.
+   *
+   * It has to separate from `primary` now that the page itself is cream rather than white, so this
+   * is a deeper cream rather than the lighter grey it used to be — a sheet laid ON the page. The
+   * previous note here argued the separation had to be bought in value only because the palette had
+   * no hue; it has one now, and a warm sheet on warm paper is the more honest version of the same
+   * idea.
+   */
+  offwhite: '#EDEAE2',
+  /** Section borders on cream, at 25% navy. Non-text only. */
+  edge: '#BCBEBE',
 } as const
 
 /** Translucent overlays, kept as literals because Tailwind's `/opacity` syntax cannot express

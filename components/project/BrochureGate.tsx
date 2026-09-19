@@ -23,7 +23,7 @@ type Props = {
  * The download is triggered by a programmatically created anchor rather than a navigation, so the
  * visitor keeps their place on the page.
  *
- * On grained `offwhite` paper rather than as a black or white chapter, for three reasons. It is the
+ * On grained `offwhite` paper rather than as a black or cream chapter, for three reasons. It is the
  * treatment `ContactIntake` established for a form on this site — a sheet laid on the page rather than
  * another chapter of it. It means the underline fields keep the light ground they are designed against.
  * And it makes the page's black/white alternation survive this section being absent: a project with no

@@ -18,7 +18,7 @@ const ZOOM_STEP = 1.4
 const DRAG_CLICK_THRESHOLD_PX = 6
 
 // The zoom controls, in the site's one button idiom: square corners, a mono label, a hairline
-// border. Sitting on the black chapter they are outlined rather than filled, so the white plan sheet
+// border. Sitting on the navy chapter they are outlined rather than filled, so the white plan sheet
 // beside them stays the only solid mass in the section. `Button` itself is not used here because it
 // always carries the dot ornament and a solid tone, which for three tightly-grouped controls would
 // read as three competing calls to action.
@@ -90,7 +90,7 @@ function touchDistance(a: React.Touch, b: React.Touch): number {
  * with no plotted layout) proves that absence by asserting zero `[data-plan-stage]` elements rather
  * than an empty or "coming soon" section.
  *
- * Black chapter, and deliberately the *same* black as `KeyStats` immediately above it rather than the
+ * Navy chapter, and deliberately the *same* black as `KeyStats` immediately above it rather than the
  * next step in the page's alternation. Two consecutive dark chapters read as one continuous dark
  * passage — the home page opens with exactly that pairing — and it is what makes the alternation
  * survive this section being absent: without it, `KeyStats` (black) would hand straight to

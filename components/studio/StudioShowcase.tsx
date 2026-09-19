@@ -7,7 +7,7 @@ import { STUDIO_SHOWCASE } from '@/lib/content/studio'
 import type { ProjectSummary } from '@/lib/data/types'
 
 /**
- * White chapter: two real projects as flush-aligned plates, then one closing frame.
+ * Cream chapter: two real projects as flush-aligned plates, then one closing frame.
  *
  * ## The pair is flush-aligned and the frames carry the asymmetry
  *

@@ -7,7 +7,7 @@ import { useReducedMotion } from '@/components/motion/useReducedMotion'
 import { EXPERTISE } from '@/lib/content/home'
 
 /**
- * White chapter: a heading paired with an intro, then three rows that each set a giant ghosted
+ * Cream chapter: a heading paired with an intro, then three rows that each set a giant ghosted
  * numeral opposite a small plate.
  *
  * ## The row is TWO stacked grids, not one
@@ -33,7 +33,7 @@ import { EXPERTISE } from '@/lib/content/home'
  *
  * ## The numeral is monospaced, and that is structural rather than tonal
  *
- * 216px (15vw), weight 400 inherited, `hairline` (#E6E6E6). Fixed-advance means "1", "2" and "3"
+ * 216px (15vw), weight 400 inherited, `hairline` (#DBDAD7). Fixed-advance means "1", "2" and "3"
  * occupy an identical box and stack in a true column; in the proportional sans the same three
  * glyphs differ in width by 33px and a numbered series stops reading as a series. It is barely
  * there on purpose — a watermark, not a label; at `muted` it would compete with the title. And it
@@ -86,7 +86,7 @@ import { EXPERTISE } from '@/lib/content/home'
  * paragraph, and `SplitLines` owns that.
  *
  * The section has no internal padding: the heading is flush with its top edge and the last row
- * with its bottom. Rhythm comes from `mt-[3vw]` against the black chapter above and the 20vw gap
+ * with its bottom. Rhythm comes from `mt-[3vw]` against the navy chapter above and the 20vw gap
  * between the heading row and the list. `overflow-y-clip` — clip, never `hidden`, which would make
  * the section a scroll container — absorbs the last row's 144px of overhang.
  */

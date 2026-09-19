@@ -41,14 +41,13 @@ function autoCompleteFor(name: string, type: FieldType): string | undefined {
  * up a phone keypad on mobile for `type="tel"`; `autoComplete` lets a returning visitor's
  * browser fill every field without retyping.
  *
- * **The invalid state cannot be carried by colour here, and that is the interesting constraint.**
- * On a monochrome palette there is no accent to turn a field red with — the only inks available are
- * black, white and two greys, and darkening a grey rule is far too quiet to read as an error. So
- * the error signal is weight and text: the rule thickens to `border-secondary` at full black, and
- * the message states the problem in words. That is not a downgrade from a coloured border; WCAG
- * 1.4.1 requires that colour never be the ONLY signal, and a palette with no hue has to satisfy
- * that by construction. `required`/`aria-invalid` on the control and `role="alert"` on the message
- * carry it to assistive tech independently of any visual treatment.
+ * **The invalid state is deliberately not carried by the accent, and that is the constraint worth
+ * stating.** There IS one hue in this palette now, and it is spoken for: orange means "clickable"
+ * everywhere on the site. Turning an invalid field orange would say the field is a button. So the
+ * error signal is value and words instead — the rule thickens to `border-secondary` at full navy and
+ * the message states the problem. WCAG 1.4.1 requires that colour never be the ONLY signal anyway,
+ * and `required`/`aria-invalid` on the control plus `role="alert"` on the message carry it to
+ * assistive tech independently of any visual treatment.
  */
 export function Field({ label, name, type, required, error, placeholder, className }: Props) {
   const controlId = `field-${name}`

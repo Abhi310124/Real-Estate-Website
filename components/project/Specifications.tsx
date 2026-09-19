@@ -7,7 +7,7 @@ import type { Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#specifications` — black chapter. An accordion over `project.specifications`, one panel per
+ * `#specifications` — navy chapter. An accordion over `project.specifications`, one panel per
  * category, separated by hairlines rather than boxed into cards.
  *
  * The first category is open by default. The click handler sets `openIndex` to the clicked index

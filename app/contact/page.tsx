@@ -9,7 +9,7 @@ import { getSiteSettings } from '@/lib/data'
 import { whatsappLink } from '@/lib/whatsapp'
 
 /**
- * The contact page: three white chapters, then the intake block.
+ * The contact page: three cream chapters, then the intake block.
  *
  *   1. intro      white   eyebrow, display line, one paragraph
  *   2. channels   white   Call / Message / Visit in three columns, under a drawn hairline

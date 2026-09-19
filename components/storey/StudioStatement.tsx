@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { STUDIO_STATEMENT } from '@/lib/content/home'
 
 /**
- * Black chapter, `160svh` — the page's one true display line, set over a full-bleed photograph.
+ * Navy chapter, `160svh` — the page's one true display line, set over a full-bleed photograph.
  *
  * The whole section is composed on one square image. At 1440 the layer is the section's own box
  * (1440x1440) overscaled to 1728x1728, so it bleeds 144px off each side and 144px above and below

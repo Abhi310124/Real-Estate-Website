@@ -12,7 +12,7 @@ import type { Img, Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#updates` — white chapter. `project.constructionUpdates`, sorted newest first.
+ * `#updates` — cream chapter. `project.constructionUpdates`, sorted newest first.
  *
  * The fixtures store updates chronologically ascending (oldest first, matching how a site team appends
  * entries as work actually progresses), so this sorts a *copy*. Sorting `project.constructionUpdates`

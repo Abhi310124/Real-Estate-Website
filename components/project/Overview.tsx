@@ -8,9 +8,9 @@ import type { Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#overview` — the first white chapter, and the page's first ordinary section after the hero.
+ * `#overview` — the first cream chapter, and the page's first ordinary section after the hero.
  *
- * Laid out on the 12-column grid the way the home page's white chapters are: a plain `display-lg`
+ * Laid out on the 12-column grid the way the home page's cream chapters are: a plain `display-lg`
  * heading with nothing above it (`Expertise` and `JournalPreview` both open exactly this way — the
  * mono eyebrow is reserved for a labelled aside, not used as a decorative kicker on every section),
  * then the prose in a narrow measure with the photograph pushed to the right-hand columns.

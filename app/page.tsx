@@ -23,7 +23,7 @@ import { getFeaturedProjects, getJournalPosts } from '@/lib/data'
  *   ContactIntake     cream
  *   SiteFooter        black   (mounted in app/layout.tsx)
  *
- * Two consecutive black chapters at the top is intentional — the hero and manifesto read as one
+ * Two consecutive navy chapters at the top is intentional — the hero and manifesto read as one
  * continuous dark opening, with the gradient in Manifesto dissolving the seam between them. After
  * that it strictly alternates, which is what gives the scroll its rhythm.
  *

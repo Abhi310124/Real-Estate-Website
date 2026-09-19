@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { PROJECTS_FEATURE } from '@/lib/content/home'
 
 /**
- * White chapter: a flush-aligned pair of project plates, then the founder's note set as a piece of
+ * Cream chapter: a flush-aligned pair of project plates, then the founder's note set as a piece of
  * stationery rather than as a paragraph.
  *
  * ## The pair is flush-aligned, and the heights do the work
@@ -70,16 +70,17 @@ import { PROJECTS_FEATURE } from '@/lib/content/home'
  * section. The one structural rule left is the static full-bleed `border-t` above the prose row,
  * which separates copy that has no counterpart in the reference's own composition of this section.
  *
- * `relative z-10` is load-bearing, not tidiness: the black chapter below is pulled up over this one
+ * `relative z-10` is load-bearing, not tidiness: the navy chapter below is pulled up over this one
  * and would otherwise cover the note row.
  */
 
 const NOTE_RULES = 6
 
 /**
- * rgb(55, 65, 81). Deliberately not a token: `lib/tokens.ts` holds the palette to equal RGB
- * channels — hue is the one thing this design does not have — and a unit test enforces it. This
- * single blue-grey run is the exception the palette is allowed exactly once.
+ * rgb(55, 65, 81). Deliberately not a token: the palette is the logo's three colours and their
+ * navy-into-cream mixes, and a unit test holds every neutral to that. This blue-grey is a fourth
+ * hue and the only one the design allows — the ink of a pen that is not the brand's, on the one run
+ * of handwriting on the site. Making it a token would invite it somewhere else.
  */
 const SCRIPT_INK = 'rgb(55, 65, 81)'
 

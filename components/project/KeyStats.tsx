@@ -12,7 +12,7 @@ function slugify(label: string): string {
 }
 
 /**
- * `data-key-stats` — the first black chapter: the project's own headline figures (land area, unit
+ * `data-key-stats` — the first navy chapter: the project's own headline figures (land area, unit
  * count, possession year) as display-scale numerals with mono labels.
  *
  * Two-up rather than four-up, which is a typographic constraint rather than a preference. At

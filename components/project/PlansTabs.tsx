@@ -13,7 +13,7 @@ type Props = { project: Project }
 type Group = { unitType: string; plans: FloorPlan[] }
 
 /**
- * `#plans` — white chapter. Floor plans grouped into one tab per distinct `unitType`, so a project
+ * `#plans` — cream chapter. Floor plans grouped into one tab per distinct `unitType`, so a project
  * with three plans across two unit types (BKR Lakeview Enclave: 4 BHK ×2, 5 BHK ×1) gets exactly two
  * tabs, not three. Group order follows first-appearance in `project.floorPlans`, not alphabetical, so
  * the fixtures' authored ordering (smallest unit first) survives.

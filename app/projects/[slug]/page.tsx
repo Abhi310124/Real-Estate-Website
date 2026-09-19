@@ -136,7 +136,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * The project detail page, as one long scroll of alternating black and white chapters — the same
+ * The project detail page, as one long scroll of alternating black and cream chapters — the same
  * rhythm the home page uses.
  *
  *   ProjectHero            black   (full-bleed photography, 110svh)

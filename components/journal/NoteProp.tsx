@@ -54,9 +54,10 @@ import { DotOrnament } from '@/components/motion/DotOrnament'
 
 /**
  * rgb(55, 65, 81), duplicated from `components/storey/ProjectsFeature.tsx` rather than shared,
- * because that file is the one that explains it and neither exports it. `lib/tokens.ts` holds the
- * palette to equal RGB channels — a unit test enforces it — and the handwritten line is the single
- * run of ink the design allows off that ramp. If the card is ever extracted, this goes with it.
+ * because that file is the one that explains it and neither exports it. The palette is the logo's
+ * three colours plus navy-into-cream mixes, and a unit test holds the neutrals to that; this
+ * handwritten line is the single run of ink the design allows off it. If the card is ever
+ * extracted, this goes with it.
  */
 const SCRIPT_INK = 'rgb(55, 65, 81)'
 

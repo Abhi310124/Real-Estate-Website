@@ -11,7 +11,7 @@ import { STUDIO_PROCESS } from '@/lib/content/studio'
 import type { ProjectSummary } from '@/lib/data/types'
 
 /**
- * White chapter: five process steps travelling past a column that stays fixed, with the second image
+ * Cream chapter: five process steps travelling past a column that stays fixed, with the second image
  * ring drifting behind them.
  *
  * This is the only real pin on the site, and the longest single section on any route: the pinned

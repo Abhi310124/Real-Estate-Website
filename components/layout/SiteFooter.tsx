@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
+import { LogoMark } from '@/components/brand/LogoMark'
 import { DotOrnament } from '@/components/motion/DotOrnament'
 import { ImageReveal } from '@/components/motion/ImageReveal'
 import { getGsap } from '@/components/motion/gsap'
@@ -338,10 +339,16 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
               <Link
                 href="/"
                 aria-label="BKR INFRA — Home"
-                className="flex w-fit items-center gap-[0.25vw] rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current max-sm:gap-[2vw]"
+                className="flex w-fit items-center rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
               >
-                <span className="text-lead max-sm:text-lead-sm">BKR</span>
-                <DotOrnament size="md" />
+                {/* The real mark rather than the letters set as type, matching the header. Its
+                    letterforms are `currentColor` and this footer is navy, so they render cream while
+                    the orange wedge stays orange — the same one component doing both grounds.
+
+                    Wider here than in the header (11.5vw against 8.2vw): this quadrant is the closing
+                    beat of the page and the mark is the thing closing it, where in the header it has
+                    to share a 41.27px band with the nav and the CTA. */}
+                <LogoMark className="h-auto w-[11.5vw] shrink-0 max-sm:w-[34vw]" />
               </Link>
             </div>
           </div>

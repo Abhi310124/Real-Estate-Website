@@ -5,7 +5,7 @@ import { PROJECTS_FEATURE, RING_IMAGES, TESTIMONIALS } from '@/lib/content/home'
 import { TestimonialCarousel } from './TestimonialCarousel'
 
 /**
- * Black chapter: a four-slide client carousel in the left half, two paragraphs of supporting prose in
+ * Navy chapter: a four-slide client carousel in the left half, two paragraphs of supporting prose in
  * the right, a ghosted 3D ring behind both, and the whole band drifting a quarter of its own height
  * as it passes.
  *

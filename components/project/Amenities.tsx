@@ -21,14 +21,14 @@ const ICON_PATHS: Record<string, string> = {
 const FALLBACK_PATH = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'
 
 /**
- * `#amenities` — white chapter. A real `<ul>`, one `<li>` per `project.amenities`, each row opened by
+ * `#amenities` — cream chapter. A real `<ul>`, one `<li>` per `project.amenities`, each row opened by
  * a drawn hairline and staggered by `Reveal`.
  *
  * Three columns of ruled rows rather than a card grid: the rule is how every other list on this site
  * is separated, and it means the row's shape comes from the grid rather than from a box drawn around
  * each item.
  *
- * The glyphs are set in `edge` (#BFBFBF), not in the body ink. They are `aria-hidden` ornament and the
+ * The glyphs are set in `edge` (#BCBEBE), not in the body ink. They are `aria-hidden` ornament and the
  * amenity's name is what carries the meaning, so they should sit behind the text in the reading order
  * — the same reasoning as `Expertise`'s ghosted numerals on the home page, which are `hairline` for
  * exactly this reason. An unrecognised `icon` key falls back to a plain ring rather than rendering

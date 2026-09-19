@@ -44,9 +44,10 @@ import { CONTACT_INTAKE } from '@/lib/content/home'
  * never leave a hole in the series.
  *
  * **5. Everything on the sheet is 15.84px, in rgb(61,61,61).** Labels, numbers, options and the
- * rules are all the `label`/`mono` step and all `muted`; the only black on the paper is the Submit
- * button and a validation error, which is how an error reads as one in a palette with no accent
- * colour. Labels at body size (23.04px) turn a compact intake sheet into a stack of sentences,
+ * rules are all the `label`/`mono` step and all `muted`; the only full-strength ink on the paper is
+ * a validation error, and the only colour is the Submit button. Orange means "clickable" across the
+ * whole site, so an error cannot borrow it without claiming to be one — it differs in value instead.
+ * Labels at body size (23.04px) turn a compact intake sheet into a stack of sentences,
  * which is what ours read as before.
  *
  * **6. The panel title is mono at display size.** 31.68px `font-mono` at -10%, wrapping to two
@@ -91,7 +92,7 @@ const LABEL = 'block text-label max-sm:text-label-sm'
 
 // Underline-only, and the rule is `muted` rather than `edge`: on the reference every field rule is
 // the same rgb(61,61,61) as the type sitting above it, which is what makes the form read as ruled
-// paper. At `edge` (#BFBFBF) on this sheet the rules all but disappear.
+// paper. At `edge` (#BCBEBE) on this sheet the rules all but disappear.
 //
 // The reference sets `focus:outline-none` and shows no focus state at all. A keyboard-only visitor
 // filling in six fields with no indication of where they are is not a trade this site makes, so the
@@ -366,8 +367,9 @@ export function ContactIntake({ contact }: Props) {
                         )}
 
                         {errors[row.name] && (
-                          // Black on the sheet's muted ink rather than a colour: the palette has
-                          // no accent, so an error has to differ in value.
+                          // Full-strength navy against the sheet's muted ink, rather than the
+                          // accent: orange is reserved for clickables, so an error painted in it
+                          // would read as a button.
                           <p
                             id={errorId}
                             role="alert"

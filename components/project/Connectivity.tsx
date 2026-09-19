@@ -9,7 +9,7 @@ import type { Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#location` — black chapter. A `place → distance` list beside the map.
+ * `#location` — navy chapter. A `place → distance` list beside the map.
  *
  * The distances are set in mono with tabular figures and pushed hard right against the place name, with
  * a hairline under every row. That `label … value` pairing across a ruled row is the reference's

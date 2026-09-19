@@ -6,7 +6,7 @@ import { JOURNAL_PREVIEW } from '@/lib/content/home'
 import type { JournalPost } from '@/lib/data/types'
 
 /**
- * White chapter: four journal cards in two flush 6 + 6 rows.
+ * Cream chapter: four journal cards in two flush 6 + 6 rows.
  *
  * ## The rows are flush; the frames make the stagger
  *

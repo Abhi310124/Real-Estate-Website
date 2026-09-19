@@ -3,7 +3,7 @@ import { SplitLines } from '@/components/motion/SplitLines'
 import { AREAS_OF_WORK } from '@/lib/content/studio'
 
 /**
- * Black chapter: the four lines of work, each heading a column of two plates.
+ * Navy chapter: the four lines of work, each heading a column of two plates.
  *
  * ## `py-[30%]`, and why a percentage rather than a `vw`
  *
@@ -64,9 +64,9 @@ export function AreasOfWork() {
       <ul className="layout-grid mt-[10vw] gap-y-[14vw] max-sm:mt-[14vw]">
         {AREAS_OF_WORK.areas.map((area) => (
           <li key={area.label} className="col-span-12 sm:col-span-3">
-            {/* The measured dark-chapter rule. #2B2B2B reads as a line drawn on black, where a
+            {/* The measured dark-chapter rule. #293648 reads as a line drawn on black, where a
                 translucent white would change value with whatever is painted behind it. */}
-            <div className="border-t border-[#2B2B2B] pt-[var(--gutter)]">
+            <div className="border-t border-[#293648] pt-[var(--gutter)]">
               <span aria-hidden="true" className="block font-mono text-mono text-primary/60 max-sm:text-mono-sm">
                 {area.n}
               </span>
