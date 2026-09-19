@@ -1,13 +1,6 @@
 node_modules/
 .next/
 out/
-# Every env file except the committed template. `.env*.local` alone was not enough: it leaves a
-# plain `.env` tracked, and `.env` is where the Sanity API WRITE token goes — the one credential in
-# this project that can create documents in a live dataset. Negation last so `.env.example`, which is
-# placeholders only and is meant to be read, still ships.
-.env
-.env.*
-!.env.example
 .superpowers/
 .playwright-mcp/
 test-results/
@@ -20,6 +13,8 @@ lighthouse-*.json
 
 # Next.js build-time artifacts (regenerated automatically)
 next-env.d.ts
+
+# Vercel: project link (.vercel/project.json) and the OIDC token it writes to .env.local
 .vercel
 
 # local tool state (dev-server preview launch config, not an app deliverable)
@@ -27,3 +22,19 @@ next-env.d.ts
 
 # Cygwin/Git-Bash crash dumps
 *.stackdump
+
+# ── Environment files ─────────────────────────────────────────────────────────────────────────────
+# One block, and it is LAST in this file on purpose. Git resolves ignores by last-matching-pattern,
+# so a broad `.env*` written below a `!.env.example` silently defeats the negation — which is exactly
+# what happened when `vercel link` appended its own `.env*` to the end of this file. The symptom is
+# invisible while the template is already tracked (`git check-ignore` reports nothing for a tracked
+# path unless you pass `--no-index`), and only shows up as a missing file in a fresh clone.
+#
+# What must stay ignored: `.env` and `.env.local`, because that is where SANITY_API_WRITE_TOKEN goes
+# — the one credential in this project that can create documents in a live dataset — and where
+# `vercel link` writes its OIDC token. This repository is public, and a leak from a public history
+# cannot be undone by deleting the commit.
+#
+# What must stay tracked: `.env.example`, which is placeholders only and is meant to be read.
+.env*
+!.env.example
