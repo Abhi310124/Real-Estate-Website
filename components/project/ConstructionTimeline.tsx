@@ -93,7 +93,7 @@ export function ConstructionTimeline({ project }: Props) {
                   </Reveal>
 
                   <Reveal delay={i * 0.06 + 0.06} className="col-span-12 mt-[3vw] max-sm:mt-[6vw] sm:col-span-4 sm:col-start-5 sm:mt-0">
-                    <h3 className="text-lead font-display max-sm:text-lead-sm">{update.title}</h3>
+                    <h3 className="text-lead max-sm:text-lead-sm">{update.title}</h3>
                     {update.note && (
                       <p className="mt-[1vw] text-body text-muted max-sm:mt-[4vw] max-sm:text-body-sm">
                         {update.note}

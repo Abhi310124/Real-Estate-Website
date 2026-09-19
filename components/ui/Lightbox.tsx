@@ -164,7 +164,7 @@ export function Lightbox({ images, index, onClose }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-navy-900/95 p-4 sm:p-10"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-secondary/95 p-4 sm:p-10"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeAndRestoreFocus()
       }}
@@ -180,7 +180,7 @@ export function Lightbox({ images, index, onClose }: Props) {
           type="button"
           aria-label="Close"
           onClick={closeAndRestoreFocus}
-          className="absolute right-0 top-0 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-navy-900/60 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
+          className="absolute right-0 top-0 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-none bg-secondary/60 text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
             <path d="M1 1L17 17M17 1L1 17" stroke="currentColor" strokeWidth="2" />
@@ -193,7 +193,7 @@ export function Lightbox({ images, index, onClose }: Props) {
               type="button"
               aria-label="Previous image"
               onClick={() => goTo(current - 1)}
-              className="absolute left-0 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy-900/60 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
+              className="absolute left-0 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-none bg-secondary/60 text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
             >
               <span aria-hidden="true">‹</span>
             </button>
@@ -201,7 +201,7 @@ export function Lightbox({ images, index, onClose }: Props) {
               type="button"
               aria-label="Next image"
               onClick={() => goTo(current + 1)}
-              className="absolute right-0 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy-900/60 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
+              className="absolute right-0 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-none bg-secondary/60 text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
             >
               <span aria-hidden="true">›</span>
             </button>

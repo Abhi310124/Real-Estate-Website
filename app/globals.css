@@ -56,12 +56,30 @@
 
 @layer utilities {
   /*
-   * The hairline that draws itself in, and the most-used motion on the reference. Height is
-   * `max(0.1vw, 1px)` so it thins with the viewport but never disappears on a small screen.
+   * The link underline: a hairline that sweeps in beneath a nav or footer link while it is hovered
+   * and retracts when the pointer leaves. This is the reference's signature link gesture, paired
+   * there with a 3.6px lift on the label itself.
    *
-   * `transform-origin: right` is the detail worth preserving: it draws from the right edge
-   * leftwards, against the reading direction, which is what makes it register as a deliberate
-   * gesture rather than an underline appearing. 300ms on Tailwind's default ease-in-out curve.
+   * The origin flip is the whole trick. At rest the origin sits on the RIGHT edge; hover moves it
+   * to the LEFT. So the line is ruled out of the left edge as it arrives — with the reading
+   * direction — and then collapses away toward the right edge when released. The leading end
+   * travels rightwards both times, which is what stops the exit from reading as the entrance run
+   * backwards; a single fixed origin can only ever give you a rewind.
+   *
+   * An earlier version here drew it right-to-left in both directions and argued that as a drafting
+   * gesture. That was a defensible design idea but not this design: the reference's only other
+   * scaleX hairlines, its carousel progress bars, also fill from the left, so left is the page's
+   * single established direction for a line that grows.
+   *
+   * `max(0.1vw, 1px)` — 1.4375px at 1440 — and NOT a flat 1px, which is a distinction worth stating
+   * because the two plausible-looking measurements here belong to different elements. The page's
+   * structural rules (the expertise row separators, the footer note card's ruled lines) are 1px
+   * borders. This utility is not one of those: it is the link underline, and the reference's own
+   * markup for that is literally `h-[max(0.1vw,1px)]`, measuring 1.4375px. The link's rule is
+   * deliberately the heavier instrument of the two. The `max()` floor keeps it from vanishing below
+   * ~1000px wide, where 0.1vw falls under a pixel.
+   *
+   * 300ms `cubic-bezier(0.4, 0, 0.2, 1)`, both measured off the reference.
    */
   .in-out-line {
     width: 100%;
@@ -72,22 +90,54 @@
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
   }
+
+  /* Hover is read off the ancestor `.group` so that a label and its underline respond to one
+     pointer target rather than two. The focus-visible arms are not decoration: an affordance that
+     only exists under a pointer is invisible to a keyboard, and this one carries the same
+     information — which link is live — as the hover state does. */
+  .group:hover .in-out-line,
+  a:focus-visible .in-out-line,
+  button:focus-visible .in-out-line {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* The scroll-triggered variant, driven by `components/motion/RuleDraw.tsx`. It draws on the base
+     right origin rather than flipping, because a rule that enters once has no released state to
+     collapse back toward — the flip only earns itself where there are two directions to tell
+     apart. */
   .in-out-line[data-drawn='true'] {
     transform: scaleX(1);
   }
 
-  /* Reduced motion: the line is information (it separates blocks), so it must be present — it
-     just arrives already drawn instead of animating. */
+  /* Reduced motion: a structural rule is information (it separates blocks), so it must be present
+     — it just arrives already drawn instead of animating. */
   @media (prefers-reduced-motion: reduce) {
     .in-out-line {
       transform: scaleX(1);
       transition: none;
     }
+    /* The link underline is the exception: it is a hover STATE, not structure. Pinning it drawn
+       would leave every link in the header and footer permanently underlined, which is not a
+       calmer version of the gesture — it is a different page. It still appears on hover, just
+       instantly. */
+    .group .in-out-line {
+      transform: scaleX(0);
+    }
+    .group:hover .in-out-line,
+    a:focus-visible .in-out-line,
+    button:focus-visible .in-out-line {
+      transform: scaleX(1);
+    }
   }
 
   /*
-   * Fine grain for the intake form's paper. The reference's surface is visibly textured — a
-   * scanned-stock speckle — and a flat fill next to it reads as a screen rather than a sheet.
+   * Fine grain for our paper surfaces — the brochure gate and the enquiry panels. It pairs with
+   * the `offwhite` token and, like that token, it is ours rather than the reference's: the
+   * reference has no tinted or textured section at all, every light band on it is flat white. The
+   * surfaces that use this are the lead-capture blocks it has no counterpart for, where a sheet
+   * that reads as laid ON the page rather than cut OUT of it is doing real work separating a form
+   * from the editorial around it. Do not reach for it on a section that exists on the reference.
    *
    * Generated with an inline SVG feTurbulence rather than shipping a texture image: it costs no
    * request, scales to any viewport without tiling seams, and stays crisp on a high-DPI display

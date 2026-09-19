@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Caveat, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { LenisProvider } from '@/components/motion/LenisProvider'
+import { LoadSequence } from '@/components/motion/LoadSequence'
 import { LoadCurtain } from '@/components/motion/LoadCurtain'
+import { RouteCurtain } from '@/components/motion/RouteCurtain'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { getSiteSettings } from '@/lib/data'
 
 /*
- * One sans, one mono, two weights between them.
+ * One sans, one mono, one hand. Three faces, three weights in total across them.
  *
  * The reference licenses "New Grotesk", which cannot be shipped here. Inter is the closest
  * freely-available neutral grotesque and is near-indistinguishable at the sizes this design
@@ -17,7 +19,15 @@ import { getSiteSettings } from '@/lib/data'
  * reaching for 600/700 is the fastest way to lose the look.
  *
  * The mono carries the small letter-spaced labels (`ST / CTF`, `THANK YOU`, the domain in the
- * footer) which on the reference are set in a typewriter face at -10% tracking.
+ * footer) which on the reference are set in a typewriter face at -10% tracking. It also carries
+ * the giant ghost numerals and the intake panel title, which are mono at display size — that is
+ * what gives those blocks their technical register instead of a second sans voice.
+ *
+ * The script is the reference's third face (it licenses "Biro") and it earns its request by being
+ * used exactly once: a single ~26-character handwritten line on the note card. That one run is the
+ * only place the page speaks in a human hand, the only run not tracked in, and the only ink that
+ * steps off the grey ramp. Caveat is the closest freely-licensed pen-written match. 400 only —
+ * a handwriting face at 500 looks like a marker, not a pen.
  */
 const sans = Inter({
   subsets: ['latin'],
@@ -29,6 +39,12 @@ const mono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-mono',
+  display: 'swap',
+})
+const script = Caveat({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-script',
   display: 'swap',
 })
 
@@ -45,19 +61,35 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const settings = await getSiteSettings()
 
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${script.variable}`}>
       <body className="bg-primary font-sans text-secondary antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[130] focus:bg-secondary focus:px-4 focus:py-2 focus:text-primary"
+          // Above the route curtain's 999999, not merely above the header. The curtain is
+          // aria-hidden and pointer-events-none so the link stays focusable and operable behind it
+          // either way, but a focused control the visitor cannot SEE fails WCAG 2.4.11, and a
+          // navigation's black-out lasts about a second and a half.
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[1000000] focus:bg-secondary focus:px-4 focus:py-2 focus:text-primary"
         >
           Skip to content
         </a>
         <LenisProvider>
-          {/* Fixed full-viewport black panel that fades 1 → 0 on first paint. Sits above the
-              page but below the skip link, and is pointer-events-none throughout so it can
-              never intercept a click even mid-fade. */}
+          {/* One GSAP timeline owns every offset in the opening: it fades the curtain, holds the
+              visitor at scrollY 0, and fires the cues the header and hero animate from. Mounted
+              first so its claim on the load lands before any consumer's effect runs — a consumer
+              that resolved first would fall back to its scroll trigger and fire immediately,
+              which is the whole failure the cues exist to prevent. */}
+          <LoadSequence />
+          {/* Fixed full-viewport black panel that holds, then fades 1 → 0. Sits above the page but
+              below the skip link, and is pointer-events-none throughout so it can never intercept
+              a click even mid-fade. */}
           <LoadCurtain />
+          {/* The same gesture for navigations rather than the first load: inert until the first
+              route change, so it can never double-fade against the curtain above. Deliberately a
+              second element rather than one shared panel — one element driven by two owners with
+              two animation mechanisms is how a stuck curtain gets built, and since only ever one
+              of them animates the result is visually identical. */}
+          <RouteCurtain />
           <SiteHeader settings={settings} />
           <main id="main">{children}</main>
           <SiteFooter settings={settings} />

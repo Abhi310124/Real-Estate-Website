@@ -27,7 +27,7 @@ export function PostBody({ post }: { post: JournalPost }) {
         </p>
 
         <div className="col-span-12 mt-[3vw] sm:col-span-6 sm:col-start-4 sm:mt-0">
-          <p className="text-lead font-display max-sm:text-lead-sm">{post.excerpt}</p>
+          <p className="text-lead max-sm:text-lead-sm">{post.excerpt}</p>
 
           <RuleDraw className="my-[3vw] text-edge max-sm:my-[8vw]" />
 

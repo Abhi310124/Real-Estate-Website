@@ -14,8 +14,16 @@ type Props = {
   className?: string
 }
 
+/*
+ * A ruled line, not a box. The reference's intake fields are a single 1px bottom border in `muted`
+ * with no fill, no outline and no corner radius — the field is a line you write on, which is the
+ * same drafting register the rest of the page is in. A bordered, rounded, filled input next to that
+ * type reads as a web form dropped into an editorial layout.
+ *
+ * `min-h-11` (44px) is kept for the touch-target minimum even though the visible line is 1px.
+ */
 const CONTROL_CLASS =
-  'mt-2 block min-h-11 w-full rounded-sm border border-navy-800/15 bg-white px-4 py-2.5 text-body text-navy-800 placeholder:text-navy-700/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange'
+  'mt-[0.8vw] block min-h-11 w-full rounded-none border-0 border-b border-muted bg-transparent py-[0.6vw] text-body text-secondary placeholder:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current max-sm:mt-[3vw] max-sm:py-[2vw] max-sm:text-body-sm'
 
 // autoComplete per field name — `tel`/`email` map straight from `type`; `name` and `message`
 // are inferred from the field's own `name` prop since neither is a distinct `type`.
@@ -33,15 +41,14 @@ function autoCompleteFor(name: string, type: FieldType): string | undefined {
  * up a phone keypad on mobile for `type="tel"`; `autoComplete` lets a returning visitor's
  * browser fill every field without retyping.
  *
- * The error text, its marker glyph and the required-field asterisk all render in `navy-800`,
- * not orange: orange-600 on white is ~4.14:1, short of the 4.5:1 the contrast law requires for
- * this size of text, and a bare `*`/`!` character set in the surrounding text size reads as
- * text rather than as an icon, so this treats it as text rather than leaning on the contrast
- * law's icon carve-out for a borderline case. Colour is never the only signal regardless —
- * `required`/`aria-invalid` on the control and `role="alert"` on the message already say
- * "this field is required" / "this field failed" independently of hue; the invalid border
- * (`border-orange-600`, a non-text UI indicator, needs only 3:1 and clears it easily) is what
- * actually carries the orange accent.
+ * **The invalid state cannot be carried by colour here, and that is the interesting constraint.**
+ * On a monochrome palette there is no accent to turn a field red with — the only inks available are
+ * black, white and two greys, and darkening a grey rule is far too quiet to read as an error. So
+ * the error signal is weight and text: the rule thickens to `border-secondary` at full black, and
+ * the message states the problem in words. That is not a downgrade from a coloured border; WCAG
+ * 1.4.1 requires that colour never be the ONLY signal, and a palette with no hue has to satisfy
+ * that by construction. `required`/`aria-invalid` on the control and `role="alert"` on the message
+ * carry it to assistive tech independently of any visual treatment.
  */
 export function Field({ label, name, type, required, error, placeholder, className }: Props) {
   const controlId = `field-${name}`
@@ -54,15 +61,15 @@ export function Field({ label, name, type, required, error, placeholder, classNa
     placeholder,
     'aria-invalid': error ? (true as const) : undefined,
     'aria-describedby': error ? errorId : undefined,
-    className: cn(CONTROL_CLASS, error && 'border-orange-600'),
+    className: cn(CONTROL_CLASS, error && 'border-secondary'),
   }
 
   return (
     <div className={className}>
-      <label htmlFor={controlId} className="text-sm font-medium text-navy-800">
+      <label htmlFor={controlId} className="block text-label text-secondary max-sm:text-label-sm">
         {label}
         {required && (
-          <span aria-hidden="true" className="ml-1 text-navy-800">
+          <span aria-hidden="true" className="ml-1">
             *
           </span>
         )}
@@ -75,7 +82,7 @@ export function Field({ label, name, type, required, error, placeholder, classNa
       )}
 
       {error && (
-        <p id={errorId} role="alert" className="mt-2 flex items-center gap-1.5 text-sm text-navy-800">
+        <p id={errorId} role="alert" className="mt-[0.5vw] flex items-center gap-[0.4vw] text-label text-secondary max-sm:mt-[2vw] max-sm:gap-[1.5vw] max-sm:text-label-sm">
           <span aria-hidden="true">!</span>
           {error}
         </p>

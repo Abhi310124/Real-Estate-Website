@@ -20,16 +20,14 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 //
-// Ruling 6: the <main id="main" className="bg-ivory text-navy-800"> wrapper that used to
-// live here now lives once, in app/layout.tsx, wrapping every page's {children}. The
-// className is dropped rather than moved: bg-ivory/text-navy-800 are already the body's own
-// classes in app/layout.tsx, so repeating them on a fragment here would be redundant, not
-// additive.
+// The <main id="main"> wrapper that used to live here now lives once, in app/layout.tsx, wrapping
+// every page's {children}. Its background and ink classes are dropped rather than moved — the body
+// already sets them, so repeating them on a fragment here would be redundant, not additive.
 export default function MotionLabPage() {
   return (
     <>
       <section className="flex h-screen items-center justify-center">
-        <h1 className="font-display-expanded text-display-xl">Motion Lab</h1>
+        <h1 className="font-display text-display-xl">Motion Lab</h1>
       </section>
 
       <div className="h-screen" aria-hidden="true" />
@@ -56,14 +54,14 @@ export default function MotionLabPage() {
       <div className="h-screen" aria-hidden="true" />
 
       <section className="flex h-screen flex-col items-center justify-center gap-2">
-        <Counter value={90} suffix="Acres" className="font-display-expanded text-display-xl" />
+        <Counter value={90} suffix="Acres" className="font-display text-display-xl" />
         <p>under active development</p>
       </section>
 
       <div className="h-screen" aria-hidden="true" />
 
       <section className="py-12">
-        <Marquee speed={40} className="text-2xl font-display-expanded">
+        <Marquee speed={40} className="text-2xl font-display">
           <span className="mx-6">Open Plots</span>
           <span className="mx-6">Villas</span>
           <span className="mx-6">Apartments</span>
@@ -79,7 +77,7 @@ export default function MotionLabPage() {
           snapping it to the edge of that range. */}
       <section className="flex h-[150vh] items-center justify-center px-6">
         <Parallax data-testid="parallax" speed={0.2} className="max-w-xl text-2xl">
-          <p>This block drifts upward at a different rate than the page scrolls beneath it.</p>
+          <p>This block drifts downward at a different rate than the page scrolls beneath it.</p>
         </Parallax>
       </section>
 
@@ -93,7 +91,7 @@ export default function MotionLabPage() {
         <SplitWords
           as="h2"
           data-testid="split-words-below-fold"
-          className="text-center font-display-expanded text-display-xl"
+          className="text-center font-display text-display-xl"
           text="Motion Confirmed Below The Fold"
         />
       </section>

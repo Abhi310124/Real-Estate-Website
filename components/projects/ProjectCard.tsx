@@ -98,7 +98,7 @@ export function ProjectCard({ project, className }: Props) {
           className="aspect-[4/5] w-full"
         />
 
-        <h3 className="mt-[1.6vw] text-lead font-display max-sm:mt-[5vw] max-sm:text-lead-sm">
+        <h3 className="mt-[1.6vw] text-lead max-sm:mt-[5vw] max-sm:text-lead-sm">
           {/* The underline draws from the right on hover, 300ms — the same gesture and origin as
               RuleDraw, so the card's only hover state belongs to the same vocabulary as every
               section divider. Pure `transform`, and inert under reduced motion. */}

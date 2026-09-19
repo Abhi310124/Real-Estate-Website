@@ -86,7 +86,7 @@ export function EnquiryForm({ source, projectSlug, intro, submitLabel = 'Send En
   // leaving a filled form on screen next to a success message invites a second identical submission.
   if (done) {
     return (
-      <p role="status" className={cn('text-lead font-display max-sm:text-lead-sm', className)}>
+      <p role="status" className={cn('text-lead max-sm:text-lead-sm', className)}>
         {done}
       </p>
     )

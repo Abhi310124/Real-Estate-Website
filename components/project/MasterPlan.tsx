@@ -364,7 +364,7 @@ export function MasterPlan({ plan }: Props) {
             // A second white sheet, echoing the plan's own — so the selected plot's facts read as
             // being written on the drawing rather than in a floating tooltip.
             <div data-plot-detail className="mt-[1.6vw] bg-primary p-[1.2vw] text-secondary max-sm:mt-[5vw] max-sm:p-[4vw]">
-              <p className="text-lead font-display max-sm:text-lead-sm">{selectedPlot.label}</p>
+              <p className="text-lead max-sm:text-lead-sm">{selectedPlot.label}</p>
               <p className="mt-[0.8vw] text-label text-muted max-sm:mt-[3vw] max-sm:text-label-sm">
                 {selectedPlot.size}
                 {selectedPlot.facing ? ` · Facing ${selectedPlot.facing}` : ''}

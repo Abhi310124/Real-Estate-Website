@@ -106,7 +106,7 @@ export function BrochureGate({ projectSlug, projectTitle }: Props) {
           </p>
 
           {done ? (
-            <p role="status" className="mt-[3vw] text-lead font-display max-sm:mt-[8vw] max-sm:text-lead-sm">
+            <p role="status" className="mt-[3vw] text-lead max-sm:mt-[8vw] max-sm:text-lead-sm">
               Thank you — your brochure download has started, and our team will follow up shortly.
             </p>
           ) : !open ? (

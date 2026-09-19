@@ -156,7 +156,7 @@ export function PlansTabs({ project }: Props) {
                       className="object-cover grayscale"
                     />
                   </button>
-                  <h3 className="mt-[1.4vw] text-lead font-display max-sm:mt-[4vw] max-sm:text-lead-sm">
+                  <h3 className="mt-[1.4vw] text-lead max-sm:mt-[4vw] max-sm:text-lead-sm">
                     {plan.title}
                   </h3>
                   <p className="mt-[0.6vw] font-mono text-mono uppercase text-muted max-sm:mt-[2vw] max-sm:text-mono-sm">

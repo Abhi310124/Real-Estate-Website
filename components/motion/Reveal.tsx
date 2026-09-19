@@ -34,7 +34,13 @@ export function Reveal({ children, delay = 0, className, ...rest }: Props) {
           duration: 0.9,
           delay,
           ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+          // `top 95%` is the one enter threshold used by every reveal primitive here, and it is the
+          // reference's: a 15px-step probe of two unrelated sections put its trigger band at
+          // 0.938–0.957 of viewport height. An earlier threshold is a false economy — the element
+          // starts moving 45–72px sooner, so it is already half settled by the time it is
+          // comfortably on screen, and co-located elements on differing thresholds desynchronise
+          // for no designed reason.
+          scrollTrigger: { trigger: el, start: 'top 95%', once: true },
           onComplete: () => gsap.set(el, { willChange: 'auto' }),
         })
         kill = () => {

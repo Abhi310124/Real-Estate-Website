@@ -18,7 +18,9 @@ type Props = { project: Project }
  * metadata off the bottom edge at wide-but-short viewports.
  *
  * A raw `next/image` rather than `ImageReveal`: this is unambiguously the LCP element, and
- * ImageReveal starts its subject at `opacity: 0` and would race the first paint.
+ * ImageReveal covers its frame with an opaque black scrim until the reveal fires. The conclusion is
+ * the same as it always was but the reason is now stronger — a black panel over the largest paint is
+ * worse for the metric than the fade this used to avoid.
  *
  * The scrim is stronger here than on the home hero (`/90` at the bottom rather than `/70`) because
  * what sits over it is different. The home hero puts one `text-body` line there — large text, which

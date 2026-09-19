@@ -41,8 +41,8 @@ export function Counter({ value, suffix, className, 'data-testid': testId = 'cou
         const t = gsap.to(counter, {
           val: value,
           // Brief specifies the trigger position exactly ("top 85%") but leaves
-          // duration/ease unspecified for Counter (unlike Reveal's 0.9s/power3.out and
-          // ImageReveal's 1.4s/expo.out, which are given verbatim). Judgment call:
+          // duration/ease unspecified for Counter (unlike Reveal's 0.9s/power3.out, which is
+          // given verbatim). Judgment call:
           // 2s/power2.out — long enough to read as a genuine count rather than a snap,
           // decelerating smoothly like the other reveal-class primitives without the
           // very sharp expo/power3 tail that can look like it stalls on the last few

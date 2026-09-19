@@ -16,12 +16,20 @@ export const COLORS = {
   muted: '#3D3D3D',
   hairline: '#E6E6E6',
   /**
-   * Paper stock for the intake form. #F2F2F2, not the #FEFEFE originally measured off the
-   * reference's DOM: at #FEFEFE the surface was indistinguishable from the page's own white, so
-   * the form read as a section rather than as a sheet laid on it. The reference's paper is
-   * visibly warmer than its page, but a warm cream has unequal RGB channels — which is hue, and
-   * this palette has none by design (see the tokens test). A neutral light grey buys the same
-   * separation without opening the door to an accent.
+   * Paper stock for the brochure gate and the enquiry panels, and the neutral fill sitting behind
+   * plan and master-plan imagery while it loads.
+   *
+   * This one has no reference counterpart: every light band on the reference is flat #FFFFFF, so a
+   * tinted surface is ours, and it is only legitimate on the lead-capture blocks the reference does
+   * not have. Those blocks ask a visitor for something, and a sheet that reads as laid ON the page
+   * rather than cut OUT of it is what separates a form from the editorial around it. Any section
+   * that does exist on the reference stays `primary` white — the strict white/black alternation is
+   * load-bearing, and one 13-step-darker band in the sequence is immediately legible as a mistake.
+   *
+   * #F2F2F2 rather than a near-white: at #FEFEFE the surface is indistinguishable from the page and
+   * buys nothing. Warm cream would be closer to real stock, but unequal RGB channels are hue and
+   * this palette has none by design (see the tokens test), so the separation is bought in value
+   * only.
    */
   offwhite: '#F2F2F2',
   edge: '#BFBFBF',

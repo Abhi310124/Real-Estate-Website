@@ -17,8 +17,9 @@ import type { JournalPost } from '@/lib/data/types'
  *   a `vw` offset here clips off the bottom edge at wide-but-short viewports.
  *
  * `next/image` with `priority` rather than `ImageReveal`: this is unambiguously the LCP element, and
- * fading in the largest paint is the one place the reveal actively hurts. Every other image on the
- * route is revealed.
+ * withholding the largest paint is the one place the reveal actively hurts — ImageReveal now covers
+ * its frame with an opaque scrim rather than fading the image, which makes that worse, not better.
+ * Every other image on the route is revealed.
  *
  * The header already knows to render light ink here — `/journal/[slug]` is matched by
  * `isFullBleedRoute` in `components/layout/SiteHeader.tsx`, so this section must stay dark-topped.

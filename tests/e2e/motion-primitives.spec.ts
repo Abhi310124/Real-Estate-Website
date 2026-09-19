@@ -7,22 +7,28 @@ test('counter counts up to its target', async ({ page }) => {
   await expect.poll(async () => (await c.textContent())?.trim(), { timeout: 5000 }).toBe('90')
 })
 
-test('image reveal ends fully unclipped', async ({ page }) => {
+// This test used to assert a clip-path inset wipe, then that the wipe ended fully open. The reveal
+// no longer works that way at all: measuring the reference showed its images are uncovered by a
+// solid black scrim fading `opacity: 1 -> 0` over 250ms while the photograph itself never changes
+// opacity or scale. So the thing to assert is that the scrim ends fully transparent — the same
+// property the old test was protecting (nothing is left partially covering the photograph), against
+// the mechanic that now implements it.
+//
+// Scoped to `#main`: the footer carries an ImageReveal of its own on every route now, so an
+// unscoped testid matches two elements and trips Playwright's strict mode.
+test('image reveal ends with its scrim fully transparent', async ({ page }) => {
   await page.goto('/motion-lab')
-  const wrap = page.locator('[data-testid="image-reveal"]')
+  const wrap = page.locator('#main [data-testid="image-reveal"]')
   await wrap.scrollIntoViewIfNeeded()
-  // Widened from the brief's given `(px)?` to `(px|%)?`: the brief's own Interfaces
-  // line states the end state as `inset(0 0 0 0)`, but its Step 4 code sample animates
-  // to `inset(0 0 0% 0)` (a stray `%`) — kept in ImageReveal.tsx as given, since it
-  // matches the start value's unit (`100%`) on the same slot, which is the correct
-  // choice for a clean GSAP string interpolation. Real Chromium then serializes the
-  // settled computed style as "inset(0px 0px 0%)": equal 0px sides collapse, but the
-  // 0% token is kept distinct from 0px rather than normalized away. The original
-  // regex never anticipated a "%" zero-component, so it could never match this
-  // (correct) implementation's real output.
+
+  const scrim = wrap.locator('[data-image-scrim]')
   await expect
-    .poll(async () => wrap.evaluate((el) => getComputedStyle(el).clipPath), { timeout: 5000 })
-    .toMatch(/inset\(0(px|%)?( 0(px|%)?){0,3}\)|none/)
+    .poll(async () => scrim.evaluate((el) => getComputedStyle(el).opacity), { timeout: 5000 })
+    .toBe('0')
+
+  // And the photograph is never itself hidden — the inversion that guarantees a dead JS chunk shows
+  // every image rather than sealing them all behind black panels.
+  expect(await wrap.locator('img').evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
 })
 
 test('marquee duplicates its track for a seamless loop', async ({ page }) => {
@@ -61,6 +67,21 @@ test('marquee duplicates its track for a seamless loop', async ({ page }) => {
 // cannot see the difference here; only a structural one can.
 test('a real wheel gesture advances scroll and a scrub-linked transform tracks it', async ({ page }) => {
   await page.goto('/motion-lab')
+
+  // Wait out the load sequence's scroll lock before wheeling. The opening deliberately holds the
+  // visitor at the top — Lenis is stopped from ~150ms and released at ~2.6s — and a wheel event
+  // during that window is swallowed, not queued. Five wheels fired immediately after `goto` are
+  // therefore consumed by the lock and the subsequent poll waits on a scroll that will never come,
+  // which is exactly how this test failed once the lock landed. `lenis-stopped` is Lenis's own
+  // class, so this waits on the mechanism rather than on a guessed delay.
+  await page.waitForFunction(
+    () =>
+      document.documentElement.classList.contains('lenis') &&
+      !document.documentElement.classList.contains('lenis-stopped'),
+    undefined,
+    { timeout: 15_000 }
+  )
+
   const parallax = page.locator('[data-testid="parallax"]')
   await parallax.scrollIntoViewIfNeeded()
 

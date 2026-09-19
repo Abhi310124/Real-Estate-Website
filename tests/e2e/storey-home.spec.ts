@@ -61,7 +61,11 @@ test.describe('structure', () => {
     expect(bgs[4]).toBe('rgb(255, 255, 255)') // projects
     expect(bgs[5]).toBe('rgb(0, 0, 0)') // testimonial
     expect(bgs[6]).toBe('rgb(255, 255, 255)') // journal
-    expect(bgs[7]).toBe('rgb(242, 242, 242)') // contact — paper, distinct from the page
+    // Contact is pure white, like the other two light chapters — not the tinted "paper" panel it
+    // used to be. Measuring the reference settled it: all three of its light bands resolve to
+    // rgb(255,255,255) with zero internal padding, and it controls the rhythm with a 288px margin
+    // above this section instead. Ours was the only light section off the white/black ramp.
+    expect(bgs[7]).toBe('rgb(255, 255, 255)') // contact
     expect(bgs[8]).toBe('rgb(0, 0, 0)') // footer
   })
 
@@ -71,7 +75,15 @@ test.describe('structure', () => {
     // The design's premise is that there is no accent. A hue anywhere in the rendered text or
     // backgrounds means one has crept back in — this catches it across the whole page at once,
     // which the token unit test cannot do (it only sees the palette, not what components hardcode).
+    //
+    // There is exactly ONE sanctioned exception, and it is allowed by value rather than by element
+    // so that a second hue cannot hide behind it: rgb(55, 65, 81), the blue-grey of the handwritten
+    // signature on the note card. The reference sets that one run in a script face, at the only
+    // tracking on the page that relaxes to zero, in the only ink anywhere off the grey ramp — three
+    // deviations at once, on one short line, which is what lets it carry the card. Deliberately not
+    // a token: `lib/tokens.ts` holds the palette to equal RGB channels and a unit test enforces it.
     const hued = await page.evaluate(() => {
+      const SANCTIONED_HUE = 'rgb(55, 65, 81)'
       const offenders: string[] = []
       const parse = (c: string) => c.match(/\d+/g)?.slice(0, 3).map(Number) ?? null
       for (const el of Array.from(document.querySelectorAll('body *'))) {
@@ -80,6 +92,7 @@ test.describe('structure', () => {
           ['color', s.color],
           ['background', s.backgroundColor],
         ] as const) {
+          if (val === SANCTIONED_HUE) continue
           const rgb = parse(val)
           if (!rgb) continue
           // Transparent backgrounds report as rgba(0,0,0,0) — already monochrome, so no special case.
@@ -134,10 +147,21 @@ test.describe('design system', () => {
     expect(t.fontWeight).toBe('500')
   })
 
-  test('the hairline draws from the right over 300ms', async ({ page }) => {
+  // This used to be "the hairline draws from the right on entry", asserted against whichever
+  // `.in-out-line` came first in the document. There is no longer a draw-on-enter hairline anywhere:
+  // measuring the reference showed it rules its sections with static 1px borders and reserves scaleX
+  // rules for two things only — its carousel progress bars, and the link underline. Our animated
+  // right-to-left sweep was an invention, and in the expertise chapter it had become the loudest
+  // motion on the page.
+  //
+  // So the subject is now the link underline, which the reference DOES implement with exactly these
+  // values, and the assertions carry over unchanged because they were the reference's numbers all
+  // along. The one that matters most is the origin: at rest it is the RIGHT edge, and it flips to the
+  // left on hover, so the rule grows left-to-right and retracts rightward.
+  test('the link underline is a 300ms rule anchored at its right edge', async ({ page }) => {
     await page.goto('/')
     const rule = await page.evaluate(() => {
-      const el = document.querySelector('.in-out-line')!
+      const el = document.querySelector('header .in-out-line')!
       const s = getComputedStyle(el)
       return {
         origin: s.transformOrigin,
@@ -294,13 +318,31 @@ test.describe('reduced motion', () => {
     })
     expect(['none', 'absent']).toContain(visible)
 
-    // Rules are structural here — they separate blocks — so under reduced motion they must be
-    // present and already drawn, not simply never animated into view.
-    const scaled = await page.evaluate(() => {
-      const el = document.querySelector('.in-out-line')
-      if (!el) return 'absent'
-      return new DOMMatrixReadOnly(getComputedStyle(el).transform).a
+    // The second half of this test used to assert that every hairline arrives already drawn under
+    // reduced motion. That contract no longer has a subject on this page: the rules that separate
+    // blocks are now static `border-t` borders, which cannot fail to be drawn, and the only
+    // `.in-out-line` left is the link underline — whose correct rest state is `scaleX(0)`, because it
+    // is a hover affordance. Asserting "drawn" against it would demand every nav and footer link ship
+    // permanently underlined.
+    //
+    // What is worth protecting instead is that the structural rules are genuinely present (a visitor
+    // who suppresses motion must still get the separators, since they carry information), and that
+    // the link underline does not animate at all for them.
+    const rules = await page.evaluate(() => {
+      const bordered = Array.from(document.querySelectorAll('main *')).filter(
+        (el) => parseFloat(getComputedStyle(el).borderTopWidth) > 0
+      )
+      const underline = document.querySelector('header .in-out-line')
+      return {
+        structuralCount: bordered.length,
+        underlineScaleX: underline
+          ? new DOMMatrixReadOnly(getComputedStyle(underline).transform).a
+          : 'absent',
+        underlineTransition: underline ? getComputedStyle(underline).transitionDuration : 'absent',
+      }
     })
-    expect(scaled).toBe(1)
+    expect(rules.structuralCount).toBeGreaterThan(0)
+    expect(rules.underlineScaleX).toBe(0)
+    expect(rules.underlineTransition).toBe('0s')
   })
 })

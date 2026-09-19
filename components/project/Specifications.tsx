@@ -59,7 +59,7 @@ export function Specifications({ project }: Props) {
                     aria-expanded={isOpen}
                     aria-controls={panelId}
                     onClick={() => setOpenIndex(i)}
-                    className="flex min-h-11 w-full items-center justify-between gap-[2vw] rounded-none py-[1.6vw] text-left text-lead font-display focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current max-sm:py-[5vw] max-sm:text-lead-sm"
+                    className="flex min-h-11 w-full items-center justify-between gap-[2vw] rounded-none py-[1.6vw] text-left text-lead focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current max-sm:py-[5vw] max-sm:text-lead-sm"
                   >
                     {spec.category}
                     <span

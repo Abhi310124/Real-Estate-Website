@@ -190,7 +190,7 @@ export default async function StudioPage() {
 
                 <div className="layout-grid min-h-[30vw] pb-[6vw] pt-[2vw] max-sm:min-h-0 max-sm:pb-[12vw] max-sm:pt-[6vw]">
                   <div className="col-span-12 sm:col-span-4">
-                    <h3 className="text-lead font-display max-sm:text-lead-sm">{pillar.title}</h3>
+                    <h3 className="text-lead max-sm:text-lead-sm">{pillar.title}</h3>
                     <span
                       aria-hidden="true"
                       className="mt-[6vw] block leading-none text-hairline max-sm:mt-[8vw]"
@@ -234,7 +234,7 @@ export default async function StudioPage() {
               node for a test, without needing `.first()`. */}
           <figure className="col-span-12 max-sm:mt-[6vw] sm:col-span-5 sm:col-start-5">
             <blockquote>
-              <p className="text-lead font-display max-sm:text-lead-sm">{NOTE.body}</p>
+              <p className="text-lead max-sm:text-lead-sm">{NOTE.body}</p>
             </blockquote>
             <figcaption className="mt-[2vw] max-sm:mt-[6vw]">
               <p className="text-label max-sm:text-label-sm">{NOTE.name}</p>

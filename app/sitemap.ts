@@ -18,6 +18,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 // `/admin` (the embedded Sanity Studio). Both are also `Disallow`ed in robots.ts — the sitemap is
 // the invitation, robots.txt is the refusal, and a route that should never be indexed needs both.
 //
+// `/legal/*` is absent for a third reason, which is temporary: those three pages exist so the
+// footer's links resolve, but they say the documents are still being finalised rather than carrying
+// policy text nobody has reviewed. They each set `robots: noindex` for the same reason. Add them
+// here once the real text lands — an indexed page headed "Privacy policy" that does not state a
+// policy is worse than one search cannot find.
+//
 // getAllProjectSlugs() and getAllJournalSlugs() already filter to published records (see the
 // `published()` / `publishedPosts()` helpers in lib/data/mock.ts and the same gating in the Sanity
 // queries), so hiding a project or a post removes it from the sitemap for free rather than by any

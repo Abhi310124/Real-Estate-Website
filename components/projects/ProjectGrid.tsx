@@ -126,7 +126,7 @@ export function ProjectGrid({ projects }: Props) {
         {header}
         <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
           <div className="col-span-12 sm:col-span-6">
-            <p className="text-lead font-display max-sm:text-lead-sm">
+            <p className="text-lead max-sm:text-lead-sm">
               No projects match this combination yet.
             </p>
             <p className="mt-[1.5vw] text-body text-muted max-sm:mt-[5vw] max-sm:text-body-sm">
