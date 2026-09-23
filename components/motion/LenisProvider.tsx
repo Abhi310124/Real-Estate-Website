@@ -55,6 +55,26 @@ export function releaseLoadScrollLock(): void {
   if (typeof document !== 'undefined') document.documentElement.classList.remove(LOAD_LOCK_CLASS)
 }
 
+/**
+ * Scroll smoothly to an element, through Lenis when it is running and natively when it is not.
+ *
+ * Lenis owns the scroll position, so a native `scrollIntoView` issued underneath it is eased back out
+ * from under the call and lands somewhere else; going through the instance is the only way an in-page
+ * jump arrives where it was aimed. The fallback keeps the jump working for reduced-motion visitors
+ * (for whom Lenis is never constructed) and before the chunk has loaded. Both honour the element's
+ * `scroll-margin-top` — Lenis does so itself — so a block can declare the clearance it needs under the
+ * sticky header once, in CSS, and every way of arriving at it agrees.
+ */
+export function scrollToElement(el: HTMLElement, offset = 0): void {
+  if (instance) {
+    instance.scrollTo(el, { offset, duration: 1.4 })
+    return
+  }
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+  const top = el.getBoundingClientRect().top + window.scrollY - margin + offset
+  window.scrollTo({ top, behavior: 'auto' })
+}
+
 export function LenisProvider({ children }: { children: React.ReactNode }) {
   const reduced = useReducedMotion()
 

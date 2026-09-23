@@ -1,5 +1,4 @@
-import { Reveal } from '@/components/motion/Reveal'
-import { RuleDraw } from '@/components/motion/RuleDraw'
+import { Rise } from '@/components/motion/Rise'
 import { cn } from '@/lib/cn'
 import { SECTION_SCROLL_MT } from './section-anchor'
 import type { Project } from '@/lib/data/types'
@@ -21,63 +20,51 @@ const ICON_PATHS: Record<string, string> = {
 const FALLBACK_PATH = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'
 
 /**
- * `#amenities` — cream chapter. A real `<ul>`, one `<li>` per `project.amenities`, each row opened by
- * a drawn hairline and staggered by `Reveal`.
+ * `#amenities` — the layout's "Key features" block, titled for what these are: a heading, then a
+ * three-up grid of cards, each a frame over a title and a line of description.
  *
- * Three columns of ruled rows rather than a card grid: the rule is how every other list on this site
- * is separated, and it means the row's shape comes from the grid rather than from a box drawn around
- * each item.
+ * The reference fills each frame with a photograph of the feature. There are no photographs of these
+ * amenities, and a stock pool standing in for "the clubhouse" would tell a buyer something untrue, so
+ * each frame holds the amenity's own glyph, large, on the tinted panel — with the brand gradient
+ * drawing across its foot on hover, the same gesture as the project cards.
  *
- * The glyphs are set in `edge` (#BCBEBE), not in the body ink. They are `aria-hidden` ornament and the
- * amenity's name is what carries the meaning, so they should sit behind the text in the reading order
- * — the same reasoning as `Expertise`'s ghosted numerals on the home page, which are `hairline` for
- * exactly this reason. An unrecognised `icon` key falls back to a plain ring rather than rendering
- * nothing, so a future data typo cannot silently drop an amenity's glyph.
- *
- * `Reveal` sits INSIDE the `<li>`. It renders a `<div>`, and wrapping the `<li>` would make that div a
- * direct child of `<ul>`, which axe flags as both `list` and `listitem`.
+ * A real `<ul>` with one `<li>` per amenity; the glyph is `aria-hidden` ornament and the name carries
+ * the meaning. An unrecognised `icon` key falls back to a plain ring rather than rendering nothing.
  */
 export function Amenities({ project }: Props) {
   return (
-    <section
-      id="amenities"
-      data-amenities
-      className={cn('w-full bg-primary py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
-    >
-      <div className="layout-grid">
-        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-9">
-          Everything You Need, Within the Gate
-        </h2>
+    <section id="amenities" data-amenities className={cn('pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}>
+      <div className="container-page">
+        <Rise as="h2" className="font-heading text-h2 text-secondary max-sm:text-h2-sm">
+          Amenities
+        </Rise>
       </div>
 
       {project.amenities.length === 0 ? (
-        <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
-          <p className="col-span-12 text-body text-muted max-sm:text-body-sm sm:col-span-5">
-            The amenity list for this project is being finalised.
-          </p>
-        </div>
+        <p className="container-page mt-8 text-body text-muted">The amenity list for this project is being finalised.</p>
       ) : (
-        <ul className="layout-grid mt-[6vw] gap-y-[2vw] max-sm:mt-[12vw] max-sm:gap-y-[6vw]">
-          {project.amenities.map((amenity, i) => (
-            <li key={amenity.title} className="col-span-12 sm:col-span-4">
-              <RuleDraw delayMs={i * 60} className="text-edge" />
-              <Reveal delay={i * 0.05} className="flex items-center gap-[1vw] pt-[1.2vw] max-sm:gap-[4vw] max-sm:pt-[4vw]">
+        <ul className="layout-grid mt-12 gap-y-12">
+          {project.amenities.map((amenity) => (
+            <li key={amenity.title} className="group col-span-12 sm:col-span-6 lg:col-span-4">
+              <div className="relative flex aspect-[416/220] items-center justify-center overflow-clip rounded-card bg-tint">
                 <svg
-                  width="28"
-                  height="28"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.6"
+                  strokeWidth="1.1"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
-                  className="shrink-0 text-edge"
+                  className="h-20 w-20 text-navySoft transition-transform duration-1000 ease-zoom group-hover:scale-110 motion-reduce:transition-none"
                 >
                   <path d={ICON_PATHS[amenity.icon] ?? FALLBACK_PATH} />
                 </svg>
-                <span className="text-body max-sm:text-body-sm">{amenity.title}</span>
-              </Reveal>
+                <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2">
+                  <div className="bg-brand-x h-full w-0 transition-[width] duration-500 ease-door group-hover:w-full group-hover:duration-[800ms] motion-reduce:transition-none" />
+                </div>
+              </div>
+              <p className="mt-5 font-heading text-[20px] leading-[1.3] text-secondary">{amenity.title}</p>
+              {amenity.category && <p className="mt-2 text-small text-muted">{amenity.category}</p>}
             </li>
           ))}
         </ul>

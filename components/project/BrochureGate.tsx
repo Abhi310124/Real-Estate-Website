@@ -23,11 +23,8 @@ type Props = {
  * The download is triggered by a programmatically created anchor rather than a navigation, so the
  * visitor keeps their place on the page.
  *
- * On grained `offwhite` paper rather than as a black or cream chapter, for three reasons. It is the
- * treatment `ContactIntake` established for a form on this site — a sheet laid on the page rather than
- * another chapter of it. It means the underline fields keep the light ground they are designed against.
- * And it makes the page's black/white alternation survive this section being absent: a project with no
- * brochure hands `#updates` (white) straight to `#location` (black) either way.
+ * Set as the layout's tinted panel — copy on the left, the action on the right — with the form, once
+ * opened, on a cream card inside it, so the underline fields keep the light ground they are drawn for.
  */
 export function BrochureGate({ projectSlug, projectTitle }: Props) {
   const [open, setOpen] = useState(false)
@@ -87,87 +84,42 @@ export function BrochureGate({ projectSlug, projectTitle }: Props) {
   }
 
   return (
-    <section
-      id="brochure"
-      className={cn('paper-grain w-full bg-offwhite py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
-    >
-      <div className="layout-grid">
-        <p className="col-span-12 font-mono text-mono uppercase text-muted max-sm:text-mono-sm sm:col-span-3">
-          Project Brochure
-        </p>
-
-        <div className="col-span-12 sm:col-span-7 sm:col-start-5">
-          <h2 className="text-display-lg font-display max-sm:mt-[6vw] max-sm:text-display-sm-lg">
-            Get the {projectTitle} brochure
-          </h2>
-          <p className="mt-[2vw] text-body text-muted max-sm:mt-[6vw] max-sm:text-body-sm">
-            Floor plans, specifications and pricing in one PDF. Tell us where to reach you and it
-            downloads straight away.
+    <section id="brochure" className={cn('container-page pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}>
+      <div className="grid grid-cols-12 items-center gap-x-[var(--gutter)] gap-y-8 rounded-card bg-tint p-12 max-md:p-6">
+        <div className="col-span-12 lg:col-span-6">
+          <p className="text-small text-navySoft">Project brochure</p>
+          <h2 className="mt-3 font-heading text-h2 text-secondary max-sm:text-h2-sm">Get the {projectTitle} brochure</h2>
+          <p className="mt-5 max-w-[520px] text-body text-secondary">
+            Floor plans, specifications and pricing in one PDF. Tell us where to reach you and it downloads straight away.
           </p>
+        </div>
 
+        <div className="col-span-12 lg:col-span-5 lg:col-start-8">
           {done ? (
-            <p role="status" className="mt-[3vw] text-lead max-sm:mt-[8vw] max-sm:text-lead-sm">
+            <p role="status" className="rounded-card bg-primary p-8 font-heading text-h4 text-secondary max-sm:text-h4-sm">
               Thank you — your brochure download has started, and our team will follow up shortly.
             </p>
           ) : !open ? (
-            <div className="mt-[3vw] max-sm:mt-[8vw]">
-              <Button type="button" tone="dark" onClick={() => setOpen(true)}>
-                Download Brochure
-              </Button>
-            </div>
+            <Button type="button" onClick={() => setOpen(true)}>
+              Download Brochure
+            </Button>
           ) : (
-            <form
-              onSubmit={onSubmit}
-              aria-label="Brochure request form"
-              noValidate
-              className="mt-[3vw] max-sm:mt-[8vw]"
-            >
-              <FormField
-                idPrefix="brochure"
-                n="01"
-                label="Full Name"
-                name="name"
-                type="text"
-                required
-                error={errors.name}
-              />
-              <div className="mt-[3vw] max-sm:mt-[8vw]">
-                <FormField
-                  idPrefix="brochure"
-                  n="02"
-                  label="Phone Number"
-                  name="phone"
-                  type="tel"
-                  required
-                  error={errors.phone}
-                />
-              </div>
-              <div className="mt-[3vw] max-sm:mt-[8vw]">
-                <FormField
-                  idPrefix="brochure"
-                  n="03"
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  required={false}
-                  error={errors.email}
-                />
-              </div>
+            <form onSubmit={onSubmit} aria-label="Brochure request form" noValidate className="space-y-7 rounded-card bg-primary p-8 max-sm:p-5">
+              <FormField idPrefix="brochure" label="Name" name="name" type="text" required error={errors.name} />
+              <FormField idPrefix="brochure" label="Phone number" name="phone" type="tel" required error={errors.phone} />
+              <FormField idPrefix="brochure" label="Email" name="email" type="email" required={false} error={errors.email} />
 
-              {/* Form-level failures (rate limit, server error, offline) belong here rather than
-                  against any one field, since no single control caused them. */}
+              {/* Form-level failures (rate limit, server error, offline) belong here, not against a field. */}
               {errors.form && (
-                <p role="alert" className="mt-[2vw] text-label max-sm:mt-[6vw] max-sm:text-label-sm">
+                <p role="alert" className="px-2 text-small text-secondary">
                   {errors.form}
                 </p>
               )}
 
-              <div className="mt-[3vw] max-sm:mt-[8vw]">
-                {/* Disabled while in flight so a double-click cannot create two leads for one person. */}
-                <Button type="submit" tone="dark" disabled={sending} className="max-sm:w-full">
-                  {sending ? 'Sending…' : 'Send and download'}
-                </Button>
-              </div>
+              {/* Disabled while in flight so a double-click cannot create two leads for one person. */}
+              <Button type="submit" shape="block" disabled={sending}>
+                {sending ? 'Sending…' : 'Send and download'}
+              </Button>
             </form>
           )}
         </div>

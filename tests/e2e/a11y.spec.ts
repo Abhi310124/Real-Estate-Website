@@ -6,10 +6,11 @@ const ROUTES = ['/', '/projects', '/projects/bkr-lakeview-enclave', '/about', '/
 for (const route of ROUTES) {
   test(`${route} has no serious or critical axe violations`, async ({ page }) => {
     await page.goto(route)
-    // Let the reveals and the first-load intro curtain finish. Measuring mid-animation would
-    // flag elements that are legitimately part-way through a transition — and the curtain
-    // itself covers the page for roughly the first two seconds.
-    await page.waitForTimeout(4500)
+    // Wait for the loading panel to finish its wipe and unmount — while it covers the page, every
+    // colour behind it reads as navy-on-navy — then let the first screen's reveals settle.
+    // Measuring mid-animation would flag elements legitimately part-way through a transition.
+    await page.waitForFunction(() => !document.querySelector('[data-load-curtain]'), undefined, { timeout: 20_000 })
+    await page.waitForTimeout(1500)
     const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
     const bad = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
     // Mapping to `id @ target` rather than asserting `bad.length === 0` so a failure names the

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Reveal } from '@/components/motion/Reveal'
-import { RuleDraw } from '@/components/motion/RuleDraw'
+import { Rise } from '@/components/motion/Rise'
 import { Lightbox } from '@/components/ui/Lightbox'
 import { cn } from '@/lib/cn'
 import { SECTION_SCROLL_MT } from './section-anchor'
@@ -12,17 +12,16 @@ import type { Img, Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#updates` — cream chapter. `project.constructionUpdates`, sorted newest first.
+ * `#updates` — `project.constructionUpdates`, sorted newest first.
  *
  * The fixtures store updates chronologically ascending (oldest first, matching how a site team appends
  * entries as work actually progresses), so this sorts a *copy*. Sorting `project.constructionUpdates`
  * in place would mutate data owned by the page's server-rendered `project` object, corrupting it for
  * any other component reading the same prop during this render.
  *
- * Laid out as term-and-detail rows on the grid — mono date in the left columns, title and note in the
- * middle, thumbnails to the right — each opened by a drawn hairline. That is the same anatomy as the
- * home page's `Expertise` rows, and it replaces the previous vertical rail with round dots: the grid
- * already communicates sequence, and a rail plus dots was a second, redundant device for it.
+ * Laid out as term-and-detail rows — the date in the left columns, title and note in the middle,
+ * rounded thumbnails to the right — each opened by a hairline: the same "label left, detail right"
+ * anatomy as the page's Key figures and Location blocks.
  *
  * `bkr-skyline-residences` (pre-launch) ships `constructionUpdates: []`. That is a real, expected
  * project state, not a bug, so this renders the heading plus one honest status line rather than an
@@ -53,37 +52,28 @@ export function ConstructionTimeline({ project }: Props) {
     <section
       id="updates"
       data-updates
-      className={cn('w-full bg-primary py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
+      className={cn('pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}
     >
-      <div className="layout-grid">
-        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-8">
-          Progress on Site
-        </h2>
+      <div className="container-page">
+        <Rise as="h2" className="font-heading text-h2 text-secondary max-sm:text-h2-sm">
+          Progress on site
+        </Rise>
       </div>
 
       {updates.length === 0 ? (
-        <div className="layout-grid mt-[4vw] max-sm:mt-[10vw]">
-          <p className="col-span-12 text-body text-muted max-sm:text-body-sm sm:col-span-5">
-            Construction has not yet begun — the first site update will be posted here once work starts.
-          </p>
-        </div>
+        <p className="container-page mt-8 text-body text-muted">
+          Construction has not yet begun — the first site update will be posted here once work starts.
+        </p>
       ) : (
-        <ol className="mt-[6vw] max-sm:mt-[12vw]">
+        <ol className="container-page mt-10">
           {updates.map((update, i) => {
             const images = resolvePhotos(update.images, photoOffsets[i])
 
             return (
               <li key={update.date + update.title}>
-                <div className="layout-grid">
-                  <RuleDraw delayMs={i * 90} className="col-span-12 text-edge" />
-                </div>
-
-                <div className="layout-grid pb-[5vw] pt-[2vw] max-sm:pb-[12vw] max-sm:pt-[6vw]">
+                <div className="grid grid-cols-12 gap-x-[var(--gutter)] gap-y-5 border-t border-hairline py-10">
                   <Reveal delay={i * 0.06} className="col-span-12 sm:col-span-3">
-                    <time
-                      dateTime={update.date}
-                      className="font-mono text-mono uppercase text-muted max-sm:text-mono-sm"
-                    >
+                    <time dateTime={update.date} className="text-small text-navySoft">
                       {new Date(update.date).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'long',
@@ -92,17 +82,17 @@ export function ConstructionTimeline({ project }: Props) {
                     </time>
                   </Reveal>
 
-                  <Reveal delay={i * 0.06 + 0.06} className="col-span-12 mt-[3vw] max-sm:mt-[6vw] sm:col-span-4 sm:col-start-5 sm:mt-0">
-                    <h3 className="text-lead max-sm:text-lead-sm">{update.title}</h3>
+                  <Reveal delay={i * 0.06 + 0.06} className="col-span-12 sm:col-span-5 sm:col-start-4">
+                    <h3 className="font-heading text-h4 text-secondary max-sm:text-h4-sm">{update.title}</h3>
                     {update.note && (
-                      <p className="mt-[1vw] text-body text-muted max-sm:mt-[4vw] max-sm:text-body-sm">
+                      <p className="mt-3 text-body text-muted">
                         {update.note}
                       </p>
                     )}
                   </Reveal>
 
                   {images.length > 0 && (
-                    <div className="col-span-12 mt-[3vw] flex gap-[0.8vw] max-sm:mt-[6vw] max-sm:gap-[3vw] sm:col-span-3 sm:col-start-10 sm:mt-0">
+                    <div className="col-span-12 flex gap-3 sm:col-span-4 sm:col-start-9">
                       {images.map((image, imageIndex) => (
                         <button
                           key={image.url}
@@ -110,14 +100,14 @@ export function ConstructionTimeline({ project }: Props) {
                           data-cursor="zoom"
                           onClick={() => setZoom({ images, index: imageIndex })}
                           aria-label={`Open photo: ${image.alt}`}
-                          className="relative block aspect-[4/3] w-full shrink-0 overflow-hidden rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                          className="group relative block aspect-[4/3] w-full shrink overflow-clip rounded-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
                         >
                           <Image
                             src={image.url}
                             alt={image.alt}
                             fill
-                            sizes="(min-width: 640px) 24vw, 92vw"
-                            className="object-cover"
+                            sizes="(min-width: 640px) 16vw, 45vw"
+                            className="object-cover transition-transform duration-1000 ease-zoom group-hover:scale-110 motion-reduce:transition-none"
                           />
                         </button>
                       ))}

@@ -36,15 +36,14 @@ export function ContactMap({ address }: Props) {
   }, [])
 
   return (
-    // Restyled for the monochrome system: square corners, an `aspect-*` frame instead of a fixed
-    // `min-h` (the box is reserved before the embed arrives, so a late-loading map cannot shift the
-    // page), and the two dead `navy-*` classes replaced with `hairline`/`edge` — those tokens were
-    // deleted with the accent palette and were silently rendering as no background at all.
+    // An 8px-radius card at the proportions the layout gives its location map (988×450), as an
+    // `aspect-*` frame rather than a fixed `min-h`, so the box is reserved before the embed arrives
+    // and a late-loading map cannot shift the page.
     //
     // `grayscale` is the one non-obvious class here: a Google embed is the single most colourful
     // thing that can land on this site, and desaturating it is what keeps it reading as a drawing
     // on the page rather than as a widget pasted onto it. It is a static filter, not an animation.
-    <div ref={wrapRef} className="relative aspect-[3/2] w-full overflow-hidden rounded-none bg-hairline max-sm:aspect-[4/3]">
+    <div ref={wrapRef} className="relative aspect-[988/450] w-full overflow-clip rounded-card bg-hairline max-sm:aspect-[4/3]">
       {shouldLoadMap ? (
         <iframe
           title={`Map showing ${address}`}

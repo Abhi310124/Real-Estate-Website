@@ -136,11 +136,32 @@ function needsPhoto(url: string): boolean {
 }
 
 /**
+ * The fixture projects' heroes, assigned by hand rather than by hash.
+ *
+ * A project's hero is the one photograph that has to be the same everywhere the project appears —
+ * its card on the home page, its card on /projects, the top of its own page — and it is also the one
+ * that sits beside its siblings in a grid. Hashing five paths into a pool of nine collided twice
+ * (Skyline and Landmark both drew the same villa), so two cards in the home page's 2×2 showed the
+ * same building under two names. Each is matched to what the project is: water behind the villas at
+ * the lake, the flattest cubic block for the apartments, planting for the plots, a single house for
+ * the independent homes, a street elevation for the township.
+ */
+const HERO_BY_PATH: Record<string, string> = {
+  '/placeholder/projects/bkr-lakeview-enclave/hero.jpg': '/photography/exterior-07.jpg',
+  '/placeholder/projects/bkr-skyline-residences/hero.jpg': '/photography/exterior-05.jpg',
+  '/placeholder/projects/bkr-green-meadows/hero.jpg': '/photography/exterior-04.jpg',
+  '/placeholder/projects/bkr-sunrise-homes/hero.jpg': '/photography/detail-05.jpg',
+  '/placeholder/projects/bkr-landmark-township/hero.jpg': '/photography/detail-01.jpg',
+}
+
+/**
  * One image. `offset` shifts the choice within the pool, so a caller rendering several images can
  * guarantee they differ from each other.
  */
 export function resolvePhoto(image: Img, offset = 0): Img {
   if (!needsPhoto(image.url)) return image
+  const fixed = offset === 0 ? HERO_BY_PATH[image.url] : undefined
+  if (fixed) return { ...image, url: fixed }
   const pool = poolFor(image.url)
   return { ...image, url: pool[(hash(image.url) + offset) % pool.length] }
 }

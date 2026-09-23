@@ -2,24 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The gradient ring's angle, registered so it can be TRANSITIONED. A gradient is not interpolable,
+ * so animating `background-image` from 90deg to 200deg directly just snaps at the end of the
+ * duration; animating a typed custom property that the gradient reads does interpolate, and the
+ * ring's colours visibly sweep around the button instead of jumping.
+ */
+@property --ring-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 90deg;
+}
+
 @layer base {
   /*
-   * 1.3889vw resolves to exactly 20px at a 1440px viewport, which is where the reference's
-   * proportions were measured. Both the outer page margin and the inter-column gutter use the
-   * same value — that single equality is what makes the grid read as a grid rather than as a
-   * centred container with padding.
+   * A 48px page margin and a 48px gutter on a 12-column grid. That is the arithmetic the layout
+   * this site follows was built on, and it can be read straight off it: two cards at 648px either
+   * side of a 48px gap fill a 1440 viewport exactly (48 + 648 + 48 + 648 + 48), and three feature
+   * tiles come out at 416px, which is four of these columns. So `col-span-6` IS the card width and
+   * `col-span-4` IS the tile width, rather than approximating them.
+   *
+   * Tablet halves the air; phones drop to a 20px margin, which is where the reference sits at 390.
    */
   :root {
-    --margin: 1.3889vw;
-    --gutter: 1.3889vw;
+    --margin: 48px;
+    --gutter: 48px;
+    --header-h: 94px;
   }
-
-  /* Below `sm` a 1.39vw margin is barely 5px, which crowds every edge. The reference widens it
-     on small screens rather than scaling it down proportionally. */
-  @media (max-width: 639px) {
+  @media (max-width: 991px) {
     :root {
-      --margin: 4vw;
-      --gutter: 3vw;
+      --margin: 32px;
+      --gutter: 24px;
+    }
+  }
+  @media (max-width: 767px) {
+    :root {
+      --margin: 20px;
+      --gutter: 16px;
+      --header-h: 88px;
     }
   }
 
@@ -64,140 +84,101 @@
   body {
     background-color: theme('colors.primary');
     color: theme('colors.secondary');
+    font-family: var(--font-sans), system-ui, sans-serif;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings default to the display face, so a bare <h2> is already in the right voice. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+    font-stretch: 116%;
+    font-weight: 400;
   }
 }
 
 @layer components {
   /*
-   * The page's single layout primitive, copied from the reference verbatim. Twelve columns with
-   * a gutter between them and the page margin as inline padding. Every section is a
-   * `.layout-grid` and every child claims columns with `col-span-*` / `col-start-*` — there are
-   * no ad-hoc max-width containers anywhere, which is why the whole site stays optically aligned
-   * down a single set of column edges.
+   * The page's single layout primitive: twelve columns, the gutter between them, the page margin as
+   * inline padding, capped at the 1344px content width so a wide monitor gets margin rather than
+   * stretched cards. Every section claims columns with `col-span-*` / `col-start-*`.
    */
   .layout-grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
-    padding-inline: var(--margin);
+    padding-inline: max(var(--margin), calc((100% - 1344px) / 2));
+  }
+
+  /* The same edges without the grid, for blocks that only need to sit on the margin. */
+  .container-page {
+    padding-inline: max(var(--margin), calc((100% - 1344px) / 2));
+  }
+
+  /*
+   * The display face at the width the layout's type was drawn at. Archivo's `wdth` axis runs
+   * 62–125%; 116% is where its proportions line up with the reference's display face, measured by
+   * setting the same headline in both and matching the line length.
+   */
+  .font-heading {
+    font-stretch: 116%;
+  }
+
+  /* ── The brand gradient, in the three orientations the layout uses it ────────────────────────── */
+  .bg-brand-x {
+    background-image: linear-gradient(to right, theme('colors.accent'), theme('colors.accentSoft') 29%, theme('colors.primary') 50%, theme('colors.navyMid') 75%, theme('colors.secondary'));
+  }
+  .bg-brand-y {
+    background-image: linear-gradient(to bottom, theme('colors.accent'), theme('colors.accentSoft') 25%, theme('colors.primary') 50%, theme('colors.navyMid') 75%, theme('colors.secondary'));
+  }
+  /* The thread's track (`components/motion/Thread.tsx`): three times the window's height, carrying one
+     full cycle of the palette per window — cream, the navies, cream, the oranges — repeated, so that
+     whatever stretch the window shows as it scrolls always has colour in it. */
+  .bg-thread {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      theme('colors.primary') 0%,
+      theme('colors.navyLine') 5%,
+      theme('colors.secondary') 10%,
+      theme('colors.navyMid') 14%,
+      theme('colors.primary') 18.5%,
+      theme('colors.accentSoft') 24%,
+      theme('colors.accent') 29%,
+      theme('colors.primary') 33.333%
+    );
+  }
+
+  /*
+   * The outline button's ring: a 1.6px band of gradient showing around a solid face. Built as
+   * padding on a gradient-filled wrapper rather than `border-image`, because `border-image` cannot
+   * follow `border-radius` and the ring has to be round-cornered.
+   *
+   * On hover the ring's angle swings from 90deg to 200deg over 0.4s — the colours sweep around the
+   * button. That only animates because `--ring-angle` is a registered <angle> (see @property above).
+   */
+  .ring-brand {
+    --ring-angle: 90deg;
+    padding: 1.6px;
+    border-radius: 8px;
+    background-image: linear-gradient(var(--ring-angle), theme('colors.accent'), theme('colors.accentSoft') 48%, theme('colors.navyMid') 76%, theme('colors.secondary'));
+    transition: --ring-angle 0.4s cubic-bezier(0.596, 0.013, 0.281, 0.995);
+  }
+  .ring-brand:hover,
+  .ring-brand:focus-visible {
+    --ring-angle: 200deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ring-brand {
+      transition: none;
+    }
   }
 }
 
 @layer utilities {
-  /*
-   * The link underline: a hairline that sweeps in beneath a nav or footer link while it is hovered
-   * and retracts when the pointer leaves. This is the reference's signature link gesture, paired
-   * there with a 3.6px lift on the label itself.
-   *
-   * The origin flip is the whole trick. At rest the origin sits on the RIGHT edge; hover moves it
-   * to the LEFT. So the line is ruled out of the left edge as it arrives — with the reading
-   * direction — and then collapses away toward the right edge when released. The leading end
-   * travels rightwards both times, which is what stops the exit from reading as the entrance run
-   * backwards; a single fixed origin can only ever give you a rewind.
-   *
-   * An earlier version here drew it right-to-left in both directions and argued that as a drafting
-   * gesture. That was a defensible design idea but not this design: the reference's only other
-   * scaleX hairlines, its carousel progress bars, also fill from the left, so left is the page's
-   * single established direction for a line that grows.
-   *
-   * `max(0.1vw, 1px)` — 1.4375px at 1440 — and NOT a flat 1px, which is a distinction worth stating
-   * because the two plausible-looking measurements here belong to different elements. The page's
-   * structural rules (the expertise row separators, the footer note card's ruled lines) are 1px
-   * borders. This utility is not one of those: it is the link underline, and the reference's own
-   * markup for that is literally `h-[max(0.1vw,1px)]`, measuring 1.4375px. The link's rule is
-   * deliberately the heavier instrument of the two. The `max()` floor keeps it from vanishing below
-   * ~1000px wide, where 0.1vw falls under a pixel.
-   *
-   * 300ms `cubic-bezier(0.4, 0, 0.2, 1)`, both measured off the reference.
-   */
-  .in-out-line {
-    width: 100%;
-    height: max(0.1vw, 1px);
-    /*
-     * ORANGE, not `currentColor`. This rule is the link affordance — the thing that says "this is
-     * clickable" — so it carries the accent while the label itself stays in whatever ink is readable
-     * on its ground. That split is deliberate: the accent cannot be the label, because orange text
-     * manages only 3.08:1 on cream, but as a 1.4px rule it is a graphic and clears the 3:1 that
-     * applies to non-text indicators on both chapter colours (3.08:1 on cream, 5.17:1 on navy).
-     *
-     * It is also never the ONLY signal. The label lifts 3.6px in the same gesture, and the element is
-     * an anchor, so neither a visitor who cannot distinguish the hue nor one reading the accessibility
-     * tree depends on the colour to know this is a link.
-     */
-    background-color: theme('colors.accent');
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-  }
-
-  /* Hover is read off the ancestor `.group` so that a label and its underline respond to one
-     pointer target rather than two. The focus-visible arms are not decoration: an affordance that
-     only exists under a pointer is invisible to a keyboard, and this one carries the same
-     information — which link is live — as the hover state does. */
-  .group:hover .in-out-line,
-  a:focus-visible .in-out-line,
-  button:focus-visible .in-out-line {
-    transform: scaleX(1);
-    transform-origin: left;
-  }
-
-  /* The scroll-triggered variant, driven by `components/motion/RuleDraw.tsx`. It draws on the base
-     right origin rather than flipping, because a rule that enters once has no released state to
-     collapse back toward — the flip only earns itself where there are two directions to tell
-     apart. */
-  .in-out-line[data-drawn='true'] {
-    transform: scaleX(1);
-  }
-
-  /* Reduced motion: a structural rule is information (it separates blocks), so it must be present
-     — it just arrives already drawn instead of animating. */
-  @media (prefers-reduced-motion: reduce) {
-    .in-out-line {
-      transform: scaleX(1);
-      transition: none;
-    }
-    /* The link underline is the exception: it is a hover STATE, not structure. Pinning it drawn
-       would leave every link in the header and footer permanently underlined, which is not a
-       calmer version of the gesture — it is a different page. It still appears on hover, just
-       instantly. */
-    .group .in-out-line {
-      transform: scaleX(0);
-    }
-    .group:hover .in-out-line,
-    a:focus-visible .in-out-line,
-    button:focus-visible .in-out-line {
-      transform: scaleX(1);
-    }
-  }
-
-  /*
-   * Fine grain for our paper surfaces — the brochure gate and the enquiry panels. It pairs with
-   * the `offwhite` token and, like that token, it is ours rather than the reference's: the
-   * reference has no tinted or textured section at all, every light band on it is flat white. The
-   * surfaces that use this are the lead-capture blocks it has no counterpart for, where a sheet
-   * that reads as laid ON the page rather than cut OUT of it is doing real work separating a form
-   * from the editorial around it. Do not reach for it on a section that exists on the reference.
-   *
-   * Generated with an inline SVG feTurbulence rather than shipping a texture image: it costs no
-   * request, scales to any viewport without tiling seams, and stays crisp on a high-DPI display
-   * where a raster tile would soften. Kept very low contrast (opacity 0.035) — at anything
-   * stronger it stops reading as paper and starts reading as noise.
-   */
-  .paper-grain {
-    position: relative;
-  }
-  .paper-grain::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
   .tnum {
     font-variant-numeric: tabular-nums;
   }

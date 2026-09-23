@@ -13,6 +13,17 @@ const nextConfig: NextConfig = {
   // of that bundling pass entirely and let Node's own plain `require`/`import` resolve them — which
   // does not apply the react-server condition and lands on swr's real default export.
   serverExternalPackages: ['sanity', '@sanity/vision', 'next-sanity', 'swr'],
+  // The pages renamed with the redesign keep their old addresses alive: `/studio` was the practice page
+  // before it became `/about`, and `/journal` was the blog before it became `/blog`. Permanent (308), so
+  // crawlers transfer the old URLs' standing instead of re-checking them. Declared here rather than as
+  // redirecting page files so they apply before routing, and `/journal/:slug` carries the slug across.
+  async redirects() {
+    return [
+      { source: '/studio', destination: '/about', permanent: true },
+      { source: '/journal', destination: '/blog', permanent: true },
+      { source: '/journal/:slug', destination: '/blog/:slug', permanent: true },
+    ]
+  },
   images: {
     remotePatterns: [
       // Sanity serves every uploaded image asset from this single CDN host regardless of

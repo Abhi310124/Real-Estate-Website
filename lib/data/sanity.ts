@@ -59,6 +59,7 @@ interface RawProjectSummary {
   priceOnRequest?: boolean
   unitTypes?: string[] | null
   heroImage?: RawImage | null
+  reraNumber?: string
 }
 
 interface RawProject extends RawProjectSummary {
@@ -86,7 +87,6 @@ interface RawProject extends RawProjectSummary {
   }> | null
   connectivity?: Array<{ place?: string; distance?: string }> | null
   brochureUrl?: string | null
-  reraNumber?: string
   seo?: { metaTitle?: string; metaDescription?: string; ogImage?: RawImage | null } | null
 }
 
@@ -142,6 +142,7 @@ function mapSummary(raw: RawProjectSummary): ProjectSummary {
     priceOnRequest: raw.priceOnRequest ?? false,
     unitTypes: raw.unitTypes ?? [],
     heroImage: mapImg(raw.heroImage),
+    reraNumber: raw.reraNumber ?? '',
   }
 }
 
@@ -199,7 +200,6 @@ function mapProject(raw: RawProject): Project {
     })),
     connectivity: (raw.connectivity ?? []).map((c) => ({ place: c.place ?? '', distance: c.distance ?? '' })),
     brochureUrl: raw.brochureUrl ?? undefined,
-    reraNumber: raw.reraNumber ?? '',
     seo: raw.seo
       ? {
           metaTitle: raw.seo.metaTitle ?? undefined,

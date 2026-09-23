@@ -91,7 +91,8 @@ inside route handlers, which never run in the browser.
    Without the webhook the site still updates, just on the 30-second revalidation window
    instead of instantly. No code change is needed either way.
 
-`/studio` and `/motion-lab` are disallowed in `robots.txt` and excluded from the sitemap.
+`/admin` (the embedded Sanity Studio) and `/motion-lab` are disallowed in `robots.txt` and excluded
+from the sitemap. `/studio` and `/journal` are permanent redirects to `/about` and `/blog`.
 `/motion-lab` is a development harness for the motion primitives and is not linked from
 anywhere in the site.
 
@@ -131,15 +132,18 @@ netstat -ano | grep ":3000"
 app/                    routes, API handlers, sitemap/robots/OG image
   api/lead/             lead capture: validate.ts is shared with the client form
   api/revalidate/       Sanity webhook receiver
-  studio/               embedded Sanity Studio at /studio
+  admin/                embedded Sanity Studio at /admin
 components/
-  brand/                Logo, LogoMark — size these by WIDTH, never height
-  home/                 home page sections
-  layout/               header, footer, nav, PageShell
-  motion/               motion primitives and the reduced-motion / pointer gates
+  blog/                 the blog's featured panel and cards
+  brand/                LogoMark — size it by WIDTH, never height
+  decor/                the soft triangle
+  home/                 home page sections, including the 3D showcase and the values timeline
+  layout/               header, footer, the project page's section nav
+  motion/               motion and 3D primitives, and the reduced-motion / pointer gates
   project/              project detail sections
-  projects/             listing grid, cards, filters
-  ui/                   Button, Field, Pill, Lightbox and friends
+  projects/             listing grid, the project card, filters
+  site/                 page intro and the enquiry doors that close every page
+  ui/                   Button / RingButton / LineButton, Lightbox
 lib/
   data/                 the two-source data layer and its shared types
 sanity/                 schemas, GROQ queries, Studio structure
@@ -153,6 +157,5 @@ Two conventions worth knowing before editing:
 - **Motion is gated, always.** Every animated component reads `useReducedMotion()` (which returns
   `true` on first render by design, so a hydration failure leaves content visible rather than
   invisible) and no element may be left stranded invisible when motion is off.
-- **The logo lockup is sized by width.** It mixes a scalable SVG with fixed-size text, so a height
-  budget lets flex-shrink crush the monogram — it once rendered 8px tall in the header. There is a
-  comment in `components/brand/Logo.tsx` explaining it.
+- **The logo is sized by width.** A height budget lets a flex parent crush it — it once rendered 8px
+  tall in the header. `components/brand/LogoMark.tsx` explains how the mark is drawn.

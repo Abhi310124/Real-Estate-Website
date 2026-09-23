@@ -1,7 +1,13 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getAllProjectSlugs, getProject } from '@/lib/data'
+import { getAllProjectSlugs, getProject, getProjects } from '@/lib/data'
 import type { Project } from '@/lib/data/types'
+import { RevealImage } from '@/components/motion/RevealImage'
+import { Rise } from '@/components/motion/Rise'
+import { Tilt3D } from '@/components/motion/Tilt3D'
+import { resolvePhoto } from '@/components/project/photo'
+import { ProjectTile } from '@/components/projects/ProjectTile'
+import { Button } from '@/components/ui/Button'
 import { ProjectHero } from '@/components/project/ProjectHero'
 import { Overview } from '@/components/project/Overview'
 import { KeyStats } from '@/components/project/KeyStats'
@@ -18,20 +24,17 @@ import { SECTION_SCROLL_MT } from '@/components/project/section-anchor'
 import { SectionNav } from '@/components/layout/SectionNav'
 import { cn } from '@/lib/cn'
 
-// Order here is the page's real reading order top to bottom: overview -> plans -> gallery ->
-// amenities -> specifications -> updates -> location, matching a typical sales-page narrative
-// (what it is, then proof, then where). "Master Plan" is spliced in right after "Overview" —
-// matching where <MasterPlan> actually renders, between <KeyStats> and <PlansTabs> — but only
-// when project.masterPlan exists: a nav link pointing at an anchor with no matching section
-// would be a broken link, and bkr-skyline-residences (a single tower, no plotted layout) is a
-// real published project with no masterPlan.
+// The page's real reading order, top to bottom — the section nav lists exactly what renders, in the
+// order it renders. "Master Plan" appears only when project.masterPlan exists: a nav link pointing at
+// an anchor with no section would be a broken link, and bkr-skyline-residences (a single tower, no
+// plotted layout) is a real published project with no masterPlan.
 function sectionsFor(project: Project) {
   return [
     { id: 'overview', label: 'Overview' },
+    { id: 'amenities', label: 'Amenities' },
     ...(project.masterPlan ? [{ id: 'masterplan', label: 'Master Plan' }] : []),
     { id: 'plans', label: 'Plans' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'amenities', label: 'Amenities' },
     { id: 'specifications', label: 'Specifications' },
     { id: 'updates', label: 'Updates' },
     { id: 'location', label: 'Location' },
@@ -136,118 +139,112 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * The project detail page, as one long scroll of alternating black and cream chapters — the same
- * rhythm the home page uses.
+ * The project detail page, in the order of the layout it follows, with this site's extra sections
+ * spliced in where a buyer needs them:
  *
- *   ProjectHero            black   (full-bleed photography, 110svh)
- *   SectionNav             white   (sticky under the header)
- *   Overview               white
- *   KeyStats               black
- *   MasterPlan             black   (optional)
- *   PlansTabs              white
- *   GallerySwiper          black
- *   Amenities              white
- *   Specifications         black
- *   ConstructionTimeline   white
- *   BrochureGate           paper   (optional)
- *   Connectivity           black
- *   #enquire               paper
- *   SiteFooter             black   (mounted in app/layout.tsx)
+ *   hero · section nav · overview · key figures · amenities (the layout's "key features") ·
+ *   master plan (if any) · plans · gallery · specifications · progress on site · brochure (if any) ·
+ *   location · the "get in touch" prompt · a closing photograph · the enquiry card · other projects
  *
- * The two optional sections deliberately take the tone of the section *above* them rather than the
- * next step in the alternation. `MasterPlan` is black like `KeyStats`, and `BrochureGate` is light
- * like `ConstructionTimeline`. That is what makes the rhythm survive their absence: a project with
- * no plotted layout still hands a black `KeyStats` to a white `PlansTabs`, and a project with no
- * brochure still hands a white `ConstructionTimeline` to a black `Connectivity`. Two consecutive
- * chapters in one tone read as a single longer passage — the home page opens with exactly that
- * pairing — whereas a broken alternation reads as a mistake.
- *
- * No `<main>` here: app/layout.tsx owns the single `<main id="main">` for every route. No
- * `PageShell` either — `ProjectHero` is full-bleed like the home hero, and PageShell's top padding
- * exists specifically for pages that do *not* handle their own header clearance. This page does.
- *
- * Next 16 hands `params` in as a Promise with no synchronous compatibility mode, so it must be
- * awaited — same contract as app/projects/page.tsx's `searchParams`.
+ * No `<main>` here: app/layout.tsx owns the single `<main id="main">` for every route.
  */
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params
-  const project = await getProject(slug)
+  const [project, all] = await Promise.all([getProject(slug), getProjects()])
 
-  // getProject() already filters on isPublished (lib/data/mock.ts's published() helper), so this
-  // one guard covers both an unknown slug and a real-but-unpublished project — neither ever leaks
-  // a 200.
+  // getProject() already filters on isPublished, so this one guard covers both an unknown slug and a
+  // real-but-unpublished project — neither ever leaks a 200.
   if (!project) notFound()
 
   // `brochureUrl` is deliberately withheld from every section component below, and this is
-  // load-bearing rather than tidiness.
-  //
-  // Several of those sections are client components (the gallery swiper, the plans tabs, the
-  // specifications accordion, the masterplan). Passing `project` into any client component makes
-  // Next serialise the WHOLE object into the RSC flight payload, which is inlined into the served
-  // HTML — so the brochure's URL was sitting in view-source, readable by anyone, while the page
-  // rendered no link to it at all. That defeats the gate completely: the point of BrochureGate is
-  // that the PDF is exchanged for a contact detail, not merely left unlinked.
-  //
-  // The spec's own assertion (`a[href$=".pdf"]` has count 0) passed throughout, because there
-  // genuinely is no anchor. Only scanning the whole served document caught it.
+  // load-bearing rather than tidiness: several of those sections are client components, and passing
+  // `project` into a client component serialises the WHOLE object into the RSC payload inlined in the
+  // served HTML — which put the brochure's URL in view-source while the page rendered no link to it,
+  // defeating the gate completely. Only scanning the whole served document caught it.
   const hasBrochure = Boolean(project.brochureUrl)
   const projectForSections: Project = { ...project }
   delete projectForSections.brochureUrl
 
+  const closing = resolvePhoto(project.gallery[2] ?? project.gallery[0] ?? project.heroImage, 2)
+  const others = all.filter((p) => p.slug !== project.slug).slice(0, 3)
+
   return (
     <>
-      {/* Real project fields only — see projectJsonLd's own comment. Sibling to the visible
-          content, not a replacement for any of it. */}
+      {/* Real project fields only — see projectJsonLd's own comment. */}
       <script
         type="application/ld+json"
-        // dangerouslySetInnerHTML is the standard Next.js JSON-LD pattern: rendering the JSON as
-        // a text child would have React escape its quotes as HTML entities and corrupt it. The
-        // payload is JSON.stringify() of our own server-side data (never user input), so there is
-        // no injection risk despite the name.
+        // The standard Next.js JSON-LD pattern: rendering the JSON as a text child would have React
+        // escape its quotes. The payload is JSON.stringify() of our own server-side data, never input.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd(project, SITE_URL)) }}
       />
       <ProjectHero project={projectForSections} />
       <SectionNav sections={sectionsFor(projectForSections)} />
       <Overview project={projectForSections} />
       <KeyStats project={projectForSections} />
+      <Amenities project={projectForSections} />
       {projectForSections.masterPlan && <MasterPlan plan={projectForSections.masterPlan} />}
       <PlansTabs project={projectForSections} />
       <GallerySwiper project={projectForSections} />
-      <Amenities project={projectForSections} />
       <Specifications project={projectForSections} />
       <ConstructionTimeline project={projectForSections} />
-      {/* Only where a brochure actually exists — a gate that captures a lead and then has nothing
-          to hand back would be a bait-and-switch. */}
+      {/* Only where a brochure actually exists — a gate that captures a lead and then has nothing to
+          hand back would be a bait-and-switch. */}
       {hasBrochure && <BrochureGate projectSlug={project.slug} projectTitle={project.title} />}
       <Connectivity project={projectForSections} />
 
-      {/* An enquiry form on the project page itself, not only on /contact: this is the page a buyer
-          is on when they decide they are interested, and making them navigate away to ask a
-          question is where enquiries get lost. `projectSlug` is passed so the lead records which
-          development prompted it, which is what makes the follow-up call useful.
-          On `offwhite` paper, closing the page the way ContactIntake closes the home page. */}
-      <section
-        id="enquire"
-        className={cn('paper-grain w-full bg-offwhite py-[8vw] text-secondary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
-      >
-        <div className="layout-grid">
-          <p className="col-span-12 font-mono text-mono uppercase text-muted max-sm:text-mono-sm sm:col-span-3">
-            Enquire
+      <section className="layout-grid pb-24 max-lg:pb-16" aria-label="Get in touch">
+        <div className="col-span-12 lg:col-span-9 lg:col-start-4">
+          <p className="font-heading text-lede text-secondary max-sm:text-lede-sm">
+            Ask us anything about {project.title}, or book a visit to the site — the people who answer are the
+            people building it.
           </p>
-
-          <div className="col-span-12 sm:col-span-7 sm:col-start-5">
-            <h2 className="text-display-lg font-display max-sm:mt-[6vw] max-sm:text-display-sm-lg">
-              Interested in {project.title}?
-            </h2>
-            <EnquiryForm
-              source="enquiry"
-              projectSlug={project.slug}
-              intro="Leave your number and a member of our team will call you back — not a call centre."
-              className="mt-[4vw] max-sm:mt-[10vw]"
-            />
-          </div>
+          <Button href="#enquire" chevron={false} className="mt-10 min-w-[280px] max-sm:w-full">
+            Contact us
+          </Button>
         </div>
       </section>
+
+      <div className="container-page pb-32 max-lg:pb-20">
+        <Tilt3D max={2} perspective={2200}>
+          <RevealImage
+            src={closing.url}
+            alt={closing.alt}
+            sizes="(max-width: 1440px) 100vw, 1344px"
+            zoom
+            className="aspect-[1344/760] rounded-card max-md:aspect-[4/3]"
+          />
+        </Tilt3D>
+      </div>
+
+      {/* An enquiry form on the project page itself, not only on /contact: this is the page a buyer
+          is on when they decide they are interested, and making them navigate away is where enquiries
+          get lost. `projectSlug` travels with the lead so the follow-up call knows the development. */}
+      <section id="enquire" className={cn('container-page pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}>
+        <Rise as="h2" className="text-center font-heading text-h2 text-secondary max-sm:text-h2-sm">
+          Get in touch
+        </Rise>
+        <EnquiryForm source="enquiry" projectSlug={project.slug} queryTypes className="mx-auto mt-10 max-w-[480px]" />
+      </section>
+
+      {others.length > 0 && (
+        <section className="pb-32 max-lg:pb-20" aria-labelledby="other-projects">
+          <Rise as="h2" id="other-projects" className="container-page text-center font-heading text-h2 text-secondary max-sm:text-h2-sm">
+            Other projects you may be interested in
+          </Rise>
+          <div className="layout-grid mt-12 gap-y-12">
+            {others.map((other) => (
+              <ProjectTile
+                key={other.id}
+                project={other}
+                aspect="aspect-[416/256]"
+                compact
+                sizes="(max-width: 767px) 100vw, 33vw"
+                className="col-span-12 md:col-span-6 lg:col-span-4"
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   )
 }

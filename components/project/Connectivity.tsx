@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { Reveal } from '@/components/motion/Reveal'
-import { RuleDraw } from '@/components/motion/RuleDraw'
+import { Rise } from '@/components/motion/Rise'
 import { cn } from '@/lib/cn'
 import { SECTION_SCROLL_MT } from './section-anchor'
 import type { Project } from '@/lib/data/types'
@@ -9,12 +9,12 @@ import type { Project } from '@/lib/data/types'
 type Props = { project: Project }
 
 /**
- * `#location` — navy chapter. A `place → distance` list beside the map.
+ * `#location` — as the layout sets it: "Location" in the left three columns; to the right, the locality
+ * with a "Get directions ↗" link across from it, the map beneath, and — ours — the `place → distance`
+ * list under the map, two columns of ruled rows with the distances in tabular figures.
  *
- * The distances are set in mono with tabular figures and pushed hard right against the place name, with
- * a hairline under every row. That `label … value` pairing across a ruled row is the reference's
- * treatment for any table of facts, and tabular figures are what keep the numbers in a true column
- * instead of shuffling by a fraction of a character per row.
+ * "Get directions" opens Google Maps routed to the locality named on the page, which is all the page
+ * knows; it never guesses at a street address.
  *
  * The iframe's `src` is only set once the map wrapper has intersected the viewport (plus a little
  * lookahead margin), never on first paint, so a slow or unreachable Google Maps embed never becomes a
@@ -45,57 +45,62 @@ export function Connectivity({ project }: Props) {
     return () => observer.disconnect()
   }, [mapEmbedUrl])
 
-  return (
-    <section
-      id="location"
-      className={cn('w-full bg-secondary py-[8vw] text-primary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
-    >
-      <div className="layout-grid">
-        <p className="col-span-12 font-mono text-mono uppercase text-primary/70 max-sm:text-mono-sm sm:col-span-3">
-          Location &amp; Connectivity
-        </p>
-        <h2 className="col-span-12 mt-[2vw] text-display-lg font-display max-sm:mt-[6vw] max-sm:text-display-sm-lg sm:col-span-8 sm:col-start-5 sm:mt-0">
-          {project.location.area}, {project.location.city}
-        </h2>
-      </div>
+  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    `${project.location.area}, ${project.location.city}`
+  )}`
 
-      <div className="layout-grid mt-[6vw] max-sm:mt-[12vw]">
-        <ul className="col-span-12 sm:col-span-5">
-          {project.connectivity.map((entry, i) => (
-            <li key={entry.place}>
-              <RuleDraw delayMs={i * 70} className="text-primary/25" />
-              <Reveal
-                delay={i * 0.05}
-                className="flex items-baseline justify-between gap-[2vw] py-[1.2vw] max-sm:py-[4vw]"
-              >
-                <span className="text-body max-sm:text-body-sm">{entry.place}</span>
-                <span className="tnum shrink-0 font-mono text-mono uppercase text-primary/70 max-sm:text-mono-sm">
-                  {entry.distance}
-                </span>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
+  return (
+    <section id="location" className={cn('layout-grid gap-y-8 pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}>
+      <Rise as="h2" className="col-span-12 font-heading text-h2 text-secondary max-sm:text-h2-sm lg:col-span-3">
+        Location
+      </Rise>
+
+      <div className="col-span-12 lg:col-span-9">
+        <div className="flex items-baseline justify-between gap-6">
+          <p className="text-body text-secondary">
+            {project.location.area}, {project.location.city}
+          </p>
+          <a
+            href={directions}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-2 text-body text-accentInk transition-colors duration-300 hover:text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+          >
+            Get directions
+            <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3.5 w-3.5">
+              <path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        </div>
 
         {mapEmbedUrl && (
-          <div
-            ref={wrapRef}
-            className="relative col-span-12 mt-[4vw] aspect-[4/3] w-full overflow-hidden bg-muted max-sm:mt-[10vw] sm:col-span-6 sm:col-start-7 sm:mt-0"
-          >
+          <div ref={wrapRef} className="relative mt-6 aspect-[988/450] w-full overflow-clip rounded-card bg-tint max-sm:aspect-[4/3]">
             {shouldLoadMap ? (
               <iframe
                 title={`Map of ${project.title}`}
                 src={mapEmbedUrl}
-                className="absolute inset-0 h-full w-full border-0"
+                className="absolute inset-0 h-full w-full border-0 grayscale"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
             ) : (
-              // `animate-pulse` is an opacity animation, so it composites on its own layer and is
-              // dropped entirely under reduced motion by `motion-reduce:animate-none`.
+              // `animate-pulse` is an opacity animation, dropped under reduced motion.
               <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-edge/20 motion-reduce:animate-none" />
             )}
           </div>
+        )}
+
+        {project.connectivity.length > 0 && (
+          <ul className="mt-10 grid gap-x-12 md:grid-cols-2">
+            {project.connectivity.map((entry, i) => (
+              <li key={entry.place} className="border-t border-hairline">
+                <Reveal delay={i * 0.05} className="flex items-baseline justify-between gap-6 py-4">
+                  <span className="text-body text-secondary">{entry.place}</span>
+                  <span className="tnum shrink-0 text-small text-navySoft">{entry.distance}</span>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </section>

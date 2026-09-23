@@ -69,7 +69,43 @@ export const COLORS = {
   offwhite: '#EDEAE2',
   /** Section borders on cream, at 25% navy. Non-text only. */
   edge: '#BCBEBE',
+
+  /*
+   * ── The navy family ─────────────────────────────────────────────────────────────────────────────
+   *
+   * The layout this palette now dresses was designed around a purple ink with a family of lavenders
+   * beside it: a lighter purple for its second display voice, a mid tone for rules and frame borders,
+   * a pale one for ghosted headings, and a near-white tint for panels. Those roles are real and the
+   * layout reads flat without them, so each gets a NAVY counterpart here — same hue as the logo's
+   * ground, stepped in value.
+   *
+   * One of that system's lavenders is deliberately not carried over: it set small captions at about
+   * 2.2:1 on its white ground, which fails AA for body text outright. Small secondary text here uses
+   * `muted` (5.30:1) instead, and every token below is labelled with the job its contrast allows.
+   */
+  /** The second display voice — large type only (headlines, stat labels at ≥24px). 6.44:1 on cream. */
+  navySoft: '#3E5A7E',
+  /** Rules, frame borders, form underlines, outline chips. Non-text; 3.59:1 clears the 3:1 for UI. */
+  navyLine: '#6F829A',
+  /** Ghosted display type and decorative numerals. Purely decorative, 1.30:1 — never real content. */
+  ghost: '#D8D8D5',
+  /** Panel ground laid on the cream page: the mobile menu, the featured-post panel. */
+  tint: '#EBE9E4',
+  /** Gradient stops only — the light orange and the mid navy either side of the gradient's cream. */
+  accentSoft: '#FF9A5C',
+  navyMid: '#34507A',
 } as const
+
+/**
+ * The brand gradient: orange → light orange → cream → mid navy → navy. It is the layout's signature
+ * device — the thread that runs down the hero seam, the bar that draws under a card on hover, the
+ * ring around every outline button, the timeline's growing bar. Stops mirror the proportions the
+ * layout was built with (29% / 50% / 75%), so the cream sits dead centre and the two brand colours
+ * own the ends.
+ */
+export const BRAND_GRADIENT_STOPS = `${COLORS.accent}, ${COLORS.accentSoft} 29%, ${COLORS.primary} 50%, ${COLORS.navyMid} 75%, ${COLORS.secondary}`
+/** The ring variant runs without the cream, which would vanish against a cream button face. */
+export const BRAND_RING_STOPS = `${COLORS.accent}, ${COLORS.accentSoft} 48%, ${COLORS.navyMid} 76%, ${COLORS.secondary}`
 
 /** Translucent overlays, kept as literals because Tailwind's `/opacity` syntax cannot express
  *  the exact rgba() values the reference uses over photography. */

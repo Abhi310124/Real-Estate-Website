@@ -20,8 +20,8 @@ import { cn } from '@/lib/cn'
  *
  * ## Why masks rather than two coloured images
  *
- * The header decides its ink at runtime — it samples what is actually painted behind the band and
- * toggles `text-primary` / `text-secondary` — and a raster cannot follow `currentColor`.
+ * The mark sits on two grounds — navy letterforms on the cream header, cream letterforms on the navy
+ * footer — and a raster cannot follow `currentColor`.
  *
  * The obvious workaround is to ship a navy image and a cream one and hide whichever does not apply.
  * That was the first attempt here and it was broken: keying the choice off an ancestor's ink class
@@ -31,8 +31,8 @@ import { cn } from '@/lib/cn'
  * about.
  *
  * Masking sidesteps the question entirely. The letterform layer is a block of `currentColor` clipped
- * to the letterform alpha, so it inherits whatever the band decided, exactly like the SVG did, and
- * cross-fades on the band's own `transition-colors`. The accent layer is a block of the brand orange
+ * to the letterform alpha, so it takes the ink of whatever it sits in, exactly like an SVG would. The
+ * accent layer is a block of the brand orange
  * clipped to the wedge-and-rules alpha, so the wedge stays orange on every ground. One source of
  * truth, no variants, and nothing to keep in sync.
  *

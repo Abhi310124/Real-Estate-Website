@@ -37,6 +37,8 @@ export interface ProjectSummary {
   location: { area: string; city: string }
   priceFrom: number | null; priceUnit: 'Lakh' | 'Cr'; priceOnRequest: boolean
   unitTypes: string[]; heroImage: Img
+  /** On the summary, not only the page: the footer lists every project's registration. */
+  reraNumber: string
 }
 
 export interface Project extends ProjectSummary {
@@ -51,7 +53,6 @@ export interface Project extends ProjectSummary {
   constructionUpdates: Array<{ date: string; title: string; images: Img[]; note?: string }>
   connectivity: Array<{ place: string; distance: string }>
   brochureUrl?: string
-  reraNumber: string
   seo?: { metaTitle?: string; metaDescription?: string; ogImage?: Img }
 }
 

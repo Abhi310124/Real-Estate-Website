@@ -45,17 +45,18 @@ const DOCUMENTS = {
 type Slug = keyof typeof DOCUMENTS
 
 /**
- * The enquiry form's actual payload, read off `components/storey/ContactIntake.tsx` and the
- * `/api/lead` route. Listing it is a factual description of the software; it is the only concrete
- * claim these pages make, and it is the one a visitor most needs.
+ * The enquiry forms' actual payload, read off `components/site/EnquiryDoors.tsx`,
+ * `components/project/EnquiryForm.tsx` and the `/api/lead` route. Listing it is a factual description
+ * of the software; it is the only concrete claim these pages make, and it is the one a visitor most
+ * needs.
  */
 const COLLECTED = [
   'Your name',
   'Your phone number',
   'Your email address, if you give one',
-  'The locality and timeline you are interested in',
-  'The kind of property you are looking for',
+  'The kinds of property you tick, if any',
   'Anything you type into the message field',
+  'Which project page you were on, when you enquire from one',
 ] as const
 
 export function generateStaticParams() {
@@ -85,42 +86,31 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
   if (!doc) notFound()
 
   return (
-    <section className="w-full bg-primary pb-[12vw] pt-[14vw] text-secondary max-sm:pb-[24vw] max-sm:pt-[34vw]">
-      <div className="layout-grid">
-        <p className="col-span-12 font-mono text-mono uppercase text-muted max-sm:text-mono-sm">
-          Legal
-        </p>
-        <h1 className="col-span-12 mt-[1.6vw] text-display-lg font-display max-sm:mt-[5vw] max-sm:text-display-sm-lg sm:col-span-7">
-          {doc.title}
-        </h1>
-        <p className="col-span-12 mt-[2vw] text-body max-sm:mt-[7vw] max-sm:text-body-sm sm:col-span-3 sm:col-start-9">
-          {doc.lede}
-        </p>
+    <section className="pb-32 max-lg:pb-20">
+      <div className="container-page pt-[104px] max-lg:pt-12">
+        <p className="text-small text-navySoft">Legal</p>
+        <h1 className="mt-6 font-heading text-h1 text-secondary max-sm:text-h1-sm">{doc.title}</h1>
+        <p className="mt-6 max-w-[640px] text-body text-secondary">{doc.lede}</p>
       </div>
 
-      <div className="layout-grid mt-[8vw] max-sm:mt-[16vw]">
-        <div className="col-span-12 border-t border-edge pt-[2vw] max-sm:pt-[6vw] sm:col-span-6 sm:col-start-1">
-          <h2 className="text-lead max-sm:text-lead-sm">This document is being finalised</h2>
-          <p className="mt-[1.4vw] text-body max-sm:mt-[5vw] max-sm:text-body-sm">
-            We would rather leave this page honest than fill it with text we have not had reviewed.
-            If you need to know how your details will be handled before you send them, please ask us
-            directly and we will tell you.
+      <div className="layout-grid mt-20 gap-y-12 max-lg:mt-12">
+        <div className="col-span-12 border-t border-hairline pt-8 lg:col-span-6">
+          <h2 className="font-heading text-h4 text-secondary max-sm:text-h4-sm">This document is being finalised</h2>
+          <p className="mt-4 text-body text-secondary">
+            We would rather leave this page honest than fill it with text we have not had reviewed. If you need to know
+            how your details will be handled before you send them, please ask us directly and we will tell you.
           </p>
-          <Button href="/contact" className="mt-[2.4vw] max-sm:mt-[8vw]">
+          <Button href="/contact" className="mt-8">
             Contact us
           </Button>
         </div>
 
-        <div className="col-span-12 mt-[4vw] border-t border-edge pt-[2vw] max-sm:mt-[12vw] max-sm:pt-[6vw] sm:col-span-4 sm:col-start-8 sm:mt-0">
-          <h2 className="text-lead max-sm:text-lead-sm">What the enquiry form sends</h2>
-          <p className="mt-[1.4vw] text-body max-sm:mt-[5vw] max-sm:text-body-sm">
-            When you submit the enquiry form on this site, it sends us:
-          </p>
-          <ul className="mt-[1.4vw] space-y-[0.5vw] max-sm:mt-[5vw] max-sm:space-y-[2vw]">
+        <div className="col-span-12 border-t border-hairline pt-8 lg:col-span-5 lg:col-start-8">
+          <h2 className="font-heading text-h4 text-secondary max-sm:text-h4-sm">What the enquiry forms send</h2>
+          <p className="mt-4 text-body text-secondary">When you submit an enquiry on this site, it sends us:</p>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-body text-secondary marker:text-accent">
             {COLLECTED.map((item) => (
-              <li key={item} className="w-fit text-label-flow max-sm:text-label-flow-sm">
-                {item}
-              </li>
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </div>

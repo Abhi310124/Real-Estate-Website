@@ -8,19 +8,10 @@ type Section = { id: string; label: string }
 type Props = { sections: Section[] }
 
 /**
- * Where this pins. The monochrome header is `fixed … py-[1.4vw]` with a `py-[0.65vw]` +
- * `text-label` button as its tallest child, so its bottom edge sits at `2.8vw + 2.4vw = 5.2vw`;
- * `5.4vw` clears that at every width, because both numbers scale together. Below `sm` the header
- * switches to `py-[4vw]` around a `min-h-11` Menu button, which is `8vw + 44px` — a mix of units
- * that no single `vw` value tracks (it is 19.3vw at 390 and 14.9vw at 639), so that breakpoint
- * states the sum literally.
- *
- * Tailwind's scanner needs both as literal text, which is why they are inline here rather than
- * derived from the header's own classes — if the header's padding changes, this must be changed by
- * hand to match. The same hand-matching caveat applies to `SECTION_SCROLL_MT`, but that one is
- * shared, because eight sections have to agree with it.
+ * Where this pins: directly under the sticky header, whose height is the `--header-h` custom property
+ * (94px, 88px on phones) — so the two can never drift apart.
  */
-const STICKY_TOP_CLASS = 'top-[calc(8vw+44px)] sm:top-[5.4vw]'
+const STICKY_TOP_CLASS = 'top-[var(--header-h)]'
 
 /**
  * Sticky secondary nav for the project detail page.
@@ -30,11 +21,8 @@ const STICKY_TOP_CLASS = 'top-[calc(8vw+44px)] sm:top-[5.4vw]'
  * scrolled past, which is what gives it the "appears once the hero leaves the viewport" behaviour
  * with no scroll-triggered show/hide state to manage.
  *
- * Restyled to the monochrome system: mono labels at -10% tracking, `muted` when inactive and
- * `secondary` when active, and the active item carries a hairline underline. There is no tinted
- * state, no pill, no fill — with no accent colour in the palette, the active item is distinguished
- * by ink weight and a rule, which is how the rest of the site marks a current item (the header's
- * nav does the same thing with `underline-offset-4`).
+ * Set in the site's link vocabulary: plain labels in navy, the current one in orange with a 2px
+ * orange rule under it and `aria-current`, so the state is carried by more than colour.
  *
  * `z-[70]`, below the header's `80`: the header is opaque over photography and must always win.
  *
@@ -67,8 +55,10 @@ export function SectionNav({ sections }: Props) {
     // `scrollIntoViewIfNeeded()` aligns to the nearest edge, not the top.
     const pick = () => {
       const usableBottom = window.innerHeight
+      // Starts at -Infinity so that once the reader has scrolled past every section (the enquiry card
+      // and the other projects below the last one), the nearest section — the last — stays marked.
       let best = targets[0]
-      let bestVisible = -1
+      let bestVisible = Number.NEGATIVE_INFINITY
       for (const el of targets) {
         const rect = el.getBoundingClientRect()
         const visible = Math.min(rect.bottom, usableBottom) - Math.max(rect.top, OCCLUDED_TOP_PX)
@@ -107,10 +97,8 @@ export function SectionNav({ sections }: Props) {
       )}
     >
       {/* Not a `.layout-grid`: this is a single horizontally scrollable row, and a 12-column grid
-          cannot overflow-scroll one of its own tracks. It takes the grid's page margin as its own
-          inline padding instead, so its first and last labels still sit on the same optical edges as
-          every section below. */}
-      <ul className="scrollbar-hide flex gap-[2vw] overflow-x-auto px-[var(--margin)] max-sm:gap-[6vw]">
+          cannot overflow-scroll one of its own tracks. `container-page` gives it the grid's edges. */}
+      <ul className="scrollbar-hide container-page flex gap-10 overflow-x-auto max-sm:gap-7">
         {sections.map((section) => {
           const isActive = active === section.id
           return (
@@ -119,25 +107,13 @@ export function SectionNav({ sections }: Props) {
                 href={`#${section.id}`}
                 aria-current={isActive ? 'true' : undefined}
                 className={cn(
-                  'relative inline-flex min-h-11 items-center whitespace-nowrap font-mono text-mono uppercase',
-                  'transition-colors duration-150 ease-in-out',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current',
-                  'max-sm:text-mono-sm',
-                  isActive ? 'text-secondary' : 'text-muted hover:text-secondary'
+                  'relative inline-flex min-h-12 items-center whitespace-nowrap font-heading text-small transition-colors duration-300',
+                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
+                  isActive ? 'text-accentInk' : 'text-secondary hover:text-accentInk'
                 )}
               >
                 {section.label}
-                {/* The hairline. Same height as `Rule`/`RuleDraw` (`max(0.1vw, 1px)`) so it reads as
-                    the same mark the rest of the page separates blocks with, rather than as a tab
-                    indicator. Static, not drawn: it moves between items on every scroll, and a
-                    300ms draw on each move would be a flicker. */}
-                {isActive && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 bottom-[0.6vw] bg-current max-sm:bottom-[2vw]"
-                    style={{ height: 'max(0.1vw, 1px)' }}
-                  />
-                )}
+                {isActive && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-accent" />}
               </Link>
             </li>
           )

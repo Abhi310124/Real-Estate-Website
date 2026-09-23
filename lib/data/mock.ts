@@ -564,6 +564,7 @@ const toSummary = (p: Project): ProjectSummary => ({
   priceOnRequest: p.priceOnRequest,
   unitTypes: p.unitTypes,
   heroImage: p.heroImage,
+  reraNumber: p.reraNumber,
 })
 
 // Publish-gating lives here, in one place, so both sources (mock and — from Task 20 — Sanity)

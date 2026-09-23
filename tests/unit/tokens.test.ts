@@ -24,14 +24,23 @@ const TOKENS = [
   'hairline',
   'offwhite',
   'edge',
+  'navySoft',
+  'navyLine',
+  'ghost',
+  'tint',
+  'accentSoft',
+  'navyMid',
 ] as const
+
+/** The orange family: the logo's wedge, its text-on-cream darkening and the gradient's light stop. */
+const ORANGES = ['accent', 'accentInk', 'accentSoft'] as const
 
 /** WCAG 2.1: 4.5:1 for body text, 3:1 for large text and for non-text UI indicators. */
 const AA_TEXT = 4.5
 const AA_NON_TEXT = 3
 
 describe('palette', () => {
-  it('is exactly the eight tokens the design uses', () => {
+  it('is exactly the fourteen tokens the design uses', () => {
     expect(Object.keys(COLORS).sort()).toEqual([...TOKENS].sort())
   })
 
@@ -47,22 +56,43 @@ describe('palette', () => {
     expect(COLORS.hairline).toBe('#DBDAD7')
     expect(COLORS.offwhite).toBe('#EDEAE2')
     expect(COLORS.edge).toBe('#BCBEBE')
+    // The navy family the layout's lavender roles map onto, and the gradient's two inner stops.
+    expect(COLORS.navySoft).toBe('#3E5A7E')
+    expect(COLORS.navyLine).toBe('#6F829A')
+    expect(COLORS.ghost).toBe('#D8D8D5')
+    expect(COLORS.tint).toBe('#EBE9E4')
+    expect(COLORS.accentSoft).toBe('#FF9A5C')
+    expect(COLORS.navyMid).toBe('#34507A')
   })
 
-  it('confines hue to the orange accent and a navy-tinted neutral ramp', () => {
-    // The palette is allowed colour now, but not arbitrary colour: every token is either one of the
-    // two oranges or a mix of the logo's navy into its cream. A mix of two colours can never be more
-    // saturated than the more saturated of them, so a neutral that has drifted into a third hue
-    // shows up here as a channel spread wider than navy's own.
+  it('confines hue to the logo’s two: the oranges, and navy at any strength', () => {
+    // The palette is allowed colour, but not arbitrary colour. Every token outside the orange family
+    // is either a near-neutral (the creams and the ghost grey) or sits on the logo navy's own hue —
+    // the navy family is navy stepped in value, never a blue of its own. A token that drifts into a
+    // third hue fails here.
+    const rgb = (hex: string) => (hex.replace('#', '').match(/\w\w/g) ?? []).map((h) => parseInt(h, 16))
     const spread = (hex: string) => {
-      const [r, g, b] = (hex.replace('#', '').match(/\w\w/g) ?? []).map((h) => parseInt(h, 16))
+      const [r, g, b] = rgb(hex)
       return Math.max(r, g, b) - Math.min(r, g, b)
     }
-    const navySpread = spread(COLORS.secondary)
+    const hue = (hex: string) => {
+      const [r, g, b] = rgb(hex)
+      const max = Math.max(r, g, b)
+      const d = max - Math.min(r, g, b)
+      if (d === 0) return 0
+      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+      return (h * 60 + 360) % 360
+    }
+    const navyHue = hue(COLORS.secondary)
 
     for (const name of TOKENS) {
-      if (name === 'accent' || name === 'accentInk') continue
-      expect([name, spread(COLORS[name]) <= navySpread]).toEqual([name, true])
+      if ((ORANGES as readonly string[]).includes(name)) {
+        expect([name, Math.abs(hue(COLORS[name]) - hue(COLORS.accent)) < 8]).toEqual([name, true])
+        continue
+      }
+      const neutral = spread(COLORS[name]) <= 12
+      const navyFamily = Math.abs(hue(COLORS[name]) - navyHue) < 8
+      expect([name, neutral || navyFamily]).toEqual([name, true])
     }
   })
 })
@@ -122,6 +152,39 @@ describe('body and secondary text', () => {
     // The 60%-navy mix measures 4.50:1 exactly. A token pinned to the boundary fails the moment
     // anything is layered over it, so the shipped value is the 65% mix.
     expect(contrastRatio(COLORS.muted, COLORS.primary)).toBeGreaterThan(5)
+  })
+})
+
+describe('the navy family', () => {
+  it('lets navySoft carry text on cream, as the second display voice', () => {
+    expect(contrastRatio(COLORS.navySoft, COLORS.primary)).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('keeps navyLine to rules and outlines: above the UI floor, below the text floor', () => {
+    expect(contrastRatio(COLORS.navyLine, COLORS.primary)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+    expect(contrastRatio(COLORS.navyLine, COLORS.primary)).toBeLessThan(AA_TEXT)
+  })
+
+  it('keeps ghost decorative — it may never carry content', () => {
+    expect(contrastRatio(COLORS.ghost, COLORS.primary)).toBeLessThan(AA_NON_TEXT)
+  })
+})
+
+describe('the tinted panel', () => {
+  it('separates from the page it sits on', () => {
+    expect(contrastRatio(COLORS.tint, COLORS.primary)).toBeGreaterThan(1.05)
+  })
+
+  it('keeps muted and navy text legible on it', () => {
+    expect(contrastRatio(COLORS.muted, COLORS.tint)).toBeGreaterThanOrEqual(AA_TEXT)
+    expect(contrastRatio(COLORS.navySoft, COLORS.tint)).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('allows orange text on it only at large sizes', () => {
+    // accentInk manages 4.16:1 on the tint — enough for 24px type (3:1), not for body text. The mobile
+    // menu sets its links at 24px for exactly this reason.
+    expect(contrastRatio(COLORS.accentInk, COLORS.tint)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+    expect(contrastRatio(COLORS.accentInk, COLORS.tint)).toBeLessThan(AA_TEXT)
   })
 })
 

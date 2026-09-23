@@ -15,14 +15,11 @@ export const LOAD_LOCK_CLASS = 'load-locked'
 /**
  * The cue bus for the first-load choreography.
  *
- * The reference's opening is a single 4.1s composition whose beats land in three different parts of
- * the tree: the header wordmark at t0+0.30, the header links at t0+1.50, and the hero's hairlines,
- * headline lines, photograph and CTA between t0+1.30 and t0+1.55 (t0 = the frame the curtain begins
- * to fade). Those offsets are the whole character of the opening — the wordmark rising *through*
- * 40%-opaque black, the 550ms of wordmark-on-black after the curtain clears, the photograph
- * arriving 250ms behind the words it sits behind. None of that survives if each component times
- * itself from its own mount, because mount order is a hydration detail and drifts. So one clock —
- * `LoadSequence` — owns every offset and publishes its beats here.
+ * The opening is one composition whose beats land in different parts of the tree — the panel's
+ * counter and rule, the wipe, and the hero photograph settling in 3D as the wipe uncovers it. None of
+ * that survives if each component times itself from its own mount, because mount order is a
+ * hydration detail and drifts. So one clock — `LoadSequence` — owns every offset and publishes its
+ * beats here, and today it fires them all on the wipe's first frame.
  *
  * A plain module rather than React context, deliberately. These cues cross the layout / header /
  * hero boundary; they are global by nature and live for exactly one document. A provider would mean

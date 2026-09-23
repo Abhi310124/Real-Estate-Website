@@ -1,5 +1,9 @@
 import { Counter } from '@/components/motion/Counter'
-import { RuleDraw } from '@/components/motion/RuleDraw'
+import { RevealImage } from '@/components/motion/RevealImage'
+import { Rise } from '@/components/motion/Rise'
+import { Tilt3D } from '@/components/motion/Tilt3D'
+import { CATEGORY_LABELS, STATUS_LABELS, formatPrice } from '@/lib/format'
+import { resolvePhoto } from './photo'
 import type { Project } from '@/lib/data/types'
 
 type Props = { project: Project }
@@ -12,60 +16,65 @@ function slugify(label: string): string {
 }
 
 /**
- * `data-key-stats` — the first navy chapter: the project's own headline figures (land area, unit
- * count, possession year) as display-scale numerals with mono labels.
+ * `data-key-stats` — "Key figures", as the layout sets it: the heading in the left three columns, and
+ * to its right a row of labelled facts (type of project, status and — ours — price, units and the RERA
+ * registration), the project's own headline numbers counting up, and a large photograph.
  *
- * Two-up rather than four-up, which is a typographic constraint rather than a preference. At
- * `display-lg` (7vw ≈ 100px) a value like "40 ft wide" is roughly 500px; three columns of the
- * 12-column grid is 335px at 1440, so a four-across row would either overflow or force the numerals
- * down to a size at which they stop being the point of the section. Six columns is 690px, which
- * every value in the fixtures fits inside. It also keeps working for the projects that ship three
- * stats rather than four.
+ * Every `Counter` keeps the shared `data-counter` attribute the e2e suite selects on, plus a distinct
+ * `data-testid` so several on one page never trip Playwright's strict mode.
  *
- * Each row is separated by a drawn hairline, staggered — the same rhythm as `Expertise`'s rows on
- * the home page, and the reason a stats band here reads as part of the same document rather than as
- * a widget dropped into it.
- *
- * Every `Counter` keeps the shared `data-counter` attribute the e2e suite selects on, plus a
- * distinct `data-testid`: `Counter`'s own default testid is a single fixed string, which several
- * instances on one page would otherwise share and trip Playwright's strict mode over.
+ * The photograph is the project's second gallery frame (the first is the gallery's own opener),
+ * falling back to the hero for a project with a short gallery.
  */
 export function KeyStats({ project }: Props) {
-  // No fixture ships an empty `keyStats`, but the section still renders in that case rather than
-  // returning null: `data-key-stats` is a hook the e2e suite selects on, and a section that
-  // sometimes does not exist is a harder thing to reason about than one that says so. Same shape as
-  // the honest one-line status every other optional section here renders.
-  if (project.keyStats.length === 0) {
-    return (
-      <section data-key-stats className="w-full bg-secondary py-[8vw] text-primary max-sm:py-[16vw]">
-        <div className="layout-grid">
-          <p className="col-span-12 text-body text-primary/80 max-sm:text-body-sm sm:col-span-6">
-            Key figures for this project are being finalised and will be published here soon.
-          </p>
-        </div>
-      </section>
-    )
-  }
+  const image = resolvePhoto(project.gallery[1] ?? project.gallery[0] ?? project.heroImage, 1)
+  const facts = [
+    { term: 'Type of project', value: CATEGORY_LABELS[project.category] },
+    { term: 'Status', value: STATUS_LABELS[project.status] },
+    { term: 'Price', value: formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest) },
+    ...(project.unitTypes.length > 0 ? [{ term: 'Units', value: project.unitTypes.join(' / ') }] : []),
+    ...(project.reraNumber ? [{ term: 'TS RERA', value: project.reraNumber }] : []),
+  ]
 
   return (
-    <section data-key-stats className="w-full bg-secondary py-[8vw] text-primary max-sm:py-[16vw]">
-      <ul className="layout-grid gap-y-[6vw] max-sm:gap-y-[12vw]">
-        {project.keyStats.map((stat, i) => (
-          <li key={stat.label} className="col-span-12 sm:col-span-6">
-            <RuleDraw delayMs={i * 90} className="text-primary/30" />
-            <Counter
-              value={stat.value}
-              suffix={stat.suffix}
-              data-counter=""
-              data-testid={`key-stat-${slugify(stat.label)}`}
-              className="mt-[2vw] block text-display-lg font-display tabular-nums max-sm:mt-[6vw] max-sm:text-display-sm-lg"
-            />
-            <p className="mt-[1.4vw] font-mono text-mono uppercase text-primary/70 max-sm:mt-[4vw] max-sm:text-mono-sm">
-              {stat.label}
-            </p>
-          </li>
-        ))}
-      </ul>
+    <section data-key-stats className="layout-grid gap-y-10 pb-32 max-lg:pb-20">
+      <Rise as="h2" className="col-span-12 font-heading text-h2 text-secondary max-sm:text-h2-sm lg:col-span-3">
+        Key figures
+      </Rise>
+
+      <div className="col-span-12 lg:col-span-9">
+        <dl className="flex flex-wrap gap-x-14 gap-y-6 pt-2">
+          {facts.map((fact) => (
+            <div key={fact.term}>
+              <dt className="text-small text-navySoft">{fact.term}</dt>
+              <dd className="mt-1 text-body text-secondary">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {project.keyStats.length > 0 ? (
+          <ul className="mt-14 grid grid-cols-2 gap-x-8 gap-y-10 border-t border-hairline pt-10 lg:grid-cols-4">
+            {project.keyStats.map((stat) => (
+              <li key={stat.label}>
+                <Counter
+                  value={stat.value}
+                  suffix={stat.suffix}
+                  data-counter=""
+                  data-testid={`key-stat-${slugify(stat.label)}`}
+                  className="block font-heading text-h2 text-secondary tabular-nums max-sm:text-h2-sm"
+                />
+                <p className="mt-2 text-small text-muted">{stat.label}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-14 text-body text-muted">Key figures for this project are being finalised and will be published here soon.</p>
+        )}
+
+        <Tilt3D className="mt-14 lg:w-[88%]" max={3}>
+          <RevealImage src={image.url} alt={image.alt} sizes="(max-width: 1023px) 100vw, 61vw" className="aspect-[880/700] rounded-card" />
+        </Tilt3D>
+      </div>
     </section>
   )
 }

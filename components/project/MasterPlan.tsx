@@ -23,24 +23,22 @@ const DRAG_CLICK_THRESHOLD_PX = 6
 // always carries the dot ornament and a solid tone, which for three tightly-grouped controls would
 // read as three competing calls to action.
 const CONTROL_BUTTON =
-  'inline-flex min-h-11 items-center justify-center rounded-none border border-primary/40 px-[1.2vw] ' +
-  'font-mono text-mono uppercase text-primary transition-colors duration-150 ease-in-out ' +
-  'hover:bg-primary hover:text-secondary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ' +
-  'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-primary ' +
-  'max-sm:px-[4vw] max-sm:text-mono-sm'
+  'inline-flex min-h-11 items-center justify-center rounded-full border border-accent px-5 ' +
+  'font-heading text-small text-secondary transition-colors duration-300 ' +
+  'hover:bg-accent ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ' +
+  'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent'
 
 // A local status→style map. `MasterPlanPlot['status']` ('available' | 'blocked' | 'sold') is a
 // different domain from the `ProjectStatus` that `Pill` maps ('upcoming' | 'ongoing' | …), so reusing
 // Pill here would mean smuggling plot data through a component contract typed for something else.
 //
-// With no hue left in the palette, availability is carried by fill and weight instead: the one
-// status a buyer most needs to notice — `sold`, because it removes an option — gets the solid black
-// block, and the rest are outlined. The label is never abbreviated, because the word is doing the
-// work that colour used to. These render on the white plot-detail sheet, so the ink is dark.
+// `available` takes the orange fill with a navy label (5.17:1) — the plot a buyer can act on — `sold`
+// the solid navy block, `blocked` an outline. The word is always spelled out, so the state never rests
+// on colour alone.
 const STATUS_META: Record<MasterPlanPlot['status'], { label: string; className: string }> = {
-  available: { label: 'Available', className: 'border border-secondary text-secondary' },
-  blocked: { label: 'Blocked', className: 'border border-edge text-muted' },
+  available: { label: 'Available', className: 'bg-accent text-secondary' },
+  blocked: { label: 'Blocked', className: 'border border-navyLine text-muted' },
   sold: { label: 'Sold', className: 'bg-secondary text-primary' },
 }
 
@@ -255,25 +253,25 @@ export function MasterPlan({ plan }: Props) {
     <section
       id="masterplan"
       data-masterplan
-      className={cn('w-full bg-secondary py-[8vw] text-primary max-sm:py-[16vw]', SECTION_SCROLL_MT)}
+      className={cn('pb-32 max-lg:pb-20', SECTION_SCROLL_MT)}
     >
-      <div className="layout-grid">
-        <h2 className="col-span-12 text-display-lg font-display max-sm:text-display-sm-lg sm:col-span-8">
-          Site Layout
+      <div className="layout-grid items-end gap-y-4">
+        <h2 className="col-span-12 font-heading text-h2 text-secondary max-sm:text-h2-sm lg:col-span-8">
+          Site layout
         </h2>
-        <p className="col-span-12 mt-[2vw] text-body text-primary/70 max-sm:mt-[6vw] max-sm:text-body-sm sm:col-span-4 sm:col-start-9 sm:mt-0">
+        <p className="col-span-12 text-body text-muted lg:col-span-4">
           {coarsePointer
             ? 'Pinch, drag or use the buttons to explore the layout, and tap a plot to see its size and availability.'
             : 'Scroll to zoom, drag to pan, or use the buttons to explore the layout, and select a plot to see its size and availability.'}
         </p>
       </div>
 
-      <div className="layout-grid mt-[6vw] max-sm:mt-[12vw]">
+      <div className="layout-grid mt-10 gap-y-8">
         <div
           ref={viewportRef}
           // The white sheet the drawing is laid on. `touch-none` so the browser hands every touch
           // gesture here to the pinch/pan handlers instead of scrolling the page.
-          className="relative col-span-12 aspect-[10/7] w-full touch-none overflow-hidden bg-offwhite sm:col-span-8"
+          className="relative col-span-12 aspect-[10/7] w-full touch-none overflow-hidden rounded-card bg-offwhite lg:col-span-8"
           data-cursor="zoom"
           onWheel={onWheel}
           onPointerDown={onPointerDown}
@@ -294,11 +292,11 @@ export function MasterPlan({ plan }: Props) {
               alt={plan.image.alt}
               fill
               sizes="(min-width: 640px) 66vw, 100vw"
-              // `grayscale` is what keeps the fixture's navy-and-orange draughting inside the
-              // palette. It stays a drawing rather than being swapped for a photograph, because the
-              // alt text describes a site layout and a photograph there would make the page assert
-              // something untrue.
-              className="pointer-events-none select-none object-contain grayscale"
+              // The fixture's draughting is already navy and orange on cream, so it is shown as drawn.
+              // It stays a drawing rather than being swapped for a photograph, because the alt text
+              // describes a site layout and a photograph there would make the page assert something
+              // untrue.
+              className="pointer-events-none select-none object-contain"
             />
             <svg viewBox={viewBox} preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full">
               {plan.plots.map((plot) => {
@@ -321,14 +319,13 @@ export function MasterPlan({ plan }: Props) {
                         selectPlot(plot.label)
                       }
                     }}
-                    // Dark strokes on the light sheet, and a translucent black wash for the
-                    // hover/focus/selected state. `stroke-2` on a viewBox this size is ~1px on
-                    // screen, which matches the hairline weight used everywhere else.
+                    // Navy strokes on the sheet, and an orange wash — the site's "clickable" colour —
+                    // for the hover/focus/selected state. `stroke-2` on a viewBox this size is ~1px.
                     className={cn(
-                      'cursor-pointer fill-transparent stroke-secondary stroke-2',
-                      'hover:fill-secondary/20 focus-visible:fill-secondary/20',
+                      'cursor-pointer fill-transparent stroke-secondary stroke-2 transition-[fill] duration-300',
+                      'hover:fill-accent/25 focus-visible:fill-accent/25',
                       'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
-                      isSelected && 'fill-secondary/20'
+                      isSelected && 'fill-accent/40'
                     )}
                   />
                 )
@@ -337,8 +334,8 @@ export function MasterPlan({ plan }: Props) {
           </div>
         </div>
 
-        <div className="col-span-12 mt-[3vw] max-sm:mt-[8vw] sm:col-span-3 sm:col-start-10 sm:mt-0">
-          <div className="flex flex-wrap gap-[0.8vw] max-sm:gap-[3vw]">
+        <div className="col-span-12 lg:col-span-4">
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => applyZoom(scale * ZOOM_STEP)}
@@ -363,16 +360,15 @@ export function MasterPlan({ plan }: Props) {
           {selectedPlot ? (
             // A second white sheet, echoing the plan's own — so the selected plot's facts read as
             // being written on the drawing rather than in a floating tooltip.
-            <div data-plot-detail className="mt-[1.6vw] bg-primary p-[1.2vw] text-secondary max-sm:mt-[5vw] max-sm:p-[4vw]">
-              <p className="text-lead max-sm:text-lead-sm">{selectedPlot.label}</p>
-              <p className="mt-[0.8vw] text-label text-muted max-sm:mt-[3vw] max-sm:text-label-sm">
+            <div data-plot-detail className="mt-6 rounded-card bg-tint p-6 text-secondary">
+              <p className="font-heading text-h4 max-sm:text-h4-sm">{selectedPlot.label}</p>
+              <p className="mt-2 text-small text-muted">
                 {selectedPlot.size}
                 {selectedPlot.facing ? ` · Facing ${selectedPlot.facing}` : ''}
               </p>
               <span
                 className={cn(
-                  'mt-[1.2vw] inline-flex items-center rounded-none px-[0.7vw] py-[0.25vw] font-mono text-mono uppercase',
-                  'max-sm:mt-[4vw] max-sm:px-[2vw] max-sm:py-[1vw] max-sm:text-mono-sm',
+                  'mt-4 inline-flex items-center rounded-full px-3 py-1 text-small',
                   STATUS_META[selectedPlot.status].className
                 )}
               >
@@ -380,7 +376,7 @@ export function MasterPlan({ plan }: Props) {
               </span>
             </div>
           ) : (
-            <p className="mt-[1.6vw] border border-primary/20 p-[1.2vw] text-label text-primary/70 max-sm:mt-[5vw] max-sm:p-[4vw] max-sm:text-label-sm">
+            <p className="mt-6 rounded-card border border-navyLine/60 p-6 text-small text-muted">
               Select a plot on the plan to see its size, facing and availability.
             </p>
           )}

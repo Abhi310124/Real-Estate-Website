@@ -17,9 +17,24 @@ type Props = React.HTMLAttributes<HTMLSpanElement> & {
   value: number
   suffix?: string
   'data-testid'?: string
+  /** Seconds. The statistics band counts for 1.5s, the layout's counterUp2 duration. */
+  duration?: number
+  /**
+   * ScrollTrigger start. `'bottom bottom'` fires once the number is FULLY on screen, which is the
+   * layout's own rule for its statistics (an IntersectionObserver at threshold 1).
+   */
+  start?: string
 }
 
-export function Counter({ value, suffix, className, 'data-testid': testId = 'counter', ...rest }: Props) {
+export function Counter({
+  value,
+  suffix,
+  className,
+  'data-testid': testId = 'counter',
+  duration = 2,
+  start = 'top 85%',
+  ...rest
+}: Props) {
   const numberRef = useRef<HTMLSpanElement>(null)
   const reduced = useReducedMotion()
 
@@ -33,11 +48,10 @@ export function Counter({ value, suffix, className, 'data-testid': testId = 'cou
       .then(({ gsap }) => {
         if (cancelled) return
         const counter = { val: 0 }
-        // Only jump the displayed text to "0" once the count-up is confirmed to be
-        // about to run. The element sits behind its own ScrollTrigger below the fold,
-        // so this never strands a visible "0" the way an unconditional reset on mount
-        // would — by the time it can be seen, the trigger has already fired.
-        el.textContent = '0'
+        // The final value stays on screen until the trigger fires, and the count starts from zero
+        // only then — the layout's own counterUp2 behaviour. Resetting the text to "0" as soon as the
+        // chunk loaded would strand a visible "0 Acres" in the band between the fold and the trigger
+        // line, which reads as a real (and wrong) figure rather than as an animation about to start.
         const t = gsap.to(counter, {
           val: value,
           // Brief specifies the trigger position exactly ("top 85%") but leaves
@@ -47,10 +61,10 @@ export function Counter({ value, suffix, className, 'data-testid': testId = 'cou
           // decelerating smoothly like the other reveal-class primitives without the
           // very sharp expo/power3 tail that can look like it stalls on the last few
           // integer steps of a number tween.
-          duration: 2,
+          duration,
           ease: 'power2.out',
           roundProps: 'val',
-          scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+          scrollTrigger: { trigger: el, start, once: true },
           onUpdate: () => {
             el.textContent = counter.val.toLocaleString('en-IN')
           },
@@ -71,7 +85,7 @@ export function Counter({ value, suffix, className, 'data-testid': testId = 'cou
       cancelled = true
       kill?.()
     }
-  }, [reduced, value])
+  }, [reduced, value, duration, start])
 
   // Renders the final value by default; only JS rewrites it, and only once motion is
   // confirmed allowed and the count-up is about to run.

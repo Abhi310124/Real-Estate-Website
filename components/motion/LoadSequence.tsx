@@ -2,77 +2,79 @@
 import { useEffect } from 'react'
 import { getGsap } from './gsap'
 import { releaseLoadScrollLock, requestLoadScrollLock } from './LenisProvider'
-import {
-  claimLoadSequence,
-  emitAllLoadStages,
-  emitCurtainCleared,
-  emitLoadStage,
-  loadSequenceActive,
-} from './loadCues'
+import { claimLoadSequence, emitAllLoadStages, emitCurtainCleared, loadSequenceActive } from './loadCues'
 
 /**
  * The single clock behind the opening.
  *
- * The reference's first load is one composition of 4079ms in which 19 elements move, and its
- * character lives entirely in the offsets between them (t0 = the frame the curtain begins to fade):
+ * Two phases, measured off the layout this site follows:
  *
- *   t0+0.00  curtain   opacity 1 → 0        0.75s  power4.inOut
- *   t0+0.30  wordmark  opacity 0 → 1        1.5s   power4.out
- *   t0+1.30  scroll unlock, on the same frame as the cascade
- *   t0+1.30  hairlines opacity 0 → 1        0.5s   power2.out, stagger 0.05
- *   t0+1.302 headline  yPercent 100 → 0     0.75s  power2.out, stagger 0.06
- *   t0+1.50  nav links opacity 0 → 1        1.5s   power4.out
- *   t0+1.55  photo     opacity 0 → 1        1.35s  power4.out
- *   t0+1.55  photo     scale 1.1 → 1        1.2s   power3.out
- *   t0+1.55  CTA       opacity 0 → 1        1.0s   power4.out
+ *   phase 1  counter 0 → 100% (1.5s, linear) and a 2px rule sliding in (2.0s, expo.inOut); the rule fades
+ *            (0.3s), then the counter and brand line (0.5s)                         — full opening only
+ *   phase 2  the panel slides off to the right, translateX 0 → 100%, expo.inOut: 1.2s after the full
+ *            opening, 1.5s as the quick wipe on every other load
  *
- * Two of those offsets are the whole opening and are the easy ones to lose. The wordmark starts at
- * t0+0.30, while the curtain is still ~40% opaque, so it rises *through* the black instead of
- * appearing once the black has gone. And because the hero keeps its own opaque background while its
- * contents sit at their from-states, the viewport stays solid black with nothing but the wordmark on
- * it for a further ~550ms after the curtain reaches 0 at t0+0.75. That 550ms beat is why the
- * reference reads as an opening rather than a flash; it needs no second overlay, only cues that
- * arrive later than the curtain does.
+ * **Phase 1 starts at once; phase 2 is what waits.** The panel covers the page, so nothing needs to be
+ * ready before the counter runs — waiting there would only stretch a sequence that is already four
+ * seconds long. What must be ready is the page at the moment it is uncovered: fonts, and the hero
+ * photograph decoded. So the wipe is gated on those (with a ceiling, so a cold network can never
+ * strand a visitor behind the panel), and the quick wipe carries a short floor so a warm cache does
+ * not turn the reveal into a flicker.
  *
- * Every entrance is an out-ease. `inOut` appears exactly once, on the curtain — the only thing that
- * leaves. One in-out curve used for entrances as well (which is what a single Tailwind
- * `ease-in-out` gives you) makes everything accelerate from a standstill and reads sluggish.
+ * **Nothing on the first screen animates in.** The page is composed underneath the panel and is at
+ * rest the moment it is uncovered; the wipe IS the entrance. Every cue is therefore fired on the frame
+ * the wipe starts, so any component that waits on one is already in its final state when it appears.
  *
- * **Why one timeline and a cue bus.** The beats land in the header, in the hero and on the curtain,
- * which have no common ancestor below the root layout. Timing each component from its own mount
- * would scatter the offsets across three files and make them hostage to hydration order, and the
- * 2ms between the hairlines and the headline lines is not something separate timers can hold. So
- * this component owns the clock, tweens the curtain itself, and publishes the rest through
- * `loadSequence.ts`. It renders nothing.
- *
- * **Why the hold is gated and not timed.** Before t0 the reference holds solid black for ~1150ms,
- * but not on a timer: three loads measured 912 / 1178 / 1211ms, because it is waiting on its own
- * hydration. Ours waits on the two things that would otherwise be visibly unfinished when the black
- * clears — webfonts and the hero photograph's decode — with a 1150ms floor so a warm cache cannot
- * turn the opening into a flicker, and a hard 2000ms ceiling so a cold network cannot strand a
- * visitor behind a black screen. Both are measured from first contentful paint, because that is when
- * the visitor started looking at black, not from this effect, which runs whenever hydration gets
- * round to it.
- *
- * **Why nothing here can leave the page stuck.** The lock is a real one — Lenis holds the visitor at
- * scrollY 0 for the length of the black, where before a single trackpad flick would scroll the page
- * away behind the curtain and lift it onto the middle of the document. But an unscrollable page is a
- * far worse bug than a missing animation, so the unlock has three independent routes: the timeline's
- * own cue, the catch around the whole setup, and a watchdog timer that is armed before any of it and
- * never cancelled outright, only re-armed to the timeline's real end. Every one of those routes also
- * fires every remaining cue, so no component is ever left holding a from-state for a beat that is
- * not coming.
+ * **Why nothing here can leave the page stuck.** Scroll is held from the first byte (a class the
+ * server renders on <html>) and released as the wipe begins. An unscrollable page is a far worse bug
+ * than a missing animation, so the release has three independent routes: the wipe's own cue, the catch
+ * around the whole setup, and a watchdog armed before any of it and only ever re-armed to the real
+ * end. Every one of them also fires every cue and clears the panel.
  */
 
-const HOLD_FLOOR_MS = 1150
-const HOLD_CEILING_MS = 2000
+/** The latest the wipe may wait for fonts and the hero photograph, measured from first paint. */
+const HOLD_CEILING_MS = 2800
 
 /**
- * The watchdog's arming distance, from this effect. A legitimate sequence starts at most
- * HOLD_CEILING_MS after first paint and ends 1.55s later, so 4s clears the slowest honest run while
- * still being soon enough that a visitor who hit the pathological path is not staring at black.
+ * The shortest time the quick panel may stay up. Without a floor a warm cache would start the wipe
+ * on the first frame, and a 1.5s slide that begins before the eye has registered the panel reads as
+ * a flicker rather than a reveal.
  */
-const WATCHDOG_MS = 4000
+const WIPE_FLOOR_MS = 350
+
+/**
+ * The watchdog's arming distance, from this effect. The full opening is ~2.8s of counter and rule
+ * plus a 1.2s wipe; 7s clears the slowest honest run while still being soon enough that a visitor
+ * who hit the pathological path is not left looking at a navy screen.
+ */
+const WATCHDOG_MS = 7000
+
+/** sessionStorage key marking that this tab has already been shown the full opening. */
+const OPENED_KEY = 'bkr-opening-played'
+
+/**
+ * Whether this load gets the full opening — counter, rule and all — or only the panel wipe.
+ *
+ * Full on the first home-page load of a session, and nowhere else. That is where the layout this site
+ * follows plays it, and it is where the counter means something: it is the first thing a new visitor
+ * sees. On every other page, and on a return to the home page, the four-second sequence would be
+ * ceremony the visitor has already watched.
+ *
+ * Claiming it here marks the session as it is read, so a reload does not replay it. Storage is
+ * wrapped because Safari's private mode and some embedded browsers throw on access; the fallback is
+ * the quick wipe, never the full sequence, since the worst outcome of this check is a long opening
+ * repeated on every page.
+ */
+function claimFullOpening(): boolean {
+  if (window.location.pathname !== '/') return false
+  try {
+    if (window.sessionStorage.getItem(OPENED_KEY)) return false
+    window.sessionStorage.setItem(OPENED_KEY, '1')
+    return true
+  } catch {
+    return false
+  }
+}
 
 /** Slack added to the timeline's own duration when the watchdog is re-armed behind a running one. */
 const WATCHDOG_SLACK_MS = 750
@@ -176,50 +178,78 @@ export function LoadSequence() {
     const gsapReady = getGsap()
 
     ;(async () => {
-      await Promise.race([
-        Promise.all([gsapReady, fontsReady(), heroImageDecoded()]),
-        until(HOLD_CEILING_MS),
-      ])
-      await until(HOLD_FLOOR_MS)
       const { gsap } = await gsapReady
       if (cancelled || settled) return
 
       const curtain = document.querySelector<HTMLElement>('[data-load-curtain]')
-      const tl = gsap.timeline()
+      if (!curtain) {
+        revealEverything()
+        return
+      }
+      const counter = curtain.querySelector<HTMLElement>('[data-load-counter]')
+      const line = curtain.querySelector<HTMLElement>('[data-load-line]')
+      const progress = curtain.querySelector<HTMLElement>('[data-load-progress]')
+      const full = claimFullOpening()
 
-      if (curtain) {
-        // Tweened from here rather than left as a CSS transition on the curtain itself: it is the
-        // t0 every other offset is measured against, and a transition on another element cannot be
-        // in the same timeline as the cues that overlap it. power4.inOut compresses the perceived
-        // movement into a ~370ms middle band with long flat shoulders — the reference sits
-        // resolutely black, then clears decisively.
-        tl.to(curtain, { opacity: 0, duration: 0.75, ease: 'power4.inOut', onComplete: emitCurtainCleared }, 0)
+      // ── Phase 1: the counter and the rule. Starts at once — the panel covers the page, so there
+      // is nothing yet to be ready FOR, and waiting here only lengthens a sequence that is already
+      // four seconds long. ─────────────────────────────────────────────────────────────────────────
+      const intro = gsap.timeline()
+      if (full) {
+        const tally = { v: 0 }
+        intro
+          // Linear over 1.5s: the layout counts with counterUp2 at its defaults, which steps evenly
+          // through the range every 16ms rather than easing into it.
+          .to(tally, {
+            v: 100,
+            duration: 1.5,
+            ease: 'none',
+            onUpdate: () => {
+              if (counter) counter.textContent = `${Math.round(tally.v)}%`
+            },
+          }, 0)
+          // fromTo, not to: the rule's rest state is Tailwind's `-translate-x-full`, which GSAP would
+          // read back as a pixel offset rather than a percentage and then tween in the wrong unit.
+          .fromTo(progress, { xPercent: -100, x: 0 }, { xPercent: 0, duration: 2.0, ease: 'expo.inOut' }, 0)
+          .to(progress, { opacity: 0, duration: 0.3 }, 2.0)
+          .to([counter, line], { opacity: 0, duration: 0.5 }, 2.3)
       } else {
-        emitCurtainCleared()
+        // A repeat visit, or any page other than the home page: the panel alone, which is what the
+        // layout itself does off the home page. Four seconds of counter on every navigation would be
+        // a theatre the visitor has already sat through.
+        gsap.set([counter, line, progress], { opacity: 0 })
       }
 
-      tl.call(() => emitLoadStage('wordmark'), undefined, 0.3)
-        // Unlocked on the same frame the cascade starts, exactly as measured — the visitor is
-        // released into a page that has just begun to move rather than one that is still black.
-        .call(releaseLoadScrollLock, undefined, 1.3)
-        .call(() => emitLoadStage('rules'), undefined, 1.3)
-        .call(() => emitLoadStage('text'), undefined, 1.302)
-        .call(() => emitLoadStage('nav'), undefined, 1.5)
-        .call(() => emitLoadStage('media'), undefined, 1.55)
-        .call(() => emitLoadStage('cta'), undefined, 1.55)
+      kill = () => intro.kill()
 
-      // Re-armed rather than cancelled: the timeline is now the thing that unlocks scrolling, so the
-      // net has to outlive it, but it must no longer be able to cut a legitimate fade short.
+      // ── Phase 2: the wipe, gated on the page actually being ready to be seen. This is where the
+      // floor and ceiling now apply — the moment of uncovering, not the moment of loading. ─────────
+      await Promise.all([
+        new Promise<void>((resolve) => intro.eventCallback('onComplete', () => resolve())),
+        Promise.race([Promise.all([fontsReady(), heroImageDecoded()]), until(HOLD_CEILING_MS)]),
+        until(full ? 0 : WIPE_FLOOR_MS),
+      ])
+      if (cancelled || settled) return
+
+      const wipe = gsap.timeline()
+      wipe
+        // Released as the sheet starts to move: the visitor gets the page the instant it begins to
+        // appear, rather than watching it slide into view and then finding it will not scroll.
+        .call(releaseLoadScrollLock, undefined, 0)
+        .call(emitAllLoadStages, undefined, 0)
+        .to(curtain, { xPercent: 100, duration: full ? 1.2 : 1.5, ease: 'expo.inOut', onComplete: emitCurtainCleared }, 0)
+
       window.clearTimeout(watchdog)
       watchdog = window.setTimeout(
         () => {
           if (!cancelled) revealEverything()
         },
-        tl.duration() * 1000 + WATCHDOG_SLACK_MS
+        wipe.duration() * 1000 + WATCHDOG_SLACK_MS
       )
 
       kill = () => {
-        tl.kill()
+        intro.kill()
+        wipe.kill()
       }
     })().catch((err) => {
       // A failed GSAP chunk must degrade to visible, unanimated content — never to a page held

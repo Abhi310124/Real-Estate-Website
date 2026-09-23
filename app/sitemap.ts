@@ -9,10 +9,9 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
 // Static routes only.
 //
-// `/studio` is the public practice page and belongs in the index. `/about` is gone from this list
-// because it no longer renders anything — it is a permanent redirect to `/studio` (see
-// app/about/page.tsx), and listing a redirect in a sitemap asks crawlers to index a URL that only
-// ever points elsewhere.
+// `/about` and `/blog` are the pages; `/studio` and `/journal` (their previous names) are absent
+// because they are now permanent redirects (see `redirects()` in next.config.ts), and listing a
+// redirect in a sitemap asks crawlers to index a URL that only ever points elsewhere.
 //
 // Two routes are deliberately absent and always will be: `/motion-lab` (a development harness) and
 // `/admin` (the embedded Sanity Studio). Both are also `Disallow`ed in robots.ts — the sitemap is
@@ -28,7 +27,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 // `published()` / `publishedPosts()` helpers in lib/data/mock.ts and the same gating in the Sanity
 // queries), so hiding a project or a post removes it from the sitemap for free rather than by any
 // extra logic here.
-const STATIC_ROUTES = ['', '/projects', '/studio', '/journal', '/contact']
+const STATIC_ROUTES = ['', '/about', '/projects', '/blog', '/contact']
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [projectSlugs, journalSlugs] = await Promise.all([getAllProjectSlugs(), getAllJournalSlugs()])
@@ -43,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
     })),
     ...journalSlugs.map((slug) => ({
-      url: `${SITE_URL}/journal/${slug}`,
+      url: `${SITE_URL}/blog/${slug}`,
       lastModified: new Date(),
     })),
   ]

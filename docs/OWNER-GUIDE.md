@@ -6,10 +6,9 @@ know anything about code. Everything here is done through a web page, in a brows
 The editing area is called the **Studio**. You get to it by adding `/admin` to the end of the
 website address — for example `https://www.bkrinfra.com/admin`.
 
-One thing worth knowing so it does not catch you out: the website itself now has a page called
-**Studio** too — it is the public page about BKR INFRA, the one visitors reach from the menu at the
-top of the site. That is a page anyone can read. The editing area at `/admin` is the private one,
-and only people with an account can open it. Same word, two different things.
+The public pages visitors reach from the menu are **Home**, **About**, **Projects** and **Blog**
+(the old `/studio` and `/journal` addresses still work and forward to **About** and **Blog**). The
+editing area at `/admin` is the private one, and only people with an account can open it.
 
 ---
 
@@ -116,9 +115,10 @@ Click **Site Settings** in the left menu. Everything here affects the whole webs
   link so people can click through.
 - **Pillars**, **Categories**, **Footer text**, **RERA disclaimer** — the standing text used in
   several places across the site. The three **Pillars** (Develop, Design, Deliver) are the numbered
-  rows on the public **Studio** page, so the wording you put here is the wording visitors read.
-- **Stats** — the four big numbers on the public **Studio** page. **These need your real figures** —
-  see section 9.
+  values under "What drives us" on the home page and the three large words on the **About** page, so
+  the wording you put here is the wording visitors read.
+- **Stats** — not currently shown anywhere on the site. The big numbers on the home and **About**
+  pages are counted automatically from your published projects instead — see section 9.
 
 Click **Publish** when you are done.
 
@@ -181,22 +181,27 @@ photographs, so nobody will mistake one for a real BKR development:
 **Media**, **Plans** and **Content** sections. Upload the brochure PDF in the **Plans** section.
 The home page background is the one item a developer has to swap for you — ask them.
 
-### Placeholder numbers on the Studio page
+### The big numbers on the home and About pages
 
-The four big figures on the public **Studio** page are **placeholders, not verified facts**. They
-are shown there under the heading "At a glance — indicative figures", which is honest wording while
-they remain estimates, but it is not a substitute for the real numbers:
+These are **counted automatically from your published projects** — how many there are, how many
+are under way or launching, how many localities they are in, and what share have a RERA number
+entered. They change by themselves when you publish, hide or edit a project, so they can never
+claim more than the portfolio on the site. There is nothing to type.
 
-| Shown on the site | Needs |
-| --- | --- |
-| 12+ Projects Delivered | your real completed-project count |
-| 22 Lakh+ Sq.ft. Developed | your real developed area |
-| 650+ Families Served | your real number of buyers |
-| 9 Years of Excellence | your real years in business |
+The **Stats** list in Site Settings is not shown anywhere at the moment. Its four figures were
+placeholders, so they have been kept off the site rather than published as fact.
 
-**Please treat these as urgent.** They are public claims about BKR INFRA, and publishing figures
-that are not accurate is a real risk — commercially and legally. Change them in **Site
-Settings → Stats**. You do not need a developer.
+### Registration numbers in the footer
+
+The footer lists each **upcoming** or **ongoing** project with its **RERA number** — taken from the
+RERA field on the project itself. Check every project's RERA number is the real registration before
+launch: the ones in the sample projects are examples, not registrations.
+
+### Placeholder testimonials
+
+The three quotes under "Hear it from our buyers" on the home page are **placeholders** and are
+marked `PLACEHOLDER` on the page itself. They need replacing with real, attributable quotes from
+buyers — ask a developer to swap them, as they live in the site's code rather than in the Studio.
 
 ### Things deliberately left empty
 
@@ -223,4 +228,4 @@ Neither is a bug. Both start working the moment you fill them in.
 | See who has enquired | **Leads** |
 | Change a phone number or the address | **Site Settings** |
 | Turn the top announcement strip on or off | Site Settings → **Announcement bar** |
-| Fix the four numbers on the Studio page | Site Settings → **Stats** |
+| Change the big numbers on the home page | publish, hide or edit projects — they count themselves |

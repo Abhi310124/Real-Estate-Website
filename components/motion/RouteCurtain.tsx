@@ -5,32 +5,26 @@ import { getGsap } from './gsap'
 import { useReducedMotion } from './useReducedMotion'
 
 /**
- * The black curtain that covers every internal navigation.
+ * The navy panel that sweeps across every internal navigation.
  *
- * The reference does not swap routes in place — it blacks the screen out, changes the page behind
- * the black, and fades back in. That single transition is the most frequently seen piece of motion
- * on the whole site, and without it a click on the nav reads as a browser reload rather than as a
- * move inside one document.
+ * Every page of the layout this site follows opens with the same gesture: a full-viewport panel,
+ * already covering the screen, that slides off to the right to uncover the page. A client-side
+ * navigation here reproduces that as one continuous pass — the panel sweeps IN from the left edge,
+ * the route swaps behind it, and it carries on OUT past the right edge. One direction of travel for
+ * the whole transition, so it reads as a single sheet drawn across the page rather than as a door
+ * that opens and shuts.
  *
- * ## The curve, and why it is not an ease-in-out
+ * ## The timing
  *
- * The reference's overlay opacity was rAF-sampled across a nav click. Reading the raw frames:
- * first movement at 45ms, exact 1.0 at 694ms, full black until ~862ms, exact 0 at 1515ms. So the
- * two ramps are ~645ms each with a ~170ms hold between them, and the values mirror each other
- * frame for frame (0.9085, 0.8754, 0.8362, 0.7842, 0.7197, 0.5511, 0.4489, 0.0986 appear in both
- * directions) — one symmetric tween, played forward then backward.
+ *   cover   translateX −100% → 0     0.6s   expo.inOut
+ *   hold    ~170ms at full cover, while the new route mounts and paints
+ *   reveal  translateX 0 → +100%     1.2s   expo.inOut — the same curve and length as the opening's
+ *                                            own wipe, so a navigation and a first load match
  *
- * The ramp is much flatter at the ends and much steeper in the middle than an ease-in-out. At the
- * midpoint the measured slope is ~6.8/s; a 645ms `power2.inOut` can only reach 3.1/s there. Fitting
- * the exponent against the sampled frames, with the start and end anchored to the measured ones:
- *
- *     power2.inOut  RMSE 0.081     power3.inOut  RMSE 0.036
- *     power4.inOut  RMSE 0.012     power5.inOut  RMSE 0.022
- *
- * `power4.inOut` it is. The difference is not academic: at 260ms the reference is at 0.0898, and a
- * `power2.inOut` of the same length would be at 0.275 — three times as dark. Reading the curve as
- * an ease-in-out is the intuitive mistake here, and it costs the transition its character, which is
- * that almost nothing happens for the first third and then the screen slams shut.
+ * The cover is deliberately quicker than the reveal. It hides a moment the visitor has already
+ * committed to and wants over with; the reveal is the new page arriving, which is the part worth
+ * watching. `expo.inOut` spends most of its time near the ends, so the panel appears to gather, cross
+ * decisively, and settle — rather than sliding at a constant, mechanical speed.
  *
  * ## Covering the swap in the App Router
  *
@@ -43,18 +37,17 @@ import { useReducedMotion } from './useReducedMotion'
  *      how the mobile sheet still closes on tap. This works without touching a single `<Link>`:
  *      `onNavigate` would have meant editing every call site.
  *   2. When the cover tween completes, `router.push()` runs. The swap therefore happens behind
- *      solid black, which is the entire point.
+ *      the solid panel, which is the entire point.
  *   3. `usePathname()` changing is the commit cue. Two frames later (a passive effect can run
  *      before the browser has painted) the reveal starts, delayed by whatever is left of the 170ms
  *      hold — so a prefetched route that commits in 10ms still holds the full 170ms, and a slow one
  *      reveals as soon as it lands.
  *
  * Back/forward is deliberately asymmetric. `popstate` fires *after* the browser has moved the
- * history entry, so there is no point at which a 645ms cover could run ahead of the swap — a
- * fade-to-black started there would show the visitor the new page and then hide it, which reads as
- * a bug. Instead the curtain is snapped straight to 1 in the popstate handler, before the router's
- * re-render can paint, and only the reveal is animated. A cut to black and a fade up is honest film
- * grammar, and it makes an arrival by Back feel identical to an arrival by link.
+ * history entry, so there is no point at which a cover could run ahead of the swap — a sweep started
+ * there would show the visitor the new page and then hide it, which reads as a bug. Instead the panel
+ * is snapped straight to full cover in the popstate handler, before the router's re-render can
+ * paint, and only the reveal is animated, which makes an arrival by Back look like an arrival by link.
  *
  * ## Never, ever strand the visitor behind black
  *
@@ -106,10 +99,10 @@ type GsapInstance = Awaited<ReturnType<typeof getGsap>>['gsap']
  */
 type Phase = 'idle' | 'covering' | 'awaiting' | 'revealing'
 
-const COVER_S = 0.65
-const REVEAL_S = 0.65
+const COVER_S = 0.6
+const REVEAL_S = 1.2
 const HOLD_MS = 170
-const EASE = 'power4.inOut'
+const EASE = 'expo.inOut'
 
 /** Reveal anyway if the route has not committed by here — old page beats a black screen. */
 const COMMIT_TIMEOUT_MS = 2000
@@ -123,8 +116,8 @@ const FAILSAFE_MS = 4500
  * modified and non-primary clicks (new tab/window), downloads — including the synthetic anchor the
  * brochure gate clicks — `target`ed and `rel="external"` links, cross-origin URLs (which is also
  * what excludes `mailto:` and `tel:`, whose origin is opaque), same-path clicks such as the
- * `#main` skip link, API routes, anything with a file extension, and anything inside
- * `[data-no-curtain]`.
+ * `#main` skip link, API routes, anything with a file extension, anything inside
+ * `[data-no-curtain]`, and a link whose `data-scroll-target` names a block present on this page.
  *
  * The Sanity Studio is excluded wholesale: it is a client app that routes itself and calls
  * `preventDefault()` in its own handlers, which run after this one, so intercepting there would
@@ -142,6 +135,10 @@ function navigableHref(event: MouseEvent): string | null {
   if (anchor.target !== '' && anchor.target !== '_self') return null
   if (anchor.rel.split(/\s+/).includes('external')) return null
   if (anchor.closest('[data-no-curtain]') !== null) return null
+  // A link that glides to a block on THIS page when the block exists (the header's "Enquire Now" and
+  // `#enquire`) is an in-page jump there, not a navigation; its own click handler does the scrolling.
+  const scrollTarget = anchor.dataset.scrollTarget
+  if (scrollTarget && document.getElementById(scrollTarget)) return null
 
   const here = window.location
   if (here.pathname === '/admin' || here.pathname.startsWith('/admin/')) return null
@@ -204,9 +201,11 @@ export function RouteCurtain() {
     if (el !== null) {
       if (gsap !== null) {
         gsap.killTweensOf(el)
-        // Drop the inline opacity rather than setting it to 0, so the element goes back to being
-        // governed by its `opacity-0` class and nothing here is left asserting a value.
-        gsap.set(el, { clearProps: 'opacity' })
+        // Drop the inline transform rather than setting one, so the element goes back to being
+        // parked off-screen by its `-translate-x-full` class and nothing here is left asserting a
+        // value. It has just finished sliding off to the RIGHT; clearing returns it, unseen, to the
+        // left edge, ready to sweep in from the same side next time.
+        gsap.set(el, { clearProps: 'transform' })
       }
       el.dataset.phase = 'idle'
     }
@@ -235,7 +234,7 @@ export function RouteCurtain() {
     phaseRef.current = 'revealing'
     el.dataset.phase = 'revealing'
     gsap.to(el, {
-      opacity: 0,
+      xPercent: 100,
       duration: REVEAL_S,
       delay: Math.max(0, HOLD_MS - (performance.now() - coveredAtRef.current)) / 1000,
       ease: EASE,
@@ -322,11 +321,15 @@ export function RouteCurtain() {
       gsap.killTweensOf(el)
       clearWatchdog()
       armFailsafe()
+      // From rest the start position must be stated: the panel is parked by a Tailwind class, and GSAP
+      // reads that back as a pixel offset rather than as the -100% it is, then tweens the wrong unit.
+      // From `revealing` it already carries GSAP's own xPercent, so it sweeps back from where it is.
+      if (phaseRef.current !== 'revealing') gsap.set(el, { x: 0, xPercent: -100 })
       hrefRef.current = href
       committedRef.current = false
       phaseRef.current = 'covering'
       el.dataset.phase = 'covering'
-      gsap.to(el, { opacity: 1, duration: COVER_S, ease: EASE, onComplete: onCovered })
+      gsap.to(el, { xPercent: 0, duration: COVER_S, ease: EASE, onComplete: onCovered })
     }
 
     const onPopState = () => {
@@ -345,7 +348,7 @@ export function RouteCurtain() {
       phaseRef.current = 'awaiting'
       el.dataset.phase = 'awaiting'
       coveredAtRef.current = performance.now()
-      gsap.set(el, { opacity: 1 })
+      gsap.set(el, { x: 0, xPercent: 0 })
       watchdogRef.current = window.setTimeout(reveal, COMMIT_TIMEOUT_MS)
     }
 
@@ -380,7 +383,7 @@ export function RouteCurtain() {
       // navigation from re-rendering anything.
       data-phase="idle"
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[999999] bg-secondary opacity-0 motion-reduce:hidden"
+      className="pointer-events-none fixed inset-0 z-[999999] -translate-x-full bg-secondary [will-change:transform] motion-reduce:hidden"
     />
   )
 }

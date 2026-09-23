@@ -44,7 +44,8 @@ const projectSummaryProjection = /* groq */ `
   priceUnit,
   priceOnRequest,
   unitTypes,
-  heroImage ${rawImage}
+  heroImage ${rawImage},
+  reraNumber
 `
 
 export const projectsQuery = /* groq */ `
@@ -86,7 +87,6 @@ export const projectBySlugQuery = /* groq */ `
     },
     connectivity[] { place, distance },
     "brochureUrl": brochure.asset->url,
-    reraNumber,
     seo {
       metaTitle,
       metaDescription,
