@@ -1,5 +1,6 @@
 'use client'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useRoutePath } from '@/components/layout/useRoutePath'
 import { useCallback, useEffect, useRef } from 'react'
 import { getGsap } from './gsap'
 import { useReducedMotion } from './useReducedMotion'
@@ -162,7 +163,7 @@ function navigableHref(event: MouseEvent): string | null {
 
 export function RouteCurtain() {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = useRoutePath()
   const reduced = useReducedMotion()
 
   const elRef = useRef<HTMLDivElement | null>(null)

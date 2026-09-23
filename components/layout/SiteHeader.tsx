@@ -1,8 +1,8 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useEffect, useId, useState } from 'react'
 import { LogoMark } from '@/components/brand/LogoMark'
+import { useRoutePath } from '@/components/layout/useRoutePath'
 import { scrollToElement } from '@/components/motion/LenisProvider'
 import { RingButton } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
@@ -114,7 +114,7 @@ function MenuButton({ open, onToggle, controls }: { open: boolean; onToggle: () 
 }
 
 export function SiteHeader({ settings }: { settings: SiteSettings }) {
-  const pathname = usePathname() ?? '/'
+  const pathname = useRoutePath()
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const phone = settings.phones[0]
