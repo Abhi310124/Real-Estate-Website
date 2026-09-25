@@ -28,9 +28,9 @@ function deriveStats(projects: ProjectSummary[]) {
   const share = projects.length ? Math.round((registered / projects.length) * 100) : 0
   return [
     { value: projects.length, suffix: '', label: 'Projects across Hyderabad' },
-    { value: active, suffix: '', label: 'Under way or launching now' },
-    { value: localities, suffix: '', label: 'Growth corridors we build in' },
-    { value: share, suffix: '%', label: 'Of our projects RERA-registered' },
+    { value: active, suffix: '', label: 'Projects under way' },
+    { value: localities, suffix: '', label: 'Localities we build in' },
+    { value: share, suffix: '%', label: 'RERA-registered projects' },
   ].filter((s) => s.value > 0)
 }
 
@@ -77,7 +77,7 @@ export function HomeStatistics({ projects }: { projects: ProjectSummary[] }) {
         <dl className="col-span-12 mt-2 flex flex-col gap-24 max-lg:mt-16 max-lg:gap-14 lg:col-span-5 lg:col-start-8">
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col-reverse">
-              <dt className="mt-8 font-heading text-h4-sm text-secondary max-sm:mt-4 max-sm:text-body">{stat.label}</dt>
+              <dt className="mt-8 text-large text-secondary max-sm:mt-4 max-sm:text-body">{stat.label}</dt>
               <dd className="font-heading text-stat text-secondary max-sm:text-stat-sm">
                 <Counter value={stat.value} suffix={stat.suffix} duration={1.5} start="bottom bottom" data-testid="stat-counter" />
               </dd>

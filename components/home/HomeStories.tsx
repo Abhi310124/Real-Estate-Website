@@ -44,7 +44,7 @@ export function HomeStories({ settings }: { settings: SiteSettings }) {
 
       <div className="layout-grid mt-24 items-start gap-y-12 max-lg:mt-12">
         <p className="col-span-12 font-heading text-h3 text-secondary max-sm:text-h3-sm lg:col-span-7">
-          {STORIES.story.before}
+          <span className="block">{STORIES.story.opening}</span>
           <span className="text-accentInk">{STORIES.story.accent}</span>
           {STORIES.story.after}
         </p>

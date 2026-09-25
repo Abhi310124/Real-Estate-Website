@@ -43,7 +43,7 @@ type Props = {
 
 /**
  * `/projects`, in the order of the layout it follows: the page intro with a jump link to the listing;
- * "Our latest project" as one full-width plate; a gradient rule; then "Our projects" with the filters
+ * "Our Latest Project" as one full-width plate; a gradient rule; then "Our Projects" with the filters
  * and the two-up grid; the doors.
  *
  * Filtering happens here, server-side, on a plain GET with the filters in the URL rather than in
@@ -67,12 +67,12 @@ export default async function ProjectsPage({ searchParams }: Props) {
   return (
     <>
       <PageIntro
-        crumb="Projects"
-        lines={[{ accent: 'Land and homes', after: ', laid out' }, 'across Hyderabad']}
+        label="Projects"
+        lines={[{ accent: 'Homes', after: ' that are an' }, 'extension of your life']}
         aside={
           <Link
             href="#our-projects"
-            className="font-heading text-h4 text-secondary transition-colors duration-300 hover:text-accentInk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary max-sm:text-body"
+            className="font-heading text-large text-secondary transition-colors duration-300 hover:text-accentInk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary max-sm:text-body"
           >
             View all projects
           </Link>
@@ -82,7 +82,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
       {latest && latestImage && (
         <section className="container-page mt-36 max-lg:mt-16" aria-labelledby="latest-heading">
           <Rise as="h2" id="latest-heading" className="font-heading text-h2 text-secondary max-sm:text-h2-sm">
-            Our latest project
+            Our Latest Project
           </Rise>
           <Link
             href={`/projects/${latest.slug}`}
@@ -90,7 +90,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
           >
             <div className="flex items-start justify-between gap-6">
               <div>
-                <p className="font-heading text-h4 text-secondary max-sm:text-h4-sm">{latest.title}</p>
+                <p className="font-heading text-lede text-secondary max-sm:text-h4-sm">{latest.title}</p>
                 <p className="mt-1 text-body text-muted">
                   {latest.location.area}, {latest.location.city}
                 </p>
@@ -120,7 +120,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
       <section id="our-projects" className="scroll-mt-[calc(var(--header-h)+24px)] pb-16 pt-24 max-lg:pt-16" aria-labelledby="all-heading">
         <div className="container-page">
           <Rise as="h2" id="all-heading" className="font-heading text-h2 text-secondary max-sm:text-h2-sm">
-            Our projects
+            Our Projects
           </Rise>
           <div className="mt-10">
             <FilterBar categories={settings.categories} active={{ category, status }} />

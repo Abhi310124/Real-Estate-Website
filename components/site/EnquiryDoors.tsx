@@ -46,7 +46,8 @@ const OPEN_DEG = 20
 type Props = {
   /** Anchor id for the header's "Enquire Now". One per page. */
   id?: string
-  heading?: { text: string; accent: string }
+  /** One entry per desktop line; each may end in an orange `accent`. */
+  heading?: ReadonlyArray<{ text: string; accent: string }>
   intro?: string
   className?: string
 }
@@ -126,9 +127,16 @@ export function EnquiryDoors({ id = 'enquire', heading = ENQUIRY.heading, intro 
           </div>
 
           <div ref={content} className="relative mx-auto max-w-[426px] px-5 pb-40 pt-28 max-lg:pb-24 max-lg:pt-16">
-            <h2 className="text-center font-heading text-h2 text-secondary max-sm:text-h2-sm">
-              <span className="block">{heading.text}</span>
-              <span className="block text-accentInk">{heading.accent}</span>
+            {/* The heading may run wider than the form column beneath it, as the reference's does:
+                its first line is longer than the fields are wide. On a phone the lines run on and wrap. */}
+            <h2 className="text-center font-heading text-h2 text-secondary max-sm:text-h2-sm lg:-mx-10">
+              {heading.map((line, i) => (
+                <span key={line.text + line.accent} className="lg:block">
+                  {line.text}
+                  {line.accent && <span className="text-accentInk">{line.accent}</span>}
+                  {i < heading.length - 1 && ' '}
+                </span>
+              ))}
             </h2>
             <p className="mx-auto mt-5 max-w-[370px] text-center text-body text-secondary">{intro}</p>
             <EnquiryForm />
@@ -244,10 +252,10 @@ function EnquiryForm() {
     <form onSubmit={onSubmit} noValidate aria-label="Enquiry" className="mt-16 space-y-6 text-left max-lg:mt-10">
       <Field name="name" label="Name" autoComplete="name" error={errors.name} />
       <Field name="email" label="Email" type="email" autoComplete="email" inputMode="email" error={errors.email} />
-      <Field name="phone" label="Phone number" type="tel" autoComplete="tel" inputMode="tel" error={errors.phone} />
+      <Field name="phone" label="Phone Number" type="tel" autoComplete="tel" inputMode="tel" error={errors.phone} />
 
       <fieldset className="pt-2">
-        <legend className="px-2 text-body text-muted">Type of property</legend>
+        <legend className="px-2 text-body font-medium text-muted">Type of Query</legend>
         <div className="mt-3 flex flex-wrap gap-3">
           {ENQUIRY.queryTypes.map((type) => (
             <label

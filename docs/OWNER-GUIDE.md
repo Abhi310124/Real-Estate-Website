@@ -105,8 +105,8 @@ those are the details the buyer actually typed, and they should stay exactly as 
 
 Click **Site Settings** in the left menu. Everything here affects the whole website at once:
 
-- **Phone numbers** — the numbers shown in the footer, on the contact page, and behind the
-  floating call button.
+- **Phone numbers** — the numbers shown in the footer and on the contact page. The menu bar at the
+  top of every page shows a **Contact** link rather than a number.
 - **WhatsApp number** — the number the WhatsApp buttons open a chat with.
 - **Email** — currently empty. See section 9.
 - **Address** — the office address in the footer, on the contact page, and on the map.
@@ -115,7 +115,7 @@ Click **Site Settings** in the left menu. Everything here affects the whole webs
   link so people can click through.
 - **Pillars**, **Categories**, **Footer text**, **RERA disclaimer** — the standing text used in
   several places across the site. The three **Pillars** (Develop, Design, Deliver) are the numbered
-  values under "What drives us" on the home page and the three large words on the **About** page, so
+  values under "What Drives Us?" on the home page and the three large words on the **About** page, so
   the wording you put here is the wording visitors read.
 - **Stats** — not currently shown anywhere on the site. The big numbers on the home and **About**
   pages are counted automatically from your published projects instead — see section 9.
@@ -199,9 +199,20 @@ launch: the ones in the sample projects are examples, not registrations.
 
 ### Placeholder testimonials
 
-The three quotes under "Hear it from our buyers" on the home page are **placeholders** and are
+The three quotes under "Hear it from our customers" on the home page are **placeholders** and are
 marked `PLACEHOLDER` on the page itself. They need replacing with real, attributable quotes from
 buyers — ask a developer to swap them, as they live in the site's code rather than in the Studio.
+
+### The founding year, and the Managing Director's words
+
+The home and About pages follow the wording of the site their design is modelled on, which counts
+its own years ("Building stories since 2011", "founded in 2011"). BKR INFRA's founding year was not
+supplied, so those lines are written without one — for example "Building stories across Hyderabad".
+Give the year to a developer and it can be put back into each of them.
+
+The home page's story calls **B Karthik Reddy** the founder whose vision started the company, and
+the About page carries a note in his name. Both were written for him, not quoted from him: he
+should read and approve them before launch.
 
 ### Things deliberately left empty
 

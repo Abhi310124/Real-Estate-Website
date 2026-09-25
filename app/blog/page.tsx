@@ -6,7 +6,7 @@ import { PageIntro } from '@/components/site/PageIntro'
 import { getJournalPosts } from '@/lib/data'
 
 /**
- * `/blog` — "News and updates": the page intro, the newest post as the featured panel, and every other
+ * `/blog` — "News and Updates": the page intro, the newest post as the featured panel, and every other
  * post in a three-up grid beneath it. `/journal` (the previous name) permanently redirects here.
  *
  * Posts are the CMS's `journalPost` documents, newest first and published only.
@@ -14,7 +14,7 @@ import { getJournalPosts } from '@/lib/data'
 export const revalidate = 30
 
 export const metadata: Metadata = {
-  title: 'News and Updates — BKR INFRA Blog',
+  title: 'Blog | BKR INFRA',
   description:
     'Site updates, planning notes and buying guides from BKR INFRA: how we choose land, lay out a project and hand over homes across Hyderabad.',
 }
@@ -25,7 +25,7 @@ export default async function BlogPage() {
 
   return (
     <>
-      <PageIntro crumb="Blog" lines={['News and updates']} />
+      <PageIntro label="Blog" lines={['News and Updates']} />
 
       {featured ? (
         <div className="container-page mt-20 max-lg:mt-10">

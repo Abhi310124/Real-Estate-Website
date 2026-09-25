@@ -32,7 +32,7 @@ export default async function ContactPage() {
 
   return (
     <>
-      <PageIntro crumb="Contact" lines={['Talk to the people', { accent: 'who build it' }]} />
+      <PageIntro label="Contact" lines={['Talk to the people', { accent: 'who build it' }]} />
 
       <section className="layout-grid mt-20 gap-y-6 max-lg:mt-12" aria-label="Ways to reach us">
         <div className="col-span-12 md:col-span-4">

@@ -99,7 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               element rather than one shared panel — one element driven by two owners is how a
               stuck curtain gets built. */}
           <RouteCurtain />
-          <SiteHeader settings={settings} />
+          <SiteHeader />
           {/*
             `overflow-x-clip` is the page's horizontal-overflow backstop, and it belongs here rather
             than on `body` because `<main>` is the direct parent of every route's sections and is

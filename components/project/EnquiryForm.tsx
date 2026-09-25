@@ -10,7 +10,7 @@ type Props = {
   /** The lead's source when the visitor does not choose one (or no choice is offered). */
   source: LeadInput['source']
   projectSlug?: string
-  /** Offer the layout's "Type of query" chips — property enquiry, site visit, bookings. */
+  /** Offer the layout's "Type of Query" chips — Property Enquiry, Site Visit, Bookings. */
   queryTypes?: boolean
   submitLabel?: string
   className?: string
@@ -18,8 +18,8 @@ type Props = {
 
 /** Each chip maps onto the lead's `source`; a booking is an enquiry that says so in its message. */
 const QUERY_TYPES = [
-  { value: 'enquiry', label: 'Property enquiry' },
-  { value: 'site-visit', label: 'Site visit' },
+  { value: 'enquiry', label: 'Property Enquiry' },
+  { value: 'site-visit', label: 'Site Visit' },
   { value: 'booking', label: 'Bookings' },
 ] as const
 
@@ -97,12 +97,12 @@ export function EnquiryForm({ source, projectSlug, queryTypes = false, submitLab
   return (
     <form onSubmit={onSubmit} aria-label="Enquiry form" noValidate className={cn(card, 'space-y-7', className)}>
       <FormField idPrefix="enquiry" label="Name" name="name" type="text" required error={errors.name} />
-      <FormField idPrefix="enquiry" label="Phone number" name="phone" type="tel" required error={errors.phone} />
+      <FormField idPrefix="enquiry" label="Phone Number" name="phone" type="tel" required error={errors.phone} />
       <FormField idPrefix="enquiry" label="Email" name="email" type="email" required={false} error={errors.email} />
 
       {queryTypes && (
         <fieldset>
-          <legend className="px-2 text-body text-muted">Type of query</legend>
+          <legend className="px-2 text-body font-medium text-muted">Type of Query</legend>
           <div className="mt-3 flex flex-wrap gap-3">
             {QUERY_TYPES.map((q) => (
               <label
@@ -119,8 +119,11 @@ export function EnquiryForm({ source, projectSlug, queryTypes = false, submitLab
 
       <FormField idPrefix="enquiry" label="Message" name="message" type="textarea" required={false} error={errors.message} />
 
+      {/* The reference's consent line in form; its scope stays this enquiry, not "products and offers",
+          and it claims no override of a DNC registration. */}
       <p className="px-2 text-caption text-muted">
-        By submitting, you agree that BKR INFRA may call, message or email you about this enquiry.
+        By clicking {submitLabel}, I authorise BKR INFRA and its representatives to call, SMS, email or
+        WhatsApp me about this enquiry.
       </p>
 
       {/* Form-level failures (rate limit, server error, offline) belong here, not against a field. */}

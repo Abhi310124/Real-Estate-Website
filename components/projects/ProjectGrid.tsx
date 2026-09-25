@@ -89,7 +89,7 @@ export function ProjectGrid({ projects }: Props) {
   return (
     <div ref={gridRef} className="layout-grid mt-14 items-start gap-y-16 max-lg:mt-10 max-lg:gap-y-12">
       {projects.map((project) => (
-        <ProjectTile key={project.slug} project={project} className="col-span-12 md:col-span-6" />
+        <ProjectTile key={project.slug} project={project} compact className="col-span-12 md:col-span-6" />
       ))}
     </div>
   )

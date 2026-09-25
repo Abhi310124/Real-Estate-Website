@@ -6,6 +6,14 @@
  * the home page reads those directly wherever it states a fact (the project in focus, the portfolio,
  * the numbers, the values, the contact details).
  *
+ * ── Whose words these are ───────────────────────────────────────────────────────────────────────
+ * The headings, labels and buttons follow the reference layout's own wording line for line — "Creating
+ * spaces for lives well lived", "What we've created", "We've certainly made an impact", "There's so
+ * much left to create" — because the owner asked for its text as well as its design. Where one of its
+ * sentences states a fact about ITS company (eleven years, "since 2011", a founder, a floor area, a
+ * project count), the sentence keeps its shape and the fact is BKR INFRA's or is left out: those
+ * figures would be false here, and a false claim in a property advertisement is not a styling choice.
+ *
  * ── What is and is not verified ─────────────────────────────────────────────────────────────────
  * Nothing below states a price, a RERA number, a count, a year or an area. The statistics band is
  * computed from the published projects at render time rather than typed here, precisely so that a
@@ -17,35 +25,36 @@
  *   1. THE TESTIMONIALS. None is a real quote from a real buyer. Each is attributed to initials and a
  *      locality rather than an invented name, and carries a visible `PLACEHOLDER` stamp on the page,
  *      so the unverified state cannot ship unnoticed.
- *   2. The story paragraph names the Managing Director, who is a real person; it describes the
- *      company's approach rather than quoting him, and is still worth his approval.
+ *   2. The story paragraph names the Managing Director, who is a real person, as the founder whose
+ *      vision started the company. It describes him rather than quoting him, and needs his approval.
  *
  * Every photograph is one of the curated frames in `components/project/photo.ts`; `CREDITS.md`
  * records that none of them is a building BKR INFRA built. Alt text describes what each frame shows.
  */
 
 export const HERO = {
-  /** Two lines at the 64px step, 17 characters each — the measure the split hero's left half holds. */
+  /** Two lines at the 64px step, the second word of the first in orange — the reference's own line. */
   lines: [
-    { text: 'Land chosen ', accent: 'well,' },
-    { text: 'homes built right', accent: '' },
+    { text: 'Creating ', accent: 'spaces' },
+    { text: 'for lives well lived', accent: '' },
   ],
-  /** 118 characters, three lines in the 340px lede measure under the headline. */
-  lede: 'At BKR INFRA, every project begins with the land — chosen early, laid out with care and handed over with clear titles.',
-  focusLabel: 'In focus',
+  /** Three lines in the 340px lede measure. The reference's "millions across India" is its reach, not ours. */
+  lede: 'At BKR INFRA, every project & every vision is powered by our drive to create meaning in the lives of families across Hyderabad.',
+  focusLabel: 'In-View',
 } as const
 
 export const INTRO = {
   /**
    * Set sentence by sentence, each starting its own line, at the 32px statement step across seven
    * columns — the reference breaks its statement the same way — then the accent line in orange.
+   * The reference counts its years here ("It's been eleven years since…"); the sentence keeps its
+   * turn without a count, because BKR INFRA's founding year is not on record in this repository.
    */
   statement: [
-    'Hyderabad is growing in every direction at once.',
-    'Our work is to be there first — to choose the land, lay it out properly and build homes that ' +
-      'still make sense when the city arrives around them.',
+    "Since the day we started, we've been adding to the skyline of Hyderabad.",
+    'Every project since has been about creating spaces meant to hold life, love and laughter within them.',
   ],
-  accent: 'That is what we mean by value.',
+  accent: "And we're not stopping any time soon.",
 } as const
 
 /**
@@ -71,18 +80,17 @@ export const SHOWCASE = {
 } as const
 
 export const CREATED = {
-  /** "Building", not "built": most of the portfolio is ongoing or upcoming, and the heading says so. */
-  title: "What we're building",
-  /** Must keep the words "view projects" together — the full-journey test finds this link by them. */
-  cta: { href: '/projects', label: 'View projects' },
+  title: "What we've created",
+  /** The home and full-journey tests find this link by its name. */
+  cta: { href: '/projects', label: 'View all projects' },
 } as const
 
 export const STATISTICS = {
   lines: [
-    { text: 'Growing across', accent: '' },
-    { text: '', accent: 'Hyderabad' },
+    { text: "We've certainly", accent: '' },
+    { text: 'made an ', accent: 'impact' },
   ],
-  testimonialsTitle: 'Hear it from our buyers',
+  testimonialsTitle: 'Hear it from our customers',
 } as const
 
 /**
@@ -118,27 +126,42 @@ export const TESTIMONIALS = [
 ] as const
 
 export const STORIES = {
-  /** Ghosted, 99px, uppercase — the second line sets flush right under the first. */
-  ghost: ['Building value', 'Plot by plot'],
+  /**
+   * Ghosted, 99px, uppercase — the second line sets flush right under the first. The reference's
+   * second line is its founding year ("since 2011"); BKR INFRA's is not on record, so it names the
+   * city instead of guessing one.
+   */
+  ghost: ['Building stories', 'across Hyderabad'],
+  /**
+   * The founder's story, the reference's paragraph in shape: the vision on a line of its own, then the
+   * person in orange, then the first step. "Founder" rests on the company carrying his initials; the
+   * paragraph describes him and is written for his approval before launch.
+   */
   story: {
-    before: 'BKR INFRA is led by ',
+    opening: "It began with our founder's vision.",
     accent: 'B Karthik Reddy',
     after:
-      ', and it works from one conviction: a neighbourhood is decided long before anyone builds in it — ' +
-      'by who chooses the land, how it is laid out, and whether its titles are clean. We exist to get ' +
-      'those three things right.',
+      ' saw a Hyderabad where families lived in beautiful homes on land they could trust — homes that went ' +
+      'beyond the functional, built as places for the relationships that matter most. He took the first ' +
+      'step towards creating that city, and BKR INFRA came into existence.',
   },
   image: { src: '/photography/exterior-01.jpg', alt: 'Dark timber and glass house at dusk, lit from within' },
   /** The paragraph that opens the values timeline, beside the gradient bar. */
   since:
-    'Every project since has followed the same order: the land first, the layout second, the building ' +
-    'third — and the paperwork alongside all three, so that what a buyer is shown is what a buyer receives.',
-  valuesTitle: 'What drives us',
+    "Ever since, we've created projects that answer real human needs within the city — needs that range " +
+    'from the practical, like clear titles, good roads and water, to the less tangible, like a connection ' +
+    'to nature and to a larger community. We build projects that are venues for life to flourish. Just how ' +
+    'it should be.',
+  valuesTitle: 'What Drives Us?',
 } as const
 
 export const ENQUIRY = {
-  heading: { text: "Let's find your", accent: 'next address' },
+  /** Broken where the reference's centre column breaks it: "There's so much left" / "to create". */
+  heading: [
+    { text: "There's so much left", accent: '' },
+    { text: 'to ', accent: 'create' },
+  ],
   /** Two lines under the heading in the doors' centre panel. */
-  intro: "Tell us what you're looking for and where. We'll come back with what fits, what it costs and when it can be yours.",
+  intro: 'Enquire now and let us help you uncover the endless possibilities for your next venture.',
   queryTypes: ['Open Plots', 'Villas', 'Apartments', 'Independent Houses', 'Other'],
 } as const

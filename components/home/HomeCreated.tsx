@@ -5,8 +5,8 @@ import { CREATED } from '@/lib/content/home'
 import type { ProjectSummary } from '@/lib/data/types'
 
 /**
- * "What we're building": the portfolio as a 2×2 of project cards under a centred heading, closed by
- * the filled pill to the full listing — the layout's "What we've created" block.
+ * "What we've created": the portfolio as a 2×2 of project cards under a centred heading, closed by
+ * the filled pill to the full listing — the layout's own block, under its own heading.
  */
 export function HomeCreated({ projects }: { projects: ProjectSummary[] }) {
   if (projects.length === 0) return null

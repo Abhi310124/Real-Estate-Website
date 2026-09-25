@@ -47,7 +47,7 @@ test.describe('home', () => {
   test('the portfolio grid holds four project cards and links to the listing', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('#main [data-project-card]')).toHaveCount(4)
-    await expect(page.getByRole('link', { name: /view projects/i })).toHaveAttribute('href', '/projects')
+    await expect(page.getByRole('link', { name: /view all projects/i })).toHaveAttribute('href', '/projects')
   })
 
   test('the statistics are computed from the published portfolio', async ({ page }) => {
@@ -84,13 +84,13 @@ test.describe('home', () => {
 test.describe('header', () => {
   test.use({ viewport: VIEWPORT })
 
-  test('marks the current page and dials the grouped number in full', async ({ page }) => {
+  test('marks the current page, and links to Contact instead of printing a number', async ({ page }) => {
     await page.goto('/about')
     const nav = page.getByRole('navigation', { name: 'Main' }).first()
     await expect(nav.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page')
     await expect(nav.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current', 'page')
-    const phone = nav.getByRole('link', { name: /^\d{4} \d{3} \d{3}$/ })
-    await expect(phone).toHaveAttribute('href', /^tel:\+?\d{10,12}$/)
+    await expect(nav.getByRole('link', { name: 'Contact', exact: true })).toHaveAttribute('href', '/contact')
+    await expect(page.locator('header a[href^="tel:"]')).toHaveCount(0)
   })
 
   test('"Enquire Now" glides to the enquiry block on a page that has one', async ({ page }) => {

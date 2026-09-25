@@ -37,7 +37,7 @@ export function BlogFeature({ post }: { post: JournalPost }) {
         </Tilt3D>
         <div className="col-span-12 md:col-span-6 md:pl-4">
           <p className="flex gap-4 text-small text-navySoft">
-            <span>Featured</span>
+            <span className="font-medium">Featured</span>
             <span>{readingTime([post.excerpt, ...post.body])}</span>
           </p>
           <h2 className="mt-4 font-heading text-h2 text-secondary max-sm:text-h2-sm">{post.title}</h2>

@@ -17,7 +17,10 @@ import type { ProjectSummary, SiteSettings } from '@/lib/data/types'
  *   Phone:  +91 6301 999 971
  *           +91 9676 669 923
  *
- *   © 2026 BKR INFRA. All rights reserved.            Privacy policy  Terms of use  Cookie policy
+ *   © 2026 BKR INFRA. All rights reserved.            Privacy Policy  Terms of Use  Cookie Policy
+ *
+ * The column headings are set as the reference sets them — Montserrat at 18px, not the display face.
+ * The portal is shown without the reference's "www.": that host does not answer, the bare one does.
  *
  * **The registration blocks are data, not copy.** Each one is a project's own `reraNumber`, for the
  * projects currently being marketed (upcoming and ongoing) — a registration number belongs beside the
@@ -41,9 +44,9 @@ const COMPANY = [
 ]
 
 const LEGAL = [
-  { href: '/legal/privacy', label: 'Privacy policy' },
-  { href: '/legal/terms', label: 'Terms of use' },
-  { href: '/legal/cookies', label: 'Cookie policy' },
+  { href: '/legal/privacy', label: 'Privacy Policy' },
+  { href: '/legal/terms', label: 'Terms of Use' },
+  { href: '/legal/cookies', label: 'Cookie Policy' },
 ]
 
 /** The regulator's own portal, where any registration number above can be checked. */
@@ -59,7 +62,7 @@ function splitTagline(tagline: string): [string, string] {
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-heading text-[20px] leading-[1.3]">{children}</h2>
+  return <h2 className="text-[18px] leading-[1.2]">{children}</h2>
 }
 
 export function SiteFooter({ settings, projects }: { settings: SiteSettings; projects: ProjectSummary[] }) {

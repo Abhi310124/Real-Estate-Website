@@ -39,7 +39,11 @@ export function ProjectTile({
   aspect?: string
   className?: string
   titleAs?: 'h2' | 'h3'
-  /** The three-up row: the title at the 24px step, so a long project name holds one or two lines. */
+  /**
+   * The listing grid and the three-up "other projects" row, which the layout sets smaller than the
+   * home page's cards: the title at 26px rather than 32px, the type, status and locality all at 16px
+   * in the muted voice, and the type/status pair pulled to the card's right edge.
+   */
   compact?: boolean
 }) {
   const hero = resolvePhoto(project.heroImage)
@@ -69,7 +73,7 @@ export function ProjectTile({
             <Title
               className={cn(
                 'flex items-center gap-3 font-heading text-secondary',
-                compact ? 'text-h4 max-sm:text-h4-sm' : 'text-h3 max-sm:text-h3-sm'
+                compact ? 'text-lede max-sm:text-h4-sm' : 'text-h3 max-sm:text-h3-sm'
               )}
             >
               <span>{project.title}</span>
@@ -81,11 +85,16 @@ export function ProjectTile({
                 <path d="M6 3 11 8l-5 5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Title>
-            <p className="mt-1 text-body text-secondary max-sm:text-body-sm">
+            <p className={cn('mt-1 text-body max-sm:text-body-sm', compact ? 'text-muted' : 'text-secondary')}>
               {project.location.area}, {project.location.city}
             </p>
           </div>
-          <p className="w-[28%] shrink-0 pt-2 text-small text-muted max-sm:w-auto max-sm:text-right">
+          <p
+            className={cn(
+              'shrink-0 pt-2 text-muted max-sm:w-auto max-sm:text-right',
+              compact ? 'text-body max-sm:text-small' : 'w-[28%] text-small'
+            )}
+          >
             <span className="block">{CATEGORY_LABELS[project.category]}</span>
             <span className="block">{STATUS_LABELS[project.status]}</span>
           </p>

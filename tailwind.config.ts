@@ -53,12 +53,14 @@ export default {
         'stat-sm': ['56px', { lineHeight: '1.05', letterSpacing: '0' }],
         // The ghosted display line ("BUILDING VALUE"). Named `mega`, not `ghost`: `ghost` is also a colour,
         // and a class that is both a font size and a colour sets both wherever it is used.
-        'mega': ['99px', { lineHeight: '1.2', letterSpacing: '0' }],
+        'mega': ['99px', { lineHeight: '1.45', letterSpacing: '0' }],
         'mega-sm': ['46px', { lineHeight: '1.2', letterSpacing: '0' }],
         'numeral': ['128px', { lineHeight: '1', letterSpacing: '0' }],
         'numeral-sm': ['64px', { lineHeight: '1', letterSpacing: '0' }],
         'lede': ['26px', { lineHeight: '1.4', letterSpacing: '0' }],
         'lede-sm': ['19px', { lineHeight: '1.4', letterSpacing: '0' }],
+        // The reference's "text-size-large": the label under each 108px statistic, and its jump links.
+        'large': ['20px', { lineHeight: '1.5', letterSpacing: '0' }],
         'body': ['16px', { lineHeight: '1.5', letterSpacing: '0' }],
         'body-sm': ['15px', { lineHeight: '1.5', letterSpacing: '0' }],
         'small': ['14px', { lineHeight: '1.5', letterSpacing: '0' }],

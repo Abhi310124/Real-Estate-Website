@@ -29,15 +29,15 @@ import { Button } from '@/components/ui/Button'
 
 const DOCUMENTS = {
   privacy: {
-    title: 'Privacy policy',
+    title: 'Privacy Policy',
     lede: 'How BKR INFRA handles the details you share through this website.',
   },
   terms: {
-    title: 'Terms of use',
+    title: 'Terms of Use',
     lede: 'The terms on which this website and its content are made available.',
   },
   cookies: {
-    title: 'Cookie policy',
+    title: 'Cookie Policy',
     lede: 'What this website stores on your device, and why.',
   },
 } as const

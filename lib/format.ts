@@ -28,6 +28,30 @@ export const CATEGORY_LABELS = {
   developers: 'Developers',
 } as const satisfies Record<ProjectCategory, string>
 
+/** One project of a category, for a line like "Ongoing Villa Project at Kokapet". */
+export const CATEGORY_SINGULAR = {
+  'open-plots': 'Open Plot',
+  villas: 'Villa',
+  apartments: 'Apartment',
+  'independent-houses': 'Independent House',
+  developers: 'Joint Development',
+} as const satisfies Record<ProjectCategory, string>
+
+/**
+ * "BKR Lakeview Enclave – Ongoing Villa Project at Kokapet, Hyderabad": the one-line description the
+ * layout sets under a project it puts in view, built from the project's own fields.
+ */
+export function describeProject(p: {
+  title: string
+  category: ProjectCategory
+  status: ProjectStatus
+  location: { area: string; city: string }
+}): string {
+  const place = [p.location.area, p.location.city].filter(Boolean).join(', ')
+  const kind = `${STATUS_LABELS[p.status]} ${CATEGORY_SINGULAR[p.category]} Project`
+  return `${p.title} – ${place ? `${kind} at ${place}` : kind}`
+}
+
 /**
  * "+91 6301999971" → "+91 6301 999 971": the grouping the site shows a phone number in, for the eye
  * only. Anything that is not a ten-digit number (after an optional country code) is returned as given.

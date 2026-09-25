@@ -122,7 +122,7 @@ test.describe('navigation', () => {
     const nav = page.getByRole('navigation', { name: 'Main' }).first()
     await nav.getByRole('link', { name: 'Projects' }).click()
     await expect(page).toHaveURL(/\/projects$/)
-    await expect(page.locator('h1')).toContainText(/Land and homes/)
+    await expect(page.locator('h1')).toContainText(/Homes that are an extension of your life/)
     // Once revealed, the panel sits off-screen (translated a full width) and is inert.
     await expect
       .poll(

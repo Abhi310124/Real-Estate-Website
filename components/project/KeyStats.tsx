@@ -29,7 +29,7 @@ function slugify(label: string): string {
 export function KeyStats({ project }: Props) {
   const image = resolvePhoto(project.gallery[1] ?? project.gallery[0] ?? project.heroImage, 1)
   const facts = [
-    { term: 'Type of project', value: CATEGORY_LABELS[project.category] },
+    { term: 'Type of Project', value: CATEGORY_LABELS[project.category] },
     { term: 'Status', value: STATUS_LABELS[project.status] },
     { term: 'Price', value: formatPrice(project.priceFrom, project.priceUnit, project.priceOnRequest) },
     ...(project.unitTypes.length > 0 ? [{ term: 'Units', value: project.unitTypes.join(' / ') }] : []),
@@ -46,7 +46,7 @@ export function KeyStats({ project }: Props) {
         <dl className="flex flex-wrap gap-x-14 gap-y-6 pt-2">
           {facts.map((fact) => (
             <div key={fact.term}>
-              <dt className="text-small text-navySoft">{fact.term}</dt>
+              <dt className="text-body font-medium text-navySoft">{fact.term}</dt>
               <dd className="mt-1 text-body text-secondary">{fact.value}</dd>
             </div>
           ))}

@@ -195,11 +195,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       <section className="layout-grid pb-24 max-lg:pb-16" aria-label="Get in touch">
         <div className="col-span-12 lg:col-span-9 lg:col-start-4">
           <p className="font-heading text-lede text-secondary max-sm:text-lede-sm">
-            Ask us anything about {project.title}, or book a visit to the site — the people who answer are the
-            people building it.
+            Connect with us through the enquiry form, and our friendly team will be thrilled to assist you with
+            any queries or schedule a personalised visit.
           </p>
           <Button href="#enquire" chevron={false} className="mt-10 min-w-[280px] max-sm:w-full">
-            Contact us
+            Contact Us
           </Button>
         </div>
       </section>

@@ -15,7 +15,7 @@ const STATUSES = Object.keys(STATUS_LABELS) as ProjectStatus[]
 // `override` uses "key present" (not "value truthy") to distinguish "leave this axis alone" from
 // "clear this axis": omitting a key keeps whatever is in `active`, while passing it explicitly as
 // `null` clears it. That is the only way a single helper can serve both the per-option links (set one
-// axis, preserve the other) and the "View all" reset links (clear one axis, still preserve the other).
+// axis, preserve the other) and the "View All" reset links (clear one axis, still preserve the other).
 function hrefFor(active: Active, override: { category?: ProjectCategory | null; status?: ProjectStatus | null }): string {
   const category = 'category' in override ? override.category : active.category
   const status = 'status' in override ? override.status : active.status
@@ -38,7 +38,7 @@ function FilterLink({ href, isActive, children }: { href: string; isActive: bool
       scroll={false}
       aria-current={isActive ? 'true' : undefined}
       className={cn(
-        'inline-flex min-h-11 items-center font-heading transition-colors duration-300',
+        'inline-flex min-h-11 items-center transition-colors duration-300',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
         isActive ? 'text-accentInk' : 'text-secondary hover:text-accentInk'
       )}
@@ -88,7 +88,7 @@ export function FilterBar({ categories, active }: Props) {
     <div className="space-y-2">
       <nav aria-label="Filter by category">
         <FilterRow
-          label="Filter by:"
+          label="Filter By:"
           size="lg"
           items={[
             ...categories.map((category) => ({
@@ -97,7 +97,7 @@ export function FilterBar({ categories, active }: Props) {
               isActive: active.category === category.value,
               label: category.label,
             })),
-            { key: 'all', href: hrefFor(active, { category: null }), isActive: !active.category, label: 'View all' },
+            { key: 'all', href: hrefFor(active, { category: null }), isActive: !active.category, label: 'View All' },
           ]}
         />
       </nav>
@@ -112,7 +112,7 @@ export function FilterBar({ categories, active }: Props) {
               isActive: active.status === value,
               label: STATUS_LABELS[value],
             })),
-            { key: 'all', href: hrefFor(active, { status: null }), isActive: !active.status, label: 'Any status' },
+            { key: 'all', href: hrefFor(active, { status: null }), isActive: !active.status, label: 'Any Status' },
           ]}
         />
       </nav>

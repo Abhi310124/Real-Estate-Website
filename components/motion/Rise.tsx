@@ -15,8 +15,8 @@ import { useReducedMotion } from './useReducedMotion'
  * Lines are opted in with `data-line` on block-level children:
  *
  *   <Rise as="h2">
- *     <span data-line className="block">Growing across</span>
- *     <span data-line className="block text-accentInk">Hyderabad</span>
+ *     <span data-line className="block">We've certainly</span>
+ *     <span data-line className="block">made an <span className="text-accentInk">impact</span></span>
  *   </Rise>
  *
  * An explicit marker rather than "every child", because a one-line heading with a coloured word in it

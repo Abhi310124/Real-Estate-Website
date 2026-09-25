@@ -6,7 +6,7 @@ test('a buyer can go from the home page to an enquiry', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('h1')).toBeVisible()
 
-  await page.getByRole('link', { name: /view projects/i }).click()
+  await page.getByRole('link', { name: /view all projects/i }).click()
   await expect(page).toHaveURL(/\/projects/)
 
   await page.locator('[data-project-card] a').first().click()

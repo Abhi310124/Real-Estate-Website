@@ -6,14 +6,12 @@ import { useRoutePath } from '@/components/layout/useRoutePath'
 import { scrollToElement } from '@/components/motion/LenisProvider'
 import { RingButton } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
-import { groupPhone, telHref } from '@/lib/format'
-import type { SiteSettings } from '@/lib/data/types'
 
 /**
  * The header: sticky, on a solid cream ground, always visible — the construction the layout this site
  * follows uses, measured at 94px tall at 1440 (88px on a phone).
  *
- *   logo ·························· Home  About  Projects  Blog   6301 999 971   [ Enquire Now ]
+ *   logo ·························· Home  About  Projects  Blog  Contact   [ Enquire Now ]
  *
  * A solid ground is a deliberate change from the transparent band this replaced, and a measured one:
  * floating over full-bleed photography, the old header's logo and links fell below 3:1 against what
@@ -22,8 +20,8 @@ import type { SiteSettings } from '@/lib/data/types'
  *
  * - The current page is marked in orange (`accentInk` — orange TEXT on cream needs the darker orange
  *   to clear AA at 16px) and with `aria-current`, so the state is not carried by colour alone.
- * - The phone number is set as the layout sets it, grouped for reading ("6301 999 971") and dialled
- *   in full — the grouping is for the eye, the `tel:` href is for the phone.
+ * - Where the layout prints a phone number, this bar has a "Contact" link instead, by the owner's
+ *   choice: the bar names a page, not a number. The numbers are on /contact and in the footer.
  * - "Enquire Now" is a gradient-ring button. Every page ends in an enquiry block (`#enquire`), so on
  *   a page that has one it glides there; anywhere else — and with no JS — it is a plain link to
  *   /contact, which is the same form on its own page.
@@ -38,16 +36,12 @@ const NAV = [
   { href: '/about', label: 'About' },
   { href: '/projects', label: 'Projects' },
   { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 function isCurrent(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/'
   return pathname === href || pathname.startsWith(`${href}/`)
-}
-
-/** "+91 6301999971" → "6301 999 971": the layout's grouping, without the country code, in the bar. */
-function displayPhone(raw: string): string {
-  return groupPhone(raw, false)
 }
 
 /**
@@ -113,11 +107,10 @@ function MenuButton({ open, onToggle, controls }: { open: boolean; onToggle: () 
   )
 }
 
-export function SiteHeader({ settings }: { settings: SiteSettings }) {
+export function SiteHeader() {
   const pathname = useRoutePath()
   const [open, setOpen] = useState(false)
   const panelId = useId()
-  const phone = settings.phones[0]
 
   // Close the panel when the route changes. Keyed on the pathname value itself, so it runs on
   // navigation rather than on every render.
@@ -152,14 +145,6 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
 
         <nav aria-label="Main" className="hidden items-center gap-10 text-nav lg:flex">
           <NavLinks pathname={pathname} />
-          {phone && (
-            <a
-              href={telHref(phone)}
-              className="font-heading text-secondary transition-colors duration-300 hover:text-accentInk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
-            >
-              {displayPhone(phone)}
-            </a>
-          )}
           <RingButton href="/contact" scrollTarget="enquire" onClick={(e) => onEnquire(e)} className="min-w-[156px]">
             Enquire Now
           </RingButton>
@@ -179,11 +164,6 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
       >
         <nav aria-label="Main" className="container-page flex flex-col py-8">
           <NavLinks pathname={pathname} onNavigate={() => setOpen(false)} className="py-4 text-h4" />
-          {phone && (
-            <a href={telHref(phone)} className="py-4 font-heading text-h4 text-secondary">
-              {displayPhone(phone)}
-            </a>
-          )}
           <RingButton
             href="/contact"
             scrollTarget="enquire"

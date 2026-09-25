@@ -11,18 +11,17 @@ import { PageIntro } from '@/components/site/PageIntro'
 import { LineButton } from '@/components/ui/Button'
 import { ABOUT_HERO, ABOUT_JOIN, ABOUT_STATEMENT, DIRECTOR_NOTE } from '@/lib/content/about'
 import { getProjects, getSiteSettings } from '@/lib/data'
-import { groupPhone, telHref } from '@/lib/format'
 
 /**
  * `/about` — the company page, in the order of the layout it follows:
  *
- *   intro          breadcrumb and H1 over a soft triangle that turns a full circle with the scroll
+ *   intro          section label and H1 over a soft triangle that turns a full circle with the scroll
  *   plate          one large photograph, nine columns wide
- *   statement      how the business works, with two small facts beneath it
+ *   statement      the founding vision, with two small facts beneath it
  *   circles        three numbers, computed from the published portfolio, under a gradient rule
  *   note           the Managing Director's note beside a photograph
  *   pillars        Develop · Design · Deliver, where the layout runs its history years
- *   join           a closing invitation with the phone number
+ *   join           a closing invitation, with a link to the contact page rather than a bare number
  *   enquiry        the doors
  *
  * `/studio` (this page's previous name) permanently redirects here.
@@ -30,7 +29,7 @@ import { groupPhone, telHref } from '@/lib/format'
 export const revalidate = 30
 
 export const metadata: Metadata = {
-  title: 'About | BKR INFRA',
+  title: 'About BKR INFRA | Redefining real estate excellence in Hyderabad',
   description:
     'BKR INFRA buys land early in Hyderabad’s growth corridors, lays it out with care and hands homes over on time, with clear titles and RERA-registered projects.',
 }
@@ -45,10 +44,9 @@ export default async function AboutPage() {
   const registered = projects.filter((p) => p.reraNumber.trim()).length
   const circles = [
     { value: projects.length, suffix: '', label: 'Projects across Hyderabad' },
-    { value: projects.filter((p) => p.status === 'ongoing' || p.status === 'upcoming').length, suffix: '', label: 'Under way or launching' },
+    { value: projects.filter((p) => p.status === 'ongoing' || p.status === 'upcoming').length, suffix: '', label: 'Projects under way' },
     { value: projects.length ? Math.round((registered / projects.length) * 100) : 0, suffix: '%', label: 'RERA-registered' },
   ].filter((c) => c.value > 0)
-  const phone = settings.phones[0]
 
   return (
     <>
@@ -57,7 +55,7 @@ export default async function AboutPage() {
           <SoftTriangle className="h-full w-full" />
         </ScrollRotate>
 
-        <PageIntro crumb={ABOUT_HERO.crumb} lines={ABOUT_HERO.lines} className="relative" />
+        <PageIntro label={ABOUT_HERO.label} lines={ABOUT_HERO.lines} className="relative" />
 
         <div className="layout-grid relative mt-32 max-lg:mt-12">
           <Tilt3D className="col-span-12 lg:col-span-9" max={3}>
@@ -91,10 +89,10 @@ export default async function AboutPage() {
               {circles.map((c) => (
                 <li key={c.label} className="col-span-12 flex justify-center md:col-span-4">
                   <div className="flex aspect-square w-full max-w-[426px] flex-col items-center justify-center rounded-full border border-navyLine text-center">
-                    <p className="font-heading text-h1 text-navySoft max-sm:text-[48px]">
+                    <p className="font-heading text-h1 font-medium text-navySoft max-sm:text-[48px]">
                       <Counter value={c.value} suffix={c.suffix} duration={1.5} start="bottom bottom" data-testid="about-counter" />
                     </p>
-                    <p className="mt-2 font-heading text-h4 text-navySoft max-sm:text-h4-sm">{c.label}</p>
+                    <p className="mt-2 text-lede text-navySoft max-sm:text-lede-sm">{c.label}</p>
                   </div>
                 </li>
               ))}
@@ -112,7 +110,7 @@ export default async function AboutPage() {
             />
           </Tilt3D>
           <figure className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <blockquote className="font-heading text-h3 text-secondary max-sm:text-h3-sm">
+            <blockquote className="font-heading text-h3 leading-[1.45] text-secondary max-sm:text-h3-sm">
               <p>
                 “{DIRECTOR_NOTE.before}
                 <span className="text-accentInk">{DIRECTOR_NOTE.accent}</span>
@@ -120,7 +118,7 @@ export default async function AboutPage() {
               </p>
             </blockquote>
             <figcaption className="mt-20 max-lg:mt-10">
-              <span className="block text-body text-secondary">{DIRECTOR_NOTE.name}</span>
+              <span className="block text-[18px] font-medium leading-[1.5] text-secondary">{DIRECTOR_NOTE.name}</span>
               <span className="mt-1 block text-small text-muted">{DIRECTOR_NOTE.role}</span>
             </figcaption>
           </figure>
@@ -163,11 +161,9 @@ export default async function AboutPage() {
               ))}
             </Rise>
             <p className="mt-10 max-w-[560px] text-body text-secondary">{ABOUT_JOIN.copy}</p>
-            {phone && (
-              <LineButton href={telHref(phone)} icon="phone" className="mt-14">
-                Call {groupPhone(phone)}
-              </LineButton>
-            )}
+            <LineButton href="/contact" icon="none" className="mt-14">
+              Contact us
+            </LineButton>
           </div>
         </section>
       </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPrice, formatArea } from '@/lib/format'
+import { describeProject, formatPrice, formatArea } from '@/lib/format'
 import { whatsappLink } from '@/lib/whatsapp'
 
 describe('formatPrice', () => {
@@ -20,6 +20,27 @@ describe('formatPrice', () => {
 describe('formatArea', () => {
   it('groups thousands', () => {
     expect(formatArea(1450, 'sq.ft')).toBe('1,450 sq.ft')
+  })
+})
+
+describe('describeProject', () => {
+  const project = {
+    title: 'BKR Lakeview Enclave',
+    category: 'villas' as const,
+    status: 'ongoing' as const,
+    location: { area: 'Kokapet', city: 'Hyderabad' },
+  }
+
+  it('reads as "<name> – <status> <type> Project at <area>, <city>"', () => {
+    expect(describeProject(project)).toBe('BKR Lakeview Enclave – Ongoing Villa Project at Kokapet, Hyderabad')
+  })
+  it('names one project of a plural category', () => {
+    expect(describeProject({ ...project, category: 'open-plots', status: 'completed' })).toBe(
+      'BKR Lakeview Enclave – Completed Open Plot Project at Kokapet, Hyderabad',
+    )
+  })
+  it('drops "at" rather than dangle it when the project has no locality', () => {
+    expect(describeProject({ ...project, location: { area: '', city: '' } })).toBe('BKR Lakeview Enclave – Ongoing Villa Project')
   })
 })
 
